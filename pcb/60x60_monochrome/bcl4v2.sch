@@ -87,6 +87,7 @@ LIBS:badger_dm163_LED_DRIVER
 LIBS:badger_led_matrix_8x8
 LIBS:badger_m54564fp
 LIBS:badger_npic6c595
+LIBS:bcl4v2-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
@@ -834,7 +835,7 @@ U 1 1 5BD38981
 P 1250 3050
 F 0 "J14" H 1250 3150 50  0000 C CNN
 F 1 "Conn_01x02" H 1250 2850 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Angled_1x02_Pitch2.54mm" H 1250 3050 50  0001 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x02_2.54mm_angled_handsolder" H 1250 3050 50  0001 C CNN
 F 3 "" H 1250 3050 50  0001 C CNN
 	1    1250 3050
 	-1   0    0    1   
@@ -1031,7 +1032,7 @@ U 1 1 5BD506BB
 P 1950 2500
 F 0 "J15" H 1950 2700 50  0000 C CNN
 F 1 "Conn_01x04" H 1950 2200 50  0000 C CNN
-F 2 "Pin_Headers:Pin_Header_Angled_1x04_Pitch2.54mm" H 1950 2500 50  0001 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x04_2.54mm_angled_handsolder" H 1950 2500 50  0001 C CNN
 F 3 "" H 1950 2500 50  0001 C CNN
 	1    1950 2500
 	-1   0    0    1   
@@ -1237,9 +1238,9 @@ Wire Wire Line
 	850  3600 900  3600
 Connection ~ 900  4600
 Wire Wire Line
-	850  4500 950  4500
+	950  4500 850  4500
 Wire Wire Line
-	950  4500 950  3500
+	950  3500 950  4500
 Wire Wire Line
 	850  3700 950  3700
 Connection ~ 950  3700
@@ -1263,9 +1264,9 @@ Wire Wire Line
 	1850 3600 1900 3600
 Connection ~ 1900 4600
 Wire Wire Line
-	1850 4500 1950 4500
+	1950 4500 1850 4500
 Wire Wire Line
-	1950 4500 1950 3500
+	1950 3500 1950 4500
 Wire Wire Line
 	1850 3700 1950 3700
 Connection ~ 1950 3700
@@ -1285,9 +1286,9 @@ Wire Wire Line
 	800  5050 850  5050
 Connection ~ 850  6050
 Wire Wire Line
-	800  5950 900  5950
+	900  5950 800  5950
 Wire Wire Line
-	900  5950 900  4950
+	900  4950 900  5950
 Wire Wire Line
 	800  5150 900  5150
 Connection ~ 900  5150
@@ -1307,9 +1308,9 @@ Wire Wire Line
 	1800 5050 1850 5050
 Connection ~ 1850 6050
 Wire Wire Line
-	1800 5950 1900 5950
+	1900 5950 1800 5950
 Wire Wire Line
-	1900 5950 1900 4950
+	1900 4950 1900 5950
 Wire Wire Line
 	1800 5150 1900 5150
 Connection ~ 1900 5150
@@ -1558,7 +1559,7 @@ Wire Wire Line
 Wire Wire Line
 	3650 1100 3650 1200
 Text Notes 2700 4950 0    60   ~ 0
-consider adding all those power capacitors suggested by AN4325
+consider adding all those power capacitors suggested by AN4325\n(still the "big ones" missing)
 $Comp
 L GND #PWR018
 U 1 1 5BD581B6
@@ -1746,8 +1747,6 @@ F 3 "" H 3650 1200 50  0001 C CNN
 	1    3650 1200
 	1    0    0    -1  
 $EndComp
-Text Notes 2700 5200 0    60   ~ 0
-consider moving buttons to another pin and make SPI2\n accessible on some header (maybe must the in2/in3 can be used)
 $Comp
 L C C6
 U 1 1 5BD97D7C
@@ -1895,4 +1894,7 @@ F 3 "" H 750 2850 50  0001 C CNN
 	1    750  2850
 	1    0    0    -1  
 $EndComp
+Text Notes 2700 5250 0    60   ~ 0
+consider exchanging pin 4 and 5 on the headers\nso the ones  expected to connect are adjecent
+NoConn ~ 4050 2400
 $EndSCHEMATC
