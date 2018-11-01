@@ -28,9 +28,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:badger_ir2301
-LIBS:badger_mosfet_sot669
-LIBS:badger_zxct1110
 LIBS:stm32
 LIBS:74xgxx
 LIBS:ac-dc
@@ -79,14 +76,6 @@ LIBS:video
 LIBS:Worldsemi
 LIBS:Xicor
 LIBS:Zilog
-LIBS:badger_dualmosfet_DMC2038LVT
-LIBS:wt51822-s4at
-LIBS:badger_resonator
-LIBS:LED_MATRIX_ysm-2388crgbc
-LIBS:badger_dm163_LED_DRIVER
-LIBS:badger_led_matrix_8x8
-LIBS:badger_m54564fp
-LIBS:badger_npic6c595
 LIBS:bcl4v2-cache
 EELAYER 25 0
 EELAYER END
@@ -193,9 +182,9 @@ LEDS_A6
 Text Label 4200 3350 0    60   ~ 0
 LEDS_A7
 Text Label 10550 3750 0    60   ~ 0
-USB_DM
+USB_D-
 Text Label 10550 3850 0    60   ~ 0
-USB_DP
+USB_D+
 Text Label 4200 3950 0    60   ~ 0
 I2C_SCL
 Text Label 4200 4050 0    60   ~ 0
@@ -689,8 +678,8 @@ F8 "UART_TX4" I L 5500 5650 60
 F9 "UART_RX4" I L 5500 5750 60 
 F10 "I2C_SDA" I L 5500 5850 60 
 F11 "I2C_SCL" I L 5500 5950 60 
-F12 "USB_DM" I L 5500 6150 60 
-F13 "USB_DP" I L 5500 6050 60 
+F12 "USB_D-" I L 5500 6150 60 
+F13 "USB_D+" I L 5500 6050 60 
 F14 "BOOT0" I L 5500 7300 60 
 F15 "NRST" I L 5500 7150 60 
 F16 "SWDIO" I L 5500 7050 60 
@@ -1196,10 +1185,10 @@ Text Label 5050 5950 0    60   ~ 0
 I2C_SCL
 Text Label 5000 5850 0    60   ~ 0
 I2C_SDA
-Text Label 5050 6050 0    60   ~ 0
-USB_DM
 Text Label 5050 6150 0    60   ~ 0
-USB_DP
+USB_D-
+Text Label 5050 6050 0    60   ~ 0
+USB_D+
 Wire Wire Line
 	5500 6050 4950 6050
 Wire Wire Line

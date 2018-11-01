@@ -28,9 +28,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:badger_ir2301
-LIBS:badger_mosfet_sot669
-LIBS:badger_zxct1110
 LIBS:stm32
 LIBS:74xgxx
 LIBS:ac-dc
@@ -79,14 +76,6 @@ LIBS:video
 LIBS:Worldsemi
 LIBS:Xicor
 LIBS:Zilog
-LIBS:badger_dualmosfet_DMC2038LVT
-LIBS:wt51822-s4at
-LIBS:badger_resonator
-LIBS:LED_MATRIX_ysm-2388crgbc
-LIBS:badger_dm163_LED_DRIVER
-LIBS:badger_led_matrix_8x8
-LIBS:badger_m54564fp
-LIBS:badger_npic6c595
 LIBS:bcl4v2-cache
 EELAYER 25 0
 EELAYER END
@@ -629,9 +618,9 @@ I2C_SDA
 Text HLabel 4850 3550 0    60   Input ~ 0
 I2C_SCL
 Text HLabel 10100 1950 2    60   Input ~ 0
-USB_DM
+USB_D-
 Text HLabel 10100 1850 2    60   Input ~ 0
-USB_DP
+USB_D+
 Text HLabel 3950 2600 3    60   Input ~ 0
 BTN0
 Text HLabel 3700 4600 1    60   Input ~ 0
