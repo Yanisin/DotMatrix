@@ -1,0 +1,388 @@
+(pcb /media/Truhla/prj/game_of_life/git/DotMatrix/pcb/60x60_joystick/bcl4v2.dsn
+  (parser
+    (string_quote ")
+    (space_in_quoted_tokens on)
+    (host_cad "KiCad's Pcbnew")
+    (host_version "4.0.7-e2-6376~58~ubuntu16.04.1")
+  )
+  (resolution um 10)
+  (unit um)
+  (structure
+    (layer Front
+      (type signal)
+      (property
+        (index 0)
+      )
+    )
+    (layer Back
+      (type signal)
+      (property
+        (index 1)
+      )
+    )
+    (boundary
+      (path pcb 0  70000 -74000  70000 -126000  70060.8 -126695  70241.2 -127368
+            70535.9 -128000  70935.8 -128571  71428.9 -129064  72000 -129464
+            72631.9 -129759  73305.4 -129939  74000 -130000  126000 -130000
+            126695 -129939  127368 -129759  128000 -129464  128571 -129064
+            129064 -128571  129464 -128000  129759 -127368  129939 -126695
+            130000 -126000  130000 -105000  129000 -105000  129000 -95000
+            130000 -95000  130000 -74000  129939 -73305.4  129759 -72631.9
+            129464 -72000  129064 -71428.9  128571 -70935.8  128000 -70535.9
+            127368 -70241.2  126695 -70060.8  126000 -70000  74000 -70000
+            73305.4 -70060.8  72631.9 -70241.2  72000 -70535.9  71428.9 -70935.8
+            70935.8 -71428.9  70535.9 -72000  70241.2 -72631.9  70060.8 -73305.4
+            70000 -74000  70000 -74000)
+    )
+    (plane GND (polygon Front 0  70000 -70000  130000 -70000  130000 -130000  70000 -130000))
+    (plane GND (polygon Back 0  70000 -70000  130000 -70000  130000 -130000  70000 -130000))
+    (via "Via[0-1]_889:609.6_um" "Via[0-1]_1346.2:711.2_um")
+    (rule
+      (width 203.2)
+      (clearance 203.3)
+      (clearance 203.3 (type default_smd))
+      (clearance 50.8 (type smd_smd))
+    )
+  )
+  (placement
+    (component Capacitors_SMD:C_0805_HandSoldering
+      (place C1 92000 -81000 front 270 (PN 4u7))
+      (place C3 99000 -81000 front 90 (PN 4u7))
+      (place C2 106500 -81000 front 270 (PN 100n))
+    )
+    (component Resistors_SMD:R_0805_HandSoldering
+      (place R14 103500 -81000 front 90 (PN 220k))
+    )
+    (component "kicad_libraries_new:badger_SOT-23_handsolder"
+      (place U1 95500 -81000 front 90 (PN "DS9166A-23"))
+      (place Q1 88000 -81000 front 90 (PN IRLML6402))
+    )
+    (component kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder
+      (place J1 83490 -71270 back 90 (PN Conn_01x05))
+      (place J2 116510 -71270 back 270 (PN Conn_01x05))
+      (place J4 116510 -128730 back 270 (PN Conn_01x05))
+      (place J5 83490 -128730 back 90 (PN Conn_01x05))
+      (place J6 71270 -116510 back 180 (PN Conn_01x05))
+      (place J7 71270 -83490 back 0 (PN Conn_01x05))
+      (place J8 128730 -83490 back 0 (PN Conn_01x05))
+    )
+    (component kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder::1
+      (place J3 128730 -116510 back 180 (PN Conn_01x05))
+    )
+    (component "kicad_libraries_new:badger_RKJXV1224 Joystick"
+      (place R1 85000 -100000 front 0 (PN RKJXV1224_Joystick))
+    )
+    (component Buttons_Switches_ThroughHole:SW_PUSH_6mm_h5mm
+      (place SW1 110000 -105000 front 180 (PN SW_Push))
+      (place SW2 120000 -95000 front 180 (PN SW_Push))
+    )
+    (component badger_footprints_kicad_4x:badger_mount_M3
+      (place J9 74000 -74000 front 0 (PN Conn_01x01_Female))
+      (place J10 126000 -74000 front 0 (PN Conn_01x01_Female))
+      (place J11 126000 -126000 front 0 (PN Conn_01x01_Female))
+      (place J12 74000 -126000 front 0 (PN Conn_01x01_Female))
+    )
+  )
+  (library
+    (image Capacitors_SMD:C_0805_HandSoldering
+      (outline (path signal 100  -1000 -620  -1000 620))
+      (outline (path signal 100  1000 -620  -1000 -620))
+      (outline (path signal 100  1000 620  1000 -620))
+      (outline (path signal 100  -1000 620  1000 620))
+      (outline (path signal 120  500 850  -500 850))
+      (outline (path signal 120  -500 -850  500 -850))
+      (outline (path signal 50  -2250 880  2250 880))
+      (outline (path signal 50  -2250 880  -2250 -870))
+      (outline (path signal 50  2250 -870  2250 880))
+      (outline (path signal 50  2250 -870  -2250 -870))
+      (pin Rect[T]Pad_1500x1250_um 1 -1250 0)
+      (pin Rect[T]Pad_1500x1250_um 2 1250 0)
+    )
+    (image Resistors_SMD:R_0805_HandSoldering
+      (outline (path signal 100  -1000 -620  -1000 620))
+      (outline (path signal 100  1000 -620  -1000 -620))
+      (outline (path signal 100  1000 620  1000 -620))
+      (outline (path signal 100  -1000 620  1000 620))
+      (outline (path signal 120  600 -880  -600 -880))
+      (outline (path signal 120  -600 880  600 880))
+      (outline (path signal 50  -2350 900  2350 900))
+      (outline (path signal 50  -2350 900  -2350 -900))
+      (outline (path signal 50  2350 -900  2350 900))
+      (outline (path signal 50  2350 -900  -2350 -900))
+      (pin Rect[T]Pad_1500x1300_um 1 -1350 0)
+      (pin Rect[T]Pad_1500x1300_um 2 1350 0)
+    )
+    (image "kicad_libraries_new:badger_SOT-23_handsolder"
+      (outline (path signal 100  -700 950  -700 -1500))
+      (outline (path signal 100  -150 1520  700 1520))
+      (outline (path signal 100  -700 950  -150 1520))
+      (outline (path signal 100  700 1520  700 -1520))
+      (outline (path signal 100  -700 -1520  700 -1520))
+      (outline (path signal 120  760 -1580  760 -650))
+      (outline (path signal 120  760 1580  760 650))
+      (outline (path signal 50  -1700 1750  1700 1750))
+      (outline (path signal 50  1700 1750  1700 -1750))
+      (outline (path signal 50  1700 -1750  -1700 -1750))
+      (outline (path signal 50  -1700 -1750  -1700 1750))
+      (outline (path signal 120  760 1580  -1400 1580))
+      (outline (path signal 120  760 -1580  -700 -1580))
+      (pin Rect[T]Pad_1500x800_um 1 -1350 950)
+      (pin Rect[T]Pad_1500x800_um 2 -1350 -950)
+      (pin Rect[T]Pad_1500x800_um 3 1350 0)
+    )
+    (image kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder
+      (outline (path signal 100  -635 1270  1270 1270))
+      (outline (path signal 100  1270 1270  1270 -11430))
+      (outline (path signal 100  1270 -11430  -1270 -11430))
+      (outline (path signal 100  -1270 -11430  -1270 635))
+      (outline (path signal 100  -1270 635  -635 1270))
+      (outline (path signal 120  -1330 -11490  1330 -11490))
+      (outline (path signal 120  -1330 -1270  -1330 -11490))
+      (outline (path signal 120  1330 -1270  1330 -11490))
+      (outline (path signal 120  -1330 -1270  1330 -1270))
+      (outline (path signal 120  -1330 0  -1330 1330))
+      (outline (path signal 120  -1330 1330  0 1330))
+      (outline (path signal 50  -1800 1800  -1800 -11950))
+      (outline (path signal 50  -1800 -11950  1800 -11950))
+      (outline (path signal 50  1800 -11950  1800 1800))
+      (outline (path signal 50  1800 1800  -1800 1800))
+      (pin Rect[A]Pad_2300x1700_um 1 0 0)
+      (pin Oval[A]Pad_2300x1700_um 2 0 -2540)
+      (pin Oval[A]Pad_2300x1700_um 3 0 -5080)
+      (pin Oval[A]Pad_2300x1700_um 4 0 -7620)
+      (pin Oval[A]Pad_2300x1700_um 5 0 -10160)
+    )
+    (image kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder::1
+      (outline (path signal 100  -635 1270  1270 1270))
+      (outline (path signal 100  1270 1270  1270 -11430))
+      (outline (path signal 100  1270 -11430  -1270 -11430))
+      (outline (path signal 100  -1270 -11430  -1270 635))
+      (outline (path signal 100  -1270 635  -635 1270))
+      (outline (path signal 120  -1330 -11490  1330 -11490))
+      (outline (path signal 120  -1330 -1270  -1330 -11490))
+      (outline (path signal 120  1330 -1270  1330 -11490))
+      (outline (path signal 120  -1330 -1270  1330 -1270))
+      (outline (path signal 120  -1330 0  -1330 1330))
+      (outline (path signal 120  -1330 1330  0 1330))
+      (outline (path signal 50  -1800 1800  -1800 -11950))
+      (outline (path signal 50  -1800 -11950  1800 -11950))
+      (outline (path signal 50  1800 -11950  1800 1800))
+      (outline (path signal 50  1800 1800  -1800 1800))
+      (pin Rect[A]Pad_2300x1700_um 1 0 0)
+      (pin Oval[A]Pad_2300x1700_um 2 0 -2540)
+      (pin Oval[A]Pad_2300x1700_um 3 0 -5080)
+      (pin Oval[A]Pad_2300x1700_um 128, 0 -7620)
+      (pin Oval[A]Pad_2300x1700_um 5 0 -10160)
+    )
+    (image "kicad_libraries_new:badger_RKJXV1224 Joystick"
+      (pin Round[T]Pad_2600_um @1 -3500 -3500)
+      (pin Oval[A]Pad_1800x2800_um 1 -2500 8730)
+      (pin Oval[A]Pad_1800x2800_um 2 0 8730)
+      (pin Oval[A]Pad_1800x2800_um 3 2500 8730)
+      (pin Oval[A]Pad_2800x1800_um 4 8730 2500)
+      (pin Oval[A]Pad_2800x1800_um 5 8730 0)
+      (pin Oval[A]Pad_2800x1800_um 6 8730 -2500)
+      (pin Oval[A]Pad_2800x1800_um 7 -3250 -5750)
+      (pin Oval[A]Pad_2800x1800_um 8 3250 -5750)
+      (pin Oval[A]Pad_2800x1800_um 9 -3250 -10250)
+      (pin Oval[A]Pad_2800x1800_um 10 3250 -10250)
+      (pin Oval[A]Pad_2000x3500_um 11 6325 -5000)
+      (pin Oval[A]Pad_2000x3500_um 12 6325 5000)
+      (pin Oval[A]Pad_2000x3500_um 13 -6325 5000)
+      (pin Oval[A]Pad_2000x3500_um 14 -6325 -5000)
+      (pin Round[T]Pad_4000_um @2 0 0)
+      (pin Round[T]Pad_2600_um @3 3500 -3500)
+      (pin Round[T]Pad_3500_um @4 0 -8000)
+      (pin Rect[T]Pad_2200x8000_um @5 0 -4000)
+      (pin Round[T]Pad_2600_um @6 -3500 3500)
+      (pin Round[T]Pad_2600_um @7 3500 3500)
+      (keepout "" (circle Front 1600 -4300 0))
+      (keepout "" (circle Back 1600 -4300 0))
+      (keepout "" (circle Front 1600 4300 0))
+      (keepout "" (circle Back 1600 4300 0))
+    )
+    (image Buttons_Switches_ThroughHole:SW_PUSH_6mm_h5mm
+      (outline (path signal 100  3250 750  6250 750))
+      (outline (path signal 100  6250 750  6250 -5250))
+      (outline (path signal 100  6250 -5250  250 -5250))
+      (outline (path signal 100  250 -5250  250 750))
+      (outline (path signal 100  250 750  3250 750))
+      (outline (path signal 50  7750 -6000  8000 -6000))
+      (outline (path signal 50  8000 -6000  8000 -5750))
+      (outline (path signal 50  7750 1500  8000 1500))
+      (outline (path signal 50  8000 1500  8000 1250))
+      (outline (path signal 50  -1500 1250  -1500 1500))
+      (outline (path signal 50  -1500 1500  -1250 1500))
+      (outline (path signal 50  -1500 -5750  -1500 -6000))
+      (outline (path signal 50  -1500 -6000  -1250 -6000))
+      (outline (path signal 50  -1250 1500  7750 1500))
+      (outline (path signal 50  -1500 -5750  -1500 1250))
+      (outline (path signal 50  7750 -6000  -1250 -6000))
+      (outline (path signal 50  8000 1250  8000 -5750))
+      (outline (path signal 120  1000 -5500  5500 -5500))
+      (outline (path signal 120  -250 -1500  -250 -3000))
+      (outline (path signal 120  5500 1000  1000 1000))
+      (outline (path signal 120  6750 -3000  6750 -1500))
+      (outline (path signal 100  5265.56 -2250  5166.92 -2872.84  4880.63 -3434.72  4434.72 -3880.63
+            3872.84 -4166.92  3250 -4265.56  2627.16 -4166.92  2065.28 -3880.63
+            1619.37 -3434.72  1333.08 -2872.84  1234.44 -2250  1333.08 -1627.16
+            1619.37 -1065.28  2065.28 -619.374  2627.16 -333.084  3250 -234.436
+            3872.84 -333.084  4434.72 -619.374  4880.63 -1065.28  5166.92 -1627.16))
+      (pin Round[A]Pad_2000_um (rotate 90) 2 0 -4500)
+      (pin Round[A]Pad_2000_um (rotate 90) 1 0 0)
+      (pin Round[A]Pad_2000_um (rotate 90) 2@1 6500 -4500)
+      (pin Round[A]Pad_2000_um (rotate 90) 1@1 6500 0)
+    )
+    (image badger_footprints_kicad_4x:badger_mount_M3
+      (pin Round[A]Pad_7000_um 1 0 0)
+    )
+    (padstack Round[A]Pad_2000_um
+      (shape (circle Front 2000))
+      (shape (circle Back 2000))
+      (attach off)
+    )
+    (padstack Round[T]Pad_2600_um
+      (shape (circle Front 2600))
+      (attach off)
+    )
+    (padstack Round[T]Pad_3500_um
+      (shape (circle Front 3500))
+      (attach off)
+    )
+    (padstack Round[T]Pad_4000_um
+      (shape (circle Front 4000))
+      (attach off)
+    )
+    (padstack Round[A]Pad_7000_um
+      (shape (circle Front 7000))
+      (shape (circle Back 7000))
+      (attach off)
+    )
+    (padstack Oval[A]Pad_2300x1700_um
+      (shape (path Front 1700  -300 0  300 0))
+      (shape (path Back 1700  -300 0  300 0))
+      (attach off)
+    )
+    (padstack Oval[A]Pad_2800x1800_um
+      (shape (path Front 1800  -500 0  500 0))
+      (shape (path Back 1800  -500 0  500 0))
+      (attach off)
+    )
+    (padstack Oval[A]Pad_1800x2800_um
+      (shape (path Front 1800  0 -500  0 500))
+      (shape (path Back 1800  0 -500  0 500))
+      (attach off)
+    )
+    (padstack Oval[A]Pad_2000x3500_um
+      (shape (path Front 2000  0 -750  0 750))
+      (shape (path Back 2000  0 -750  0 750))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_2200x8000_um
+      (shape (rect Front -1100 -4000 1100 4000))
+      (attach off)
+    )
+    (padstack Rect[A]Pad_2300x1700_um
+      (shape (rect Front -1150 -850 1150 850))
+      (shape (rect Back -1150 -850 1150 850))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1500x800_um
+      (shape (rect Front -750 -400 750 400))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1500x1250_um
+      (shape (rect Front -750 -625 750 625))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1500x1300_um
+      (shape (rect Front -750 -650 750 650))
+      (attach off)
+    )
+    (padstack "Via[0-1]_889:609.6_um"
+      (shape (circle Front 889))
+      (shape (circle Back 889))
+      (attach off)
+    )
+    (padstack "Via[0-1]_1346.2:711.2_um"
+      (shape (circle Front 1346.2))
+      (shape (circle Back 1346.2))
+      (attach off)
+    )
+  )
+  (network
+    (net GND
+      (pins C1-2 C3-2 C2-1 U1-1 J1-1 J2-1 J4-1 J5-1 J6-1 J7-1 J8-1 Q1-1 J3-1 R1-3
+        R1-6 R1-9 R1-10 R1-11 R1-12 R1-13 R1-14 SW1-2 SW1-2@1 SW2-2 SW2-2@1)
+    )
+    (net +5V
+      (pins C1-1 U1-3 Q1-2)
+    )
+    (net +3V3
+      (pins C3-1 R14-1 U1-2 R1-1 R1-4)
+    )
+    (net VCC
+      (pins J1-2 J2-2 J4-2 J5-2 J6-2 J7-2 J8-2 Q1-3 J3-2)
+    )
+    (net /I2C_SCL
+      (pins J1-4 J5-4 J6-4 J7-4)
+    )
+    (net /I2C_SDA
+      (pins J2-4 J4-4 J8-4)
+    )
+    (net /BTN0
+      (pins J1-5 J4-5 J5-5 J8-5 R1-7 R1-8 SW2-1 SW2-1@1)
+    )
+    (net /BTN1
+      (pins C2-2 R14-2 J2-5 J6-5 J7-5 J3-5 SW1-1 SW1-1@1)
+    )
+    (net /AOUT1
+      (pins J1-3 J4-3 J5-3 J8-3 R1-5)
+    )
+    (net /AOUT0
+      (pins J2-3 J6-3 J7-3 J3-3 R1-2)
+    )
+    (net "Net-(J9-Pad1)"
+      (pins J9-1)
+    )
+    (net "Net-(J10-Pad1)"
+      (pins J10-1)
+    )
+    (net "Net-(J11-Pad1)"
+      (pins J11-1)
+    )
+    (net "Net-(J12-Pad1)"
+      (pins J12-1)
+    )
+    (class kicad_default
+      (circuit
+        (use_via Via[0-1]_889:609.6_um)
+      )
+      (rule
+        (width 203.2)
+        (clearance 203.3)
+      )
+    )
+    (class led_power
+      (circuit
+        (use_via Via[0-1]_889:609.6_um)
+      )
+      (rule
+        (width 304.8)
+        (clearance 203.3)
+      )
+    )
+    (class power "" +3V3 +5V /AOUT0 /AOUT1 /BTN0 /BTN1 /I2C_SCL /I2C_SDA GND
+      "Net-(J10-Pad1)" "Net-(J11-Pad1)" "Net-(J12-Pad1)" "Net-(J9-Pad1)" VCC
+      (circuit
+        (use_via Via[0-1]_1346.2:711.2_um)
+      )
+      (rule
+        (width 609.6)
+        (clearance 254.1)
+      )
+    )
+  )
+  (wiring
+  )
+)
