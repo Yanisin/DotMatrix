@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name bcl4v2-cache)(type Legacy)(uri /home/maw/projects/dotmatrix/DotMatrix/pcb/60x60_monochrome/bcl4v2-cache.lib)(options "")(descr "")(disabled))
+  (lib (name TC15-11SRWA)(type Legacy)(uri /home/maw/projects/dotmatrix/DotMatrix/pcb/libraries/TC15-11SRWA.lib)(options "")(descr ""))
+)
