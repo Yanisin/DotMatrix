@@ -25,3 +25,7 @@ attach the SWD interface of the MCU via stlink-v2 programmer and issue "make prg
 - J8 and J9 - USART_TX and RX are exchanged 
 - The copy of J3 (USB) on bottom does not have the GND pin connected
 - BOOT0 pin floating, shoud be tight to ground
+
+## 60x60_monochrome (rev. 0.2)
+
+- the mounting holes are not in 10x10 matrix
