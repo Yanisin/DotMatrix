@@ -54,13 +54,13 @@ static void receive_new(void)
  uint32_t c;
 	int i;
 
-	while ((c=get_char(NORTH)) != (uint32_t)-1) {
+	while ((c=get_char(USART_DIR_UP)) != (uint32_t)-1) {
 		if(c < '0' || c >'7' ) {
 			continue;
 		}
-//		send_char(NORTH,'(');
-//		send_char(NORTH,c);
-//		send_char(NORTH,')');
+//		send_char(USART_DIR_UP,'(');
+//		send_char(USART_DIR_UP,c);
+//		send_char(USART_DIR_UP,')');
 		for (i=0;i<MAX_DOTS;i++) {
 			if(dots[i].used == 0) {
 				dots[i].x = c-'0';
@@ -73,7 +73,7 @@ static void receive_new(void)
 		}
 	}
 
-	while ((c=get_char(SOUTH)) != (uint32_t)-1) {
+	while ((c=get_char(USART_DIR_DOWN)) != (uint32_t)-1) {
 		if(c < '0' || c >'7' ) {
 			continue;
 		}
@@ -89,7 +89,7 @@ static void receive_new(void)
 		}
 	}
 
-	while ((c=get_char(EAST)) != (uint32_t)-1) {
+	while ((c=get_char(USART_DIR_RIGHT)) != (uint32_t)-1) {
 		if(c < '0' || c >'7' ) {
 			continue;
 		}
@@ -105,10 +105,10 @@ static void receive_new(void)
 		}
 	}
 
-	while ((c=get_char(WEST)) != (uint32_t)-1) {
-//		send_char(WEST,'(');
-//		send_char(WEST,c);
-//		send_char(WEST,')');
+	while ((c=get_char(USART_DIR_LEFT)) != (uint32_t)-1) {
+//		send_char(USART_DIR_LEFT,'(');
+//		send_char(USART_DIR_LEFT,c);
+//		send_char(USART_DIR_LEFT,')');
 		if(c < '0' || c >'7' ) {
 			continue;
 		}
@@ -161,7 +161,7 @@ static void move_dots(void)
 			switch(dots[i].direction) {
 				case 0:
 					if(dots[i].x == 0) {
-						send_char(WEST,dots[i].y+'0');
+						send_char(USART_DIR_LEFT,dots[i].y+'0');
 						dots[i].used = 0;
 						dots_num--;
 					} else {
@@ -170,7 +170,7 @@ static void move_dots(void)
 					break;
 				case 1:
 					if(dots[i].x == 7) {
-						send_char(EAST,dots[i].y+'0');
+						send_char(USART_DIR_RIGHT,dots[i].y+'0');
 						dots[i].used = 0;
 						dots_num--;
 					} else {
@@ -180,7 +180,7 @@ static void move_dots(void)
 				case 2:
 					if(dots[i].y == 0) {
 						dots[i].used = 0;
-						send_char(NORTH,dots[i].x+'0');
+						send_char(USART_DIR_UP,dots[i].x+'0');
 						dots_num--;
 					} else {
 						dots[i].y--;
@@ -188,7 +188,7 @@ static void move_dots(void)
 					break;
 				case 3:
 					if(dots[i].y == 7) {
-						send_char(SOUTH,dots[i].x+'0');
+						send_char(USART_DIR_DOWN,dots[i].x+'0');
 						dots[i].used = 0;
 						dots_num--;
 					} else {

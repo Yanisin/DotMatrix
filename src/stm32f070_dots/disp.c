@@ -16,7 +16,7 @@
 #include "hw_defs.h"
 #define COLOR_DEPTH 32
 
-static uint8_t disp_state[DISP_ROWS][DISP_COLUMNS];
+static uint8_t disp_state[DISP_ROWS_NUM][DISP_COLS_NUM];
 static uint8_t curr_row;
 
 static void disp_tick(void);
@@ -94,50 +94,24 @@ static void disp_out_init(void);
 static void disp_out_init(void) 
 {
 
-	rcc_periph_clock_enable(RCC_GPIOA);
-	rcc_periph_clock_enable(RCC_GPIOB);
-	gpio_mode_setup(GPIOA, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO6);
-	gpio_mode_setup(GPIOA, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO7);
-	gpio_mode_setup(GPIOA, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO8);
-	gpio_mode_setup(GPIOA, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO9);
-	gpio_mode_setup(GPIOA, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO10);
-	gpio_mode_setup(GPIOB, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);
-	gpio_mode_setup(GPIOB, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO1);
-	gpio_mode_setup(GPIOB, 
-		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO2);
+	rcc_periph_clock_enable(RCC_GPIOA |RCC_GPIOB);
+	gpio_mode_setup(DISP_GPIO_ROW0, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW0);
+	gpio_mode_setup(DISP_GPIO_ROW1, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW1);
+	gpio_mode_setup(DISP_GPIO_ROW2, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW2);
+	gpio_mode_setup(DISP_GPIO_ROW3, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW3);
+	gpio_mode_setup(DISP_GPIO_ROW4, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW4);
+	gpio_mode_setup(DISP_GPIO_ROW5, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW5);
+	gpio_mode_setup(DISP_GPIO_ROW6, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW6);
+	gpio_mode_setup(DISP_GPIO_ROW7, 
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_GPIOP_ROW7);
 }
-
-#define GPIO_ROW0 GPIOA
-#define GPIOP_ROW0 GPIO6
-
-#define GPIO_ROW1 GPIOA
-#define GPIOP_ROW1 GPIO7
-
-#define GPIO_ROW2 GPIOA
-#define GPIOP_ROW2 GPIO8
-
-#define GPIO_ROW3 GPIOA
-#define GPIOP_ROW3 GPIO9
-
-#define GPIO_ROW4 GPIOA
-#define GPIOP_ROW4 GPIO10
-
-#define GPIO_ROW5 GPIOB
-#define GPIOP_ROW5 GPIO0
-
-#define GPIO_ROW6 GPIOB
-#define GPIOP_ROW6 GPIO1
-
-#define GPIO_ROW7 GPIOB
-#define GPIOP_ROW7 GPIO2
-
 
 void row_off(uint8_t pos);
 void row_on(uint8_t pos);
@@ -145,28 +119,28 @@ void row_on(uint8_t pos)
 {
 	switch (pos) {
 		case 0:
-			gpio_set(GPIO_ROW0, GPIOP_ROW0);
+			gpio_set(DISP_GPIO_ROW0, DISP_GPIOP_ROW0);
 		break;
 		case 1:
-			gpio_set(GPIO_ROW1, GPIOP_ROW1);
+			gpio_set(DISP_GPIO_ROW1, DISP_GPIOP_ROW1);
 		break;
 		case 2:
-			gpio_set(GPIO_ROW2, GPIOP_ROW2);
+			gpio_set(DISP_GPIO_ROW2, DISP_GPIOP_ROW2);
 		break;
 		case 3:
-			gpio_set(GPIO_ROW3, GPIOP_ROW3);
+			gpio_set(DISP_GPIO_ROW3, DISP_GPIOP_ROW3);
 		break;
 		case 4:
-			gpio_set(GPIO_ROW4, GPIOP_ROW4);
+			gpio_set(DISP_GPIO_ROW4, DISP_GPIOP_ROW4);
 		break;
 		case 5:
-			gpio_set(GPIO_ROW5, GPIOP_ROW5);
+			gpio_set(DISP_GPIO_ROW5, DISP_GPIOP_ROW5);
 		break;
 		case 6:
-			gpio_set(GPIO_ROW6, GPIOP_ROW6);
+			gpio_set(DISP_GPIO_ROW6, DISP_GPIOP_ROW6);
 		break;
 		case 7:
-			gpio_set(GPIO_ROW7, GPIOP_ROW7);
+			gpio_set(DISP_GPIO_ROW7, DISP_GPIOP_ROW7);
 		break;
 	}
 }
@@ -175,28 +149,28 @@ void row_off(uint8_t pos)
 {
 	switch (pos) {
 		case 0:
-			gpio_clear(GPIO_ROW0, GPIOP_ROW0);
+			gpio_clear(DISP_GPIO_ROW0, DISP_GPIOP_ROW0);
 		break;
 		case 1:
-			gpio_clear(GPIO_ROW1, GPIOP_ROW1);
+			gpio_clear(DISP_GPIO_ROW1, DISP_GPIOP_ROW1);
 		break;
 		case 2:
-			gpio_clear(GPIO_ROW2, GPIOP_ROW2);
+			gpio_clear(DISP_GPIO_ROW2, DISP_GPIOP_ROW2);
 		break;
 		case 3:
-			gpio_clear(GPIO_ROW3, GPIOP_ROW3);
+			gpio_clear(DISP_GPIO_ROW3, DISP_GPIOP_ROW3);
 		break;
 		case 4:
-			gpio_clear(GPIO_ROW4, GPIOP_ROW4);
+			gpio_clear(DISP_GPIO_ROW4, DISP_GPIOP_ROW4);
 		break;
 		case 5:
-			gpio_clear(GPIO_ROW5, GPIOP_ROW5);
+			gpio_clear(DISP_GPIO_ROW5, DISP_GPIOP_ROW5);
 		break;
 		case 6:
-			gpio_clear(GPIO_ROW6, GPIOP_ROW6);
+			gpio_clear(DISP_GPIO_ROW6, DISP_GPIOP_ROW6);
 		break;
 		case 7:
-			gpio_clear(GPIO_ROW7, GPIOP_ROW7);
+			gpio_clear(DISP_GPIO_ROW7, DISP_GPIOP_ROW7);
 		break;
 	}
 }
@@ -237,13 +211,13 @@ static void disp_tick(void) {
 		row_off(curr_row);
 		/* set new row */
 		curr_row++;
-		if (curr_row >= DISP_ROWS) {
+		if (curr_row >= DISP_ROWS_NUM) {
 			curr_row = 0;
 		}
 	}
 	if (progress > 1 ) {
 			col=0;
-		for(i=0;i<DISP_COLUMNS;i++) {
+		for(i=0;i<DISP_COLS_NUM;i++) {
 		if(disp_state[curr_row][i] > progress-1) {
 //			if(disp_state[curr_row][i]) {
 //				col_on(i);
@@ -275,8 +249,8 @@ static void disp_tick(void) {
 void disp_clean(void)
 {
 	int i,j;
-	for (i=0;i<DISP_ROWS;i++) {
-		for (j=0;j<DISP_COLUMNS;j++) {
+	for (i=0;i<DISP_ROWS_NUM;i++) {
+		for (j=0;j<DISP_COLS_NUM;j++) {
 			disp_state[i][j]=0;
 		}
 	}

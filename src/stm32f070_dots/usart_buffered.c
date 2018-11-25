@@ -260,21 +260,21 @@ void send_char(uint8_t u, uint8_t c)
 		tx_buf_head[u] = GET_NEXT(TX_BUF_SIZE, tx_buf_head[u]);
 	}
 	switch (u){
-		case NORTH:
+		case USART_DIR_UP:
 	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_NORTH) |= USART_CR1_TXEIE;
+		USART_CR1(USART_UP) |= USART_CR1_TXEIE;
 		break;
-		case EAST:
+		case USART_DIR_RIGHT:
 	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_EAST) |= USART_CR1_TXEIE;
+		USART_CR1(USART_RIGHT) |= USART_CR1_TXEIE;
 		break;
-		case SOUTH:
+		case USART_DIR_DOWN:
 	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_SOUTH) |= USART_CR1_TXEIE;
+		USART_CR1(USART_DOWN) |= USART_CR1_TXEIE;
 		break;
-		case WEST:
+		case USART_DIR_LEFT:
 	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_WEST) |= USART_CR1_TXEIE;
+		USART_CR1(USART_LEFT) |= USART_CR1_TXEIE;
 		break;
 	}
 }
@@ -307,65 +307,65 @@ void usart_init(void)
 
 //	gpio_setup();
 	usart_setup(
-			USART_NORTH,
-			USART_NORTH_RCC,
-			USART_NORTH_IRQ,
-			USART_NORTH_RX_RCC,
-			USART_NORTH_RX_PORT,
-			USART_NORTH_RX_PIN,
-			USART_NORTH_RX_AF_NUM,
-			USART_NORTH_TX_RCC,
-			USART_NORTH_TX_PORT,
-			USART_NORTH_TX_PIN,
-			USART_NORTH_TX_AF_NUM);
+			USART_UP,
+			USART_UP_RCC,
+			USART_UP_IRQ,
+			USART_UP_RX_RCC,
+			USART_UP_RX_PORT,
+			USART_UP_RX_PIN,
+			USART_UP_RX_AF_NUM,
+			USART_UP_TX_RCC,
+			USART_UP_TX_PORT,
+			USART_UP_TX_PIN,
+			USART_UP_TX_AF_NUM);
 
 	usart_setup(
-			USART_EAST,
-			USART_EAST_RCC,
-			USART_EAST_IRQ,
-			USART_EAST_RX_RCC,
-			USART_EAST_RX_PORT,
-			USART_EAST_RX_PIN,
-			USART_EAST_RX_AF_NUM,
-			USART_EAST_TX_RCC,
-			USART_EAST_TX_PORT,
-			USART_EAST_TX_PIN,
-			USART_EAST_TX_AF_NUM);
+			USART_RIGHT,
+			USART_RIGHT_RCC,
+			USART_RIGHT_IRQ,
+			USART_RIGHT_RX_RCC,
+			USART_RIGHT_RX_PORT,
+			USART_RIGHT_RX_PIN,
+			USART_RIGHT_RX_AF_NUM,
+			USART_RIGHT_TX_RCC,
+			USART_RIGHT_TX_PORT,
+			USART_RIGHT_TX_PIN,
+			USART_RIGHT_TX_AF_NUM);
 
 	usart_setup(
-			USART_SOUTH,
-			USART_SOUTH_RCC,
-			USART_SOUTH_IRQ,
-			USART_SOUTH_RX_RCC,
-			USART_SOUTH_RX_PORT,
-			USART_SOUTH_RX_PIN,
-			USART_SOUTH_RX_AF_NUM,
-			USART_SOUTH_TX_RCC,
-			USART_SOUTH_TX_PORT,
-			USART_SOUTH_TX_PIN,
-			USART_SOUTH_TX_AF_NUM);
+			USART_DOWN,
+			USART_DOWN_RCC,
+			USART_DOWN_IRQ,
+			USART_DOWN_RX_RCC,
+			USART_DOWN_RX_PORT,
+			USART_DOWN_RX_PIN,
+			USART_DOWN_RX_AF_NUM,
+			USART_DOWN_TX_RCC,
+			USART_DOWN_TX_PORT,
+			USART_DOWN_TX_PIN,
+			USART_DOWN_TX_AF_NUM);
 
 	usart_setup(
-			USART_WEST,
-			USART_WEST_RCC,
-			USART_WEST_IRQ,
-			USART_WEST_RX_RCC,
-			USART_WEST_RX_PORT,
-			USART_WEST_RX_PIN,
-			USART_WEST_RX_AF_NUM,
-			USART_WEST_TX_RCC,
-			USART_WEST_TX_PORT,
-			USART_WEST_TX_PIN,
-			USART_WEST_TX_AF_NUM);
+			USART_LEFT,
+			USART_LEFT_RCC,
+			USART_LEFT_IRQ,
+			USART_LEFT_RX_RCC,
+			USART_LEFT_RX_PORT,
+			USART_LEFT_RX_PIN,
+			USART_LEFT_RX_AF_NUM,
+			USART_LEFT_TX_RCC,
+			USART_LEFT_TX_PORT,
+			USART_LEFT_TX_PIN,
+			USART_LEFT_TX_AF_NUM);
 }
 #if 0
 void main(void){
 	usart_init();
-	usart_send_blocking(USART_NORTH,'x');
-	send_char(NORTH, 'N');
-	send_char(EAST, 'E');
-	send_char(SOUTH, 'S');
-	send_char(WEST, 'W');
+	usart_send_blocking(USART_UP,'x');
+	send_char(USART_DIR_UP, 'N');
+	send_char(USART_DIR_RIGHT, 'E');
+	send_char(USART_DIR_DOWN, 'S');
+	send_char(USART_DIR_LEFT, 'W');
 
 	/* Wait forever and do nothing. */
 	while (1){
@@ -374,21 +374,21 @@ void main(void){
 		__asm__("nop");
 		__asm__("nop");
 		__asm__("nop");
-		c = get_char(NORTH);
+		c = get_char(USART_DIR_UP);
 		if( c != (uint32_t)-1) {
-			send_char(NORTH,(uint8_t)c);
+			send_char(USART_DIR_UP,(uint8_t)c);
 		}
-			c = get_char(EAST);
+			c = get_char(USART_DIR_RIGHT);
 		if( c != (uint32_t)-1) {
-			send_char(EAST,(uint8_t)c);
+			send_char(USART_DIR_RIGHT,(uint8_t)c);
 		}
-				c = get_char(SOUTH);
+				c = get_char(USART_DIR_DOWN);
 		if( c != (uint32_t)-1) {
-			send_char(SOUTH,(uint8_t)c);
+			send_char(USART_DIR_DOWN,(uint8_t)c);
 		}
-				c = get_char(WEST);
+				c = get_char(USART_DIR_LEFT);
 		if( c != (uint32_t)-1) {
-			send_char(WEST,(uint8_t)c);
+			send_char(USART_DIR_LEFT,(uint8_t)c);
 		}
 	
 	
