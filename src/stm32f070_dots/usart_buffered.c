@@ -23,6 +23,7 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
 
+#include "hw_defs.h"
 #include "usart_buffered.h"
 
 

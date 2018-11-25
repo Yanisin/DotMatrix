@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "hw_defs.h"
 #include "dots.h"
 #include "rand.h"
 #include "disp.h"

@@ -10,7 +10,7 @@
 #include <libopencm3/stm32/usart.h>
 #endif
 
-//#include "hw_defs.h"
+#include "hw_defs.h"
 #include "disp.h"
 #include "ticker.h"
 #include "dots.h"
