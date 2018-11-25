@@ -7,3 +7,6 @@ prg: $(BINARY).bin
 	@echo programming...
 	openocd -f ../openocd_stm32_orange.cfg -c"init" -c"reset halt" -c"flash write_image erase $(BINARY).bin 0x8000000" -c"reset" -c"exit"
 
+# FIXME what is the meaning of the number behind colon?
+prg_usb: $(BINARY).bin
+	@sudo dfu-util -a 0 -D $(BINARY).bin -s 0x08000000:131072
