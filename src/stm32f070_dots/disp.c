@@ -221,7 +221,13 @@ static void disp_tick(void) {
 		if(disp_state[curr_row][i] > progress-1) {
 //			if(disp_state[curr_row][i]) {
 //				col_on(i);
+	#ifdef DISP_COLS_DATA_BACKWARDS
+				col |= 1<<((DISP_COLS_NUM-1)-i);
+
+	#else
 				col |= 1<<i;
+	#endif
+
 //			}else {
 				//col_off(i);
 			}

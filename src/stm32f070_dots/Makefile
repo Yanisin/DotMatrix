@@ -18,8 +18,8 @@
 ##
 
 BINARY = main
-HW_VERSION = "HW_38x38_rev_0_1"
-#HW_VERSION = "HW_60x60_rev_0_2"
+#HW_VERSION = "HW_38x38_rev_0_1"
+HW_VERSION = "HW_60x60_rev_0_2"
 
 DEFS += -D$(HW_VERSION)
 OBJS= disp.o disp_spi.o ticker.o rand.o dots.o usart_buffered.o
