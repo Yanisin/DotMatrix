@@ -1,5 +1,6 @@
 *bak
 *.elf
+*.bin
 *.map
 *.o
 *.d
