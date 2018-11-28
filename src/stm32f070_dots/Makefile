@@ -17,6 +17,8 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
+TOPDIR = $(shell pwd)
+
 BINARY = main
 #HW_VERSION = "HW_38x38_rev_0_1"
 HW_VERSION = "HW_60x60_rev_0_2"
