@@ -1355,10 +1355,55 @@ U 1 1 5BFECBD9
 P 3750 4450
 F 0 "LOGO1" H 3750 4700 45  0001 C CNN
 F 1 "OSHW-LOGOM" H 3750 4050 45  0001 C CNN
-F 2 "OSHW-LOGO-M" H 3750 4750 20  0001 C CNN
+F 2 "Aesthetics:OSHW-LOGO-M" H 3750 4750 20  0001 C CNN
 F 3 "" H 3750 4450 50  0001 C CNN
 F 4 "XXX-00000" H 4228 4385 60  0001 L CNN "Field4"
 	1    3750 4450
 	1    0    0    -1  
 $EndComp
+$Comp
+L Connector:TestPoint TP1
+U 1 1 5C01787F
+P 3500 3100
+F 0 "TP1" V 3603 3174 50  0000 C CNN
+F 1 "TestPoint" V 3604 3174 50  0001 C CNN
+F 2 "TestPoint:TestPoint_THTPad_1.0x1.0mm_Drill0.5mm" H 3700 3100 50  0001 C CNN
+F 3 "~" H 3700 3100 50  0001 C CNN
+	1    3500 3100
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Connector:TestPoint TP2
+U 1 1 5C03F55A
+P 3500 3300
+F 0 "TP2" V 3603 3374 50  0000 C CNN
+F 1 "TestPoint" V 3604 3374 50  0001 C CNN
+F 2 "TestPoint:TestPoint_THTPad_1.0x1.0mm_Drill0.5mm" H 3700 3300 50  0001 C CNN
+F 3 "~" H 3700 3300 50  0001 C CNN
+	1    3500 3300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Connector:TestPoint TP3
+U 1 1 5C03F5B8
+P 3500 3500
+F 0 "TP3" V 3603 3574 50  0000 C CNN
+F 1 "TestPoint" V 3604 3574 50  0001 C CNN
+F 2 "TestPoint:TestPoint_THTPad_1.0x1.0mm_Drill0.5mm" H 3700 3500 50  0001 C CNN
+F 3 "~" H 3700 3500 50  0001 C CNN
+	1    3500 3500
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	3500 3100 4050 3100
+Wire Wire Line
+	3500 3300 4050 3300
+Wire Wire Line
+	3500 3500 4050 3500
+Text Label 3550 3100 0    50   ~ 0
+CAT_CLK
+Text Label 3550 3300 0    50   ~ 0
+CAT_STROBE
+Text Label 3600 3500 0    50   ~ 0
+CAT_DATA
 $EndSCHEMATC
