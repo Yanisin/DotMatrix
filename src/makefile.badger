@@ -3,9 +3,9 @@
 	arm-none-eabi-objcopy -O binary "$<" "$@"
 	@echo ' '
 
-prg: $(BINARY).bin
+prg: $(BINARY).elf
 	@echo programming...
-	openocd -f ../openocd_stm32_orange.cfg -c"program $(BINARY).elf verify reset exit"
+	$(OOCD) -f ../openocd_stm32_orange.cfg -c"program $(BINARY).elf verify reset exit"
 
 # FIXME what is the meaning of the number behind colon?
 prg_usb: $(BINARY).bin
