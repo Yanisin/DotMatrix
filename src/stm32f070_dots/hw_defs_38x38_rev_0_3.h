@@ -1,0 +1,103 @@
+#ifndef HW_DEFS_38X38_REV_0_3_H
+#define HW_DEFS_38X38_REV_0_3_H
+
+
+#ifndef HW_38x38_rev_0_3
+#error The matching HW selection macro not defined
+#endif
+
+/**************************************
+ *	Display Definitions
+ **************************************/
+
+#define DISP_ROWS_NUM 8
+#define DISP_COLS_NUM 8
+
+#define DISP_GPIOS_RCC (RCC_GPIOA | RCC_GPIOB)
+
+#define DISP_GPIOP_nOE_ROW GPIOA
+#define DISP_GPIOP_nOE_COL GPIOB
+#define DISP_GPIO_nOE_ROW GPIO10
+#define DISP_GPIO_nOE_COL GPIO4
+
+#define DISP_COLS_SPI SPI1
+#define DISP_COLS_GPIO_RCC (RCC_GPIOB | RCC_GPIOA)
+#define DISP_COLS_SPI_RCC RCC_SPI1
+
+#define DISP_COLS_CLK_GPIO GPIOB
+#define DISP_COLS_CLK_GPIOP GPIO3
+#define DISP_COLS_CLK_AF_NUM GPIO_AF0
+
+#define DISP_COLS_DATA_GPIO GPIOB
+#define DISP_COLS_DATA_GPIOP GPIO5
+#define DISP_COLS_DATA_AF_NUM GPIO_AF0
+
+#define DISP_COLS_STROBE_GPIOP GPIOA
+#define DISP_COLS_STROBE_GPIO GPIO15
+#define DISP_COLS_STROBE_AF_NUM GPIO_AF0
+
+
+/**************************************
+ *	USARTs Definitions
+ **************************************/
+
+#define USART_BAUDRATE 115200
+
+/*
+ * need to be the uart number - 1 because it is used as 
+ * index to the buffer array
+ */
+#define USART_DIR_UP 2
+#define USART_DIR_DOWN 0
+#define USART_DIR_LEFT 3
+#define USART_DIR_RIGHT 1
+
+#define USART_UP USART3
+#define USART_UP_RCC RCC_USART3
+#define USART_UP_IRQ NVIC_USART3_4_IRQ
+#define USART_UP_RX_RCC RCC_GPIOB 
+#define USART_UP_RX_PORT GPIOB 
+#define USART_UP_RX_PIN GPIO11
+#define USART_UP_RX_AF_NUM GPIO_AF4
+#define USART_UP_TX_RCC RCC_GPIOB 
+#define USART_UP_TX_PORT GPIOB 
+#define USART_UP_TX_PIN GPIO10
+#define USART_UP_TX_AF_NUM GPIO_AF4
+
+#define USART_DOWN USART1
+#define USART_DOWN_RCC RCC_USART1
+#define USART_DOWN_IRQ NVIC_USART1_IRQ
+#define USART_DOWN_RX_RCC RCC_GPIOB 
+#define USART_DOWN_RX_PORT GPIOB
+#define USART_DOWN_RX_PIN GPIO7
+#define USART_DOWN_RX_AF_NUM GPIO_AF0
+#define USART_DOWN_TX_RCC RCC_GPIOB
+#define USART_DOWN_TX_PORT GPIOB
+#define USART_DOWN_TX_PIN GPIO6
+#define USART_DOWN_TX_AF_NUM GPIO_AF0
+
+#define USART_LEFT USART4
+#define USART_LEFT_RCC RCC_USART4
+#define USART_LEFT_IRQ NVIC_USART3_4_IRQ
+#define USART_LEFT_RX_RCC RCC_GPIOA 
+#define USART_LEFT_RX_PORT GPIOA 
+#define USART_LEFT_RX_PIN GPIO1
+#define USART_LEFT_RX_AF_NUM GPIO_AF4
+#define USART_LEFT_TX_RCC RCC_GPIOA
+#define USART_LEFT_TX_PORT GPIOA
+#define USART_LEFT_TX_PIN GPIO0
+#define USART_LEFT_TX_AF_NUM GPIO_AF4
+
+#define USART_RIGHT USART2
+#define USART_RIGHT_RCC RCC_USART2
+#define USART_RIGHT_IRQ NVIC_USART2_IRQ
+#define USART_RIGHT_RX_RCC RCC_GPIOA 
+#define USART_RIGHT_RX_PORT GPIOA 
+#define USART_RIGHT_RX_PIN GPIO3
+#define USART_RIGHT_RX_AF_NUM GPIO_AF1
+#define USART_RIGHT_TX_RCC RCC_GPIOA
+#define USART_RIGHT_TX_PORT GPIOA
+#define USART_RIGHT_TX_PIN GPIO2
+#define USART_RIGHT_TX_AF_NUM GPIO_AF1
+
+#endif

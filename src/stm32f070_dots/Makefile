@@ -21,10 +21,11 @@ TOPDIR = $(shell pwd)
 
 BINARY = main
 #HW_VERSION = "HW_38x38_rev_0_1"
-HW_VERSION = "HW_60x60_rev_0_2"
+#HW_VERSION = "HW_60x60_rev_0_2"
+HW_VERSION = "HW_38x38_rev_0_3"
 
 DEFS += -D$(HW_VERSION)
-OBJS= disp.o disp_spi.o ticker.o rand.o dots.o usart_buffered.o
+OBJS= disp.o disp_spi.o ticker.o rand.o dots.o usart_buffered.o spi_dma.o life.o
 
 LDSCRIPT = ../stm32f070.ld
 

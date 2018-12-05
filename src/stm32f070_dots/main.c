@@ -14,6 +14,7 @@
 #include "disp.h"
 #include "ticker.h"
 #include "dots.h"
+#include "life.h"
 #include "rand.h"
 #include "usart_buffered.h"
 
@@ -32,7 +33,7 @@ GPIO_InitTypeDef GPIO_InitStructure;
 
 void led_init(void);
 
-uint8_t bright[]={1,2,3,5,7,10,14, 20, 32};
+uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
 
 static const uint8_t smileys [1][8][8] = {
 	{{ 0, 0, 1, 1, 1, 1, 0, 0},
@@ -53,11 +54,11 @@ static const uint8_t grey [1][8][8] = {
 	 { 4, 5, 6, 7, 8, 9,11,16},
 	 { 5, 6, 7, 8, 9,11,16,20},
 	 { 6, 7, 8, 9,11,16,20,27},
-	 { 7, 8, 9,11,16,20,27,32}
+	 { 7, 8, 9,11,16,20,27,31}
 	 }};
 
 
-
+#if 0
 static const uint8_t digits[6][5][5] = {
 	{{0,0,255,255,0},
 	{0,255,0,0,255},
@@ -98,7 +99,7 @@ static const uint8_t digits[6][5][5] = {
 	 {0,255,255,255,0}}
 
 };
-
+#endif
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -110,25 +111,17 @@ void led_init(void)
 	/* Set GPIO0 (in GPIO port F) to 'output push-pull'. */
 	/* Using API functions: */
 	gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED);
-rcc_periph_clock_enable(RCC_GPIOF);
 }
 
 static void led_on(void)
 {
-		gpio_set(PORT_LED, PIN_LED);	/* LED on */
+	gpio_set(PORT_LED, PIN_LED);	/* LED on */
 }
 
 static void led_off(void)
 {
-		gpio_clear(PORT_LED, PIN_LED);	/* LED on */
+	gpio_clear(PORT_LED, PIN_LED);	/* LED on */
 }
-
-#if 0
-static void led_toggle(void)
-{
-		gpio_toggle(PORT_LED, PIN_LED);	/* LED on/off */
-}
-#endif
 
 static void print_smile(uint8_t num)
 {
@@ -140,16 +133,13 @@ static void print_smile(uint8_t num)
 		pos = num;
 	}
 
-
 	for (i=0;i<8;i++) {
 		for (j=0;j<8;j++) {
 			disp_set(j,i,bright[pos]*smileys[0][i][j]);
 		}
 	}
-
 }
 
-#if 0
 static void print_grey(uint8_t num)
 {
 	int i,j;
@@ -174,73 +164,50 @@ static void print_grey(uint8_t num)
 	}
 
 }
-#endif
-
-void wait_a_bit(void);
-void wait_a_bit(void) {
-	int i;
-
-	for (i = 0; i < 10000000; i++) {	/* Wait a bit. */
-		__asm__("nop");
-
-	}
-}
-
 
 int main(void)
 {
-//volatile uint32_t   dly;
-volatile uint32_t  i=0;
+	volatile uint32_t  i=0;
 
-  /* we want 48 MHz sysclk */	
-  rcc_clock_setup_in_hsi_out_48mhz();
-rand_init();
-dots_init();
-usart_init();
-send_char(USART_DIR_UP,'N');
-send_char(USART_DIR_RIGHT,'E');
-send_char(USART_DIR_DOWN,'S');
-send_char(USART_DIR_LEFT,'W');
-  led_init();
+	/* we want 48 MHz sysclk */
+	rcc_clock_setup_in_hsi_out_48mhz();
+	usart_init();
+	send_char(USART_DIR_UP,'N');
+	send_char(USART_DIR_RIGHT,'E');
+	send_char(USART_DIR_DOWN,'S');
+	send_char(USART_DIR_LEFT,'W');
+
+	led_init();
 	ticker_init();
-  disp_init();
+	disp_init();
+	rand_init();
 
-///	for(dly = 0; dly < 100000; dly++);
-//  disp_set(0,7,255);
-//  disp_set(0,4,1);
-//  disp_set(4,4,1);
-//  disp_set(4,0,1);
-//  disp_set(1,1,1);
+	dots_init();
+	life_init();
 
-//	disp_set(2,2,1);
-//	disp_set(4,4,31);
-//
+	for ( i = 0; i < 18; i++) {
+		print_smile(i);
+		led_on();
+		ticker_msleep(20);
+		led_off();
+		ticker_msleep(20);
+	}
 
-	  for ( i = 0; i < 18; i++) {
-		  print_smile(i);
-		  led_on();
-		  ticker_msleep(20);
-		  led_off();
-		  ticker_msleep(20);
-	  }
+	for ( i = 0; i < 4; i++) {
+		print_grey(i);
+		led_on();
+		ticker_msleep(500);
+		led_off();
+		ticker_msleep(500);
+	}
 
-/*
-	  for ( i = 0; i < 4; i++) {
-		  print_grey(i);
-		  led_on();
-		  ticker_msleep(700);
-		  led_off();
-		  ticker_msleep(700);
-	  }
-
-*/
 	usart_send_blocking(USART3,'b');
 	disp_clean();
 
-		  led_on();
-while (1)
-  {
-	dots_worker();
-  }
-
+	led_on();
+	
+	while (1) {
+		__asm__ volatile ("wfi");
+		life_worker();
+	}
 }

@@ -3,12 +3,13 @@
 #include "dots.h"
 #include "rand.h"
 #include "disp.h"
+#include "ticker.h"
 #include "usart_buffered.h"
 
 #include <libopencm3/stm32/gpio.h>
 #define MAX_DOTS 16
-#define DOT_ADD_TRESHOLD 1
-#define EVERY_N_TICK 150
+#define DOT_ADD_TRESHOLD 15
+#define EVERY_N_TICK 100
 
 typedef struct dot_s {
 	uint8_t used;
@@ -20,6 +21,7 @@ typedef struct dot_s {
 
 static uint8_t dots_num;
 static dot_t dots[MAX_DOTS];
+static unsigned int dots_tick_next;
 
 void dots_init(void)
 {
@@ -27,6 +29,8 @@ void dots_init(void)
 	for (i=0;i<MAX_DOTS;i++) {
 		dots[i].used = 0;
 	}
+
+	dots_tick_next = ticker_get_ticks() + EVERY_N_TICK;
 }
 
 static void add_dot(void)
@@ -37,15 +41,9 @@ static void add_dot(void)
 			break;
 		}
 	}
-#if 1
 	dots[i].x = rand_get()%8;
 	dots[i].y = rand_get()%8;
 	dots[i].direction = rand_get()%4;
-#else
-	dots[i].x = 4;
-	dots[i].y = 4;
-	dots[i].direction = 2;
-#endif
 	dots[i].used = 1;
 	dots_num++;
 }
@@ -202,25 +200,25 @@ static void move_dots(void)
 
 }
 
-void dots_tick(void)
+static void dots_tick(void)
 {
-	static int i=0;
-	i++;
-	if (i >= EVERY_N_TICK)
-	{
 	gpio_toggle(GPIOF, GPIO0);
-		i=0;
-		hide_dots();
-		move_dots();
-		receive_new();
-		show_dots();
-		if(dots_num < DOT_ADD_TRESHOLD) {
-			add_dot();
-		}
+	hide_dots();
+	move_dots();
+	receive_new();
+	show_dots();
+	if(dots_num < DOT_ADD_TRESHOLD) {
+		add_dot();
 	}
 }
 
 void dots_worker(void)
 {
+	unsigned int tick = ticker_get_ticks();
 
+	if (tick < dots_tick_next)
+		return;
+
+	dots_tick_next = tick + EVERY_N_TICK;
+	dots_tick();
 }
