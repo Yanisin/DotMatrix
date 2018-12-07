@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <string.h>
 
 #include "life.h"
 #include "disp.h"
@@ -12,11 +13,32 @@
 static unsigned int life_tick_next;
 static int seeding;
 static int life_generation;
+static int scheduled_cleanup;
+static int last_life;
+static int life_unchanged;
+
+#define HIGHLIFE	1
+#define MONOCHROME	0
+
+#if MONOCHROME
+#define LIFE_CELL(i, j) (31)
+#else
+#define LIFE_CELL(i, j) clamp(disp_get(i, j) + 8)
+#endif
 
 void life_init(void)
 {
 	life_tick_next = ticker_get_ticks() + LIFE_TICK;
 	rand_init();
+	seeding = 8;
+}
+
+static int board_get(int col, int row)
+{
+	col %= BOARD_WIDTH;
+	row %= BOARD_HEIGHT;
+
+	return disp_get(col, row);
 }
 
 static int adjacent_to(int i, int j)
@@ -30,7 +52,7 @@ static int adjacent_to(int i, int j)
 		for (l=-1; l<=1; l++) {
 			/* only count if at least one of k,l isn't zero */
 			if (k || l) {
-				if (disp_get(i+k, j+l) != 0)
+				if (board_get(i+k, j+l) != 0)
 					count++;
 			}
 		}
@@ -55,7 +77,7 @@ static void add_random_life(void)
 	uint8_t val = disp_get(col, row);
 
 	if (val == 0)
-		disp_set(col, row, 31);
+		disp_set(col, row, 1);
 }
 
 static void life_tick(void)
@@ -64,6 +86,8 @@ static void life_tick(void)
 	int have_life = 0;
 	int	i, j, a;
 
+	memset(newboard, 0, sizeof(newboard));
+
 	/* apply B36/S23 rule to all cells */
 	for (i=0; i<BOARD_WIDTH; i++) {
 		for (j=0; j<BOARD_HEIGHT; j++) {
@@ -71,15 +95,22 @@ static void life_tick(void)
 			a = adjacent_to(i, j);
 
 			switch (a) {
-			default: /* decay */
-				newboard[i][j] = clamp(disp_get(i, j) - 16);
+			case 2: /* survival */
+				if (disp_get(i, j))
+					newboard[i][j] = LIFE_CELL(i, j);
 				break;
-			case 2: /* stasis */
-				newboard[i][j] = disp_get(i, j);
-				break;
-			case 3: /* growth */
+			case 3: /* birth or survival */
+					newboard[i][j] = LIFE_CELL(i, j);
+					break;
+#if HIGHLIFE
 			case 6:
-				newboard[i][j] = clamp(disp_get(i, j) + 16);
+				if (!disp_get(i, j)) {
+					newboard[i][j] = LIFE_CELL(i, j);
+					break;
+				}
+				/* fall-through */
+#endif
+			default: /* death */
 				break;
 			}
 		}
@@ -88,15 +119,26 @@ static void life_tick(void)
 	/* copy the new board back into the old board */
 	for (i=0; i<BOARD_WIDTH; i++) {
 		for (j=0; j<BOARD_HEIGHT; j++) {
-			disp_set(i, j, newboard[i][j]);
+			if (disp_get(i, j) != newboard[i][j]) {
+				disp_set(i, j, newboard[i][j]);
+			}
 			have_life += newboard[i][j];
 		}
 	}
 
-	if (have_life == 0) {
-		seeding = 8;
-		life_generation = 0;
+	if (have_life == last_life) {
+		++life_unchanged;
+	} else {
+		life_unchanged = 0;
+		last_life = have_life;
 	}
+
+	if (life_unchanged > 10) {
+		if (!scheduled_cleanup)
+			scheduled_cleanup = 1;
+	}
+
+	++life_generation;
 }
 
 void life_worker(void)
@@ -108,15 +150,29 @@ void life_worker(void)
 
 	life_tick_next = tick + LIFE_TICK;
 
+	/* seed life */
 	while (seeding) {
 		add_random_life();
 		--seeding;
 	}
 
+	/* run the beat of life */
 	life_tick();
 
-	++life_generation;
-	if (life_generation > 500) {
+	/* stasis or extinction detected */
+	if (scheduled_cleanup) {
+		if (scheduled_cleanup == 1) {
+			disp_clean();
+			seeding = 16;
+			life_generation = 0;
+			last_life = 0;
+			life_unchanged = 0;
+		}
+		--scheduled_cleanup;
+	}
+
+	/* restart after 1000 generations */
+	if (life_generation > 1000) {
 		life_generation = 0;
 		disp_clean();
 	}
