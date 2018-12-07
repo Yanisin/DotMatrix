@@ -196,9 +196,9 @@ int main(void)
 	for ( i = 0; i < 4; i++) {
 		print_grey(i);
 		led_on();
-		ticker_msleep(500);
+		ticker_msleep(200);
 		led_off();
-		ticker_msleep(500);
+		ticker_msleep(200);
 	}
 
 	usart_send_blocking(USART3,'b');
