@@ -48,6 +48,12 @@ static volatile uint8_t rx_buf_tail[4];
 static volatile uint8_t tx_buf[4][TX_BUF_SIZE]; 
 static volatile uint8_t rx_buf[4][RX_BUF_SIZE];
 
+static int usart_num;
+
+static struct {
+	uint32_t usart_reg;
+} usarts[4];
+
 /* ---------------- Local Functions --------------- */
 
 static void usart_setup(
@@ -67,14 +73,7 @@ static void usart_setup(
 	rcc_periph_clock_enable(usart_rcc);
 	rcc_periph_clock_enable(rx_rcc);
 	rcc_periph_clock_enable(tx_rcc);
-	/* Enable the USART2 interrupt. */
-	//nvic_enable_irq(NVIC_USART3_4_IRQ);
 	nvic_enable_irq(irq);
-
-	/* Setup GPIO pin GPIO_USART2_RE_TX on GPIO port A for transmit. */
-	/* Setup GPIO pin GPIO_USART2_RE_RX on GPIO port A for receive. */
-//	gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
-//		      GPIO_CNF_INPUT_FLOAT, GPIO_USART2_RX);
 
 	gpio_mode_setup(tx_port, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
 			tx_pin);
@@ -85,8 +84,6 @@ static void usart_setup(
 			rx_pin);
 	gpio_mode_setup(rx_port, GPIO_MODE_AF, GPIO_PUPD_NONE, rx_pin);
 	gpio_set_af(rx_port, rx_af_num, rx_pin);
-
-
 
 	/* Setup UART parameters. */
 	usart_set_baudrate(usart, USART_BAUDRATE);
@@ -101,6 +98,9 @@ static void usart_setup(
 
 	/* Finally enable the USART. */
 	usart_enable(usart);
+
+	usarts[usart_num].usart_reg = usart;
+	++usart_num;
 }
 
 /* ---------------- Interrupt Routines --------------- */
@@ -111,8 +111,9 @@ void usart1_isr(void)
 
 	if (((USART_CR1(USART1) & USART_CR1_RXNEIE) != 0) &&
 			((USART_ISR(USART1) & USART_ISR_RXNE) != 0)) {
-		gpio_toggle(GPIOF, GPIO0);
+
 		c= usart_recv(USART1);
+
 		/* Read one byte from the receive data register */
 		/*FIXME optimize this*/
 		if(IS_NOT_FULL(RX_BUF_SIZE, rx_buf_head[0], rx_buf_tail[0])) {
@@ -149,7 +150,7 @@ void usart2_isr(void)
 
 	if (((USART_CR1(USART2) & USART_CR1_RXNEIE) != 0) &&
 			((USART_ISR(USART2) & USART_ISR_RXNE) != 0)) {
-		gpio_toggle(GPIOF, GPIO0);
+
 		c= usart_recv(USART2);
 		/* Read one byte from the receive data register */
 		/*FIXME optimize this*/
@@ -186,7 +187,7 @@ void usart3_4_isr(void)
 
 	if (((USART_CR1(USART3) & USART_CR1_RXNEIE) != 0) &&
 			((USART_ISR(USART3) & USART_ISR_RXNE) != 0)) {
-		gpio_toggle(GPIOF, GPIO0);
+
 		c= usart_recv(USART3);
 		/* Read one byte from the receive data register */
 		/*FIXME optimize this*/
@@ -218,7 +219,7 @@ void usart3_4_isr(void)
 
 	if (((USART_CR1(USART4) & USART_CR1_RXNEIE) != 0) &&
 			((USART_ISR(USART4) & USART_ISR_RXNE) != 0)) {
-		gpio_toggle(GPIOF, GPIO0);
+
 		c= usart_recv(USART4);
 		/* Read one byte from the receive data register */
 		/*FIXME optimize this*/
@@ -254,30 +255,17 @@ void usart3_4_isr(void)
 
 void send_char(uint8_t u, uint8_t c)
 {
+	uint32_t usart = usarts[u].usart_reg;
+
 	/*FIXME optimize this*/
-	while(!IS_NOT_FULL(TX_BUF_SIZE, tx_buf_head[u], tx_buf_tail[u]));
-	if(IS_NOT_FULL(TX_BUF_SIZE, tx_buf_head[u], tx_buf_tail[u])) {
+	while(!IS_NOT_FULL(TX_BUF_SIZE, tx_buf_head[u], tx_buf_tail[u]))
+		;
+	if (IS_NOT_FULL(TX_BUF_SIZE, tx_buf_head[u], tx_buf_tail[u])) {
 		tx_buf[u][tx_buf_head[u]]=c;
 		tx_buf_head[u] = GET_NEXT(TX_BUF_SIZE, tx_buf_head[u]);
 	}
-	switch (u){
-		case USART_DIR_UP:
-	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_UP) |= USART_CR1_TXEIE;
-		break;
-		case USART_DIR_RIGHT:
-	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_RIGHT) |= USART_CR1_TXEIE;
-		break;
-		case USART_DIR_DOWN:
-	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_DOWN) |= USART_CR1_TXEIE;
-		break;
-		case USART_DIR_LEFT:
-	    /* Enable the USARTy Transmit interrupt */
-		USART_CR1(USART_LEFT) |= USART_CR1_TXEIE;
-		break;
-	}
+
+	USART_CR1(usart) |= USART_CR1_TXEIE;
 }
 
 
@@ -293,108 +281,58 @@ uint32_t get_char(uint8_t u)
 	return (uint32_t)-1;
 }
 
-#if 0
-static void gpio_setup(void)
-{
-	rcc_periph_clock_enable(RCC_GPIOF);
-	gpio_mode_setup(GPIOF, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, GPIO0);
-}
-#endif
-
 void usart_init(void)
 {
 
-//	rcc_clock_setup_in_hsi_out_48mhz();
-
-//	gpio_setup();
 	usart_setup(
-			USART_UP,
-			USART_UP_RCC,
-			USART_UP_IRQ,
-			USART_UP_RX_RCC,
-			USART_UP_RX_PORT,
-			USART_UP_RX_PIN,
-			USART_UP_RX_AF_NUM,
-			USART_UP_TX_RCC,
-			USART_UP_TX_PORT,
-			USART_UP_TX_PIN,
-			USART_UP_TX_AF_NUM);
+			USART_A_REG,
+			USART_A_RCC,
+			USART_A_IRQ,
+			USART_A_RX_RCC,
+			USART_A_RX_PORT,
+			USART_A_RX_PIN,
+			USART_A_RX_AF_NUM,
+			USART_A_TX_RCC,
+			USART_A_TX_PORT,
+			USART_A_TX_PIN,
+			USART_A_TX_AF_NUM);
 
 	usart_setup(
-			USART_RIGHT,
-			USART_RIGHT_RCC,
-			USART_RIGHT_IRQ,
-			USART_RIGHT_RX_RCC,
-			USART_RIGHT_RX_PORT,
-			USART_RIGHT_RX_PIN,
-			USART_RIGHT_RX_AF_NUM,
-			USART_RIGHT_TX_RCC,
-			USART_RIGHT_TX_PORT,
-			USART_RIGHT_TX_PIN,
-			USART_RIGHT_TX_AF_NUM);
+			USART_B_REG,
+			USART_B_RCC,
+			USART_B_IRQ,
+			USART_B_RX_RCC,
+			USART_B_RX_PORT,
+			USART_B_RX_PIN,
+			USART_B_RX_AF_NUM,
+			USART_B_TX_RCC,
+			USART_B_TX_PORT,
+			USART_B_TX_PIN,
+			USART_B_TX_AF_NUM);
 
 	usart_setup(
-			USART_DOWN,
-			USART_DOWN_RCC,
-			USART_DOWN_IRQ,
-			USART_DOWN_RX_RCC,
-			USART_DOWN_RX_PORT,
-			USART_DOWN_RX_PIN,
-			USART_DOWN_RX_AF_NUM,
-			USART_DOWN_TX_RCC,
-			USART_DOWN_TX_PORT,
-			USART_DOWN_TX_PIN,
-			USART_DOWN_TX_AF_NUM);
+			USART_C_REG,
+			USART_C_RCC,
+			USART_C_IRQ,
+			USART_C_RX_RCC,
+			USART_C_RX_PORT,
+			USART_C_RX_PIN,
+			USART_C_RX_AF_NUM,
+			USART_C_TX_RCC,
+			USART_C_TX_PORT,
+			USART_C_TX_PIN,
+			USART_C_TX_AF_NUM);
 
 	usart_setup(
-			USART_LEFT,
-			USART_LEFT_RCC,
-			USART_LEFT_IRQ,
-			USART_LEFT_RX_RCC,
-			USART_LEFT_RX_PORT,
-			USART_LEFT_RX_PIN,
-			USART_LEFT_RX_AF_NUM,
-			USART_LEFT_TX_RCC,
-			USART_LEFT_TX_PORT,
-			USART_LEFT_TX_PIN,
-			USART_LEFT_TX_AF_NUM);
+			USART_D_REG,
+			USART_D_RCC,
+			USART_D_IRQ,
+			USART_D_RX_RCC,
+			USART_D_RX_PORT,
+			USART_D_RX_PIN,
+			USART_D_RX_AF_NUM,
+			USART_D_TX_RCC,
+			USART_D_TX_PORT,
+			USART_D_TX_PIN,
+			USART_D_TX_AF_NUM);
 }
-#if 0
-void main(void){
-	usart_init();
-	usart_send_blocking(USART_UP,'x');
-	send_char(USART_DIR_UP, 'N');
-	send_char(USART_DIR_RIGHT, 'E');
-	send_char(USART_DIR_DOWN, 'S');
-	send_char(USART_DIR_LEFT, 'W');
-
-	/* Wait forever and do nothing. */
-	while (1){
-		uint32_t c;
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		__asm__("nop");
-		c = get_char(USART_DIR_UP);
-		if( c != (uint32_t)-1) {
-			send_char(USART_DIR_UP,(uint8_t)c);
-		}
-			c = get_char(USART_DIR_RIGHT);
-		if( c != (uint32_t)-1) {
-			send_char(USART_DIR_RIGHT,(uint8_t)c);
-		}
-				c = get_char(USART_DIR_DOWN);
-		if( c != (uint32_t)-1) {
-			send_char(USART_DIR_DOWN,(uint8_t)c);
-		}
-				c = get_char(USART_DIR_LEFT);
-		if( c != (uint32_t)-1) {
-			send_char(USART_DIR_LEFT,(uint8_t)c);
-		}
-	
-	
-	}
-
-	return 0;
-}
-#endif
