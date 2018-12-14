@@ -89,15 +89,25 @@ static void disp_row_update(int row_num)
 	}
 }
 
+void disp_update_rows(void)
+{
+	for (int row = 0; row < DISP_ROWS_NUM; row++)
+		disp_row_update(row);
+}
+
 void disp_clean(void)
 {
 	memset(disp_state, 0, sizeof(disp_state));
 	memset(disp_row_dmabuf, 0, sizeof(disp_row_dmabuf));
 }
 
-void disp_set(int col, int row, uint8_t val)
+void disp_set_noupdate(int col, int row, uint8_t val)
 {
 	disp_state[row][col] = val;
+}
+void disp_set(int col, int row, uint8_t val)
+{
+	disp_set_noupdate(col, row, val);
 	disp_row_update(row);
 }
 
