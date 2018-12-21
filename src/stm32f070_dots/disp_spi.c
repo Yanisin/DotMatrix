@@ -28,7 +28,7 @@ void disp_spi_init(void)
 			DISP_COLS_STROBE_AF_NUM, DISP_COLS_STROBE_GPIO);
 
 	/* initialize the SPI controller in master mode */
-	spi_init_master(DISP_COLS_SPI, SPI_CR1_BAUDRATE_FPCLK_DIV_4, 0,
+	spi_init_master(DISP_COLS_SPI, SPI_CR1_BAUDRATE_FPCLK_DIV_16, 0,
 			0, SPI_CR1_MSBFIRST);
 
 	/* no software slave management, let the hardware handle NSS */

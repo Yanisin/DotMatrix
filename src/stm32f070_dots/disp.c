@@ -77,13 +77,13 @@ static uint8_t gamma_lookup(uint8_t val)
 
 static void disp_row_update(int row_num)
 {
-	uint8_t row = 1 << row_num;
+	uint8_t row = 0x80 >> row_num;
 
 	for (int i=0; i < COLOR_DEPTH; i++) {
 		uint8_t col = 0;
 		for (int c=0; c < DISP_COLS_NUM; c++) {
 			if (gamma_lookup(disp_state[row_num][c]) > i)
-				col |= 1 << c;
+				col |= 0x80 >> c;
 		}
 		disp_row_dmabuf[row_num][i] = (col << 8) | row;
 	}

@@ -185,6 +185,17 @@ int main(void)
 	dots_init();
 	life_init();
 
+	disp_set(0, 0, 31);
+	ticker_msleep(500);
+	disp_set(7, 0, 31);
+	ticker_msleep(500);
+	disp_set(7, 7, 31);
+	ticker_msleep(500);
+	disp_set(0, 7, 31);
+	ticker_msleep(500);
+	disp_clean();
+
+
 	for ( i = 0; i < 18; i++) {
 		print_smile(i);
 		led_on();
