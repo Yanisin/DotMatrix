@@ -48,7 +48,7 @@ enum board_edge {
 	LEFT_EDGE,
 	NUM_EDGES
 };
-static uint32_t usart[NUM_EDGES] = {
+static int usart[NUM_EDGES] = {
 		USART_DIR_UP, USART_DIR_RIGHT, USART_DIR_DOWN, USART_DIR_LEFT
 };
 
@@ -59,10 +59,10 @@ void life_init(void)
 	seeding = 12;
 
 	gpio_mode_setup(GPIOB,
-		GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, GPIO8);
+		GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, GPIO8|GPIO9);
 	gpio_set_output_options(GPIOB,
-			GPIO_OTYPE_OD, GPIO_OSPEED_LOW, GPIO8);
-	gpio_clear(GPIOB, GPIO8);
+			GPIO_OTYPE_OD, GPIO_OSPEED_LOW, GPIO8|GPIO9);
+	gpio_clear(GPIOB, GPIO8|GPIO9);
 
 	worker_state = WAIT_TICK;
 	life_tick_next = ticker_get_ticks() + LIFE_TICK;
@@ -258,8 +258,6 @@ static void life_tick(void)
 
 	++life_generation;
 
-	gpio_toggle(GPIOF, GPIO0);
-
 }
 
 void life_worker(void)
@@ -271,18 +269,24 @@ void life_worker(void)
 			return;
 
 		worker_state = WAIT_ENTRY;
-		life_tick_next = tick + LIFE_TICK;
 	}
 
 	if (worker_state == WAIT_ENTRY) {
 		/* release the idle signal */
-		gpio_set(GPIOB, GPIO8);
+		gpio_set(GPIOB, GPIO8|GPIO9);
 		/* if somebody else holds it down, wait */
-		while (gpio_get(GPIOB, GPIO8) == 0)
+		while (gpio_get(GPIOB, GPIO8|GPIO9) == 0)
 			;
+
 		worker_state = WORKER_BUSY;
-		/* set idle signal again */
-		gpio_clear(GPIOB, GPIO8);
+
+		life_tick_next = ticker_get_ticks() + LIFE_TICK;
+
+/* set idle signal again */
+		gpio_clear(GPIOB, GPIO8|GPIO9);
+
+		/* toggle the LED */
+		gpio_toggle(GPIOF, GPIO0);
 	}
 
 	if (worker_state == WORKER_BUSY) {
