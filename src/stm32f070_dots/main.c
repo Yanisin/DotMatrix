@@ -28,10 +28,6 @@
 #define PIN_LED GPIO0
 
 /* Private variables ---------------------------------------------------------*/
-#ifdef STDPERIPH
-GPIO_InitTypeDef GPIO_InitStructure;
-#endif
-
 void led_init(void);
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -42,7 +38,7 @@ static const uint8_t smileys [1][8][8] = {
 	 { 1, 0, 1, 0, 0, 1, 0, 1},
 	 { 1, 0, 1, 0,0,  1, 0, 1},
 	 { 1, 1, 0, 0, 0, 0, 1, 1},
-	 { 1, 0, 1, 1, 1, 1, 0,1},
+	 { 1, 0, 1, 1, 1, 1, 0, 1},
 	 { 0, 1, 0, 0, 0, 0, 1, 0},
 	 { 0, 0, 1, 1, 1, 1, 0, 0}
 	 }};
@@ -168,16 +164,10 @@ static void print_grey(uint8_t num)
 
 int main(void)
 {
-	volatile uint32_t  i=0;
-
+	int i=0;
 	/* we want 48 MHz sysclk */
 	rcc_clock_setup_in_hsi_out_48mhz();
 	usart_init();
-	send_char(USART_DIR_UP,'N');
-	send_char(USART_DIR_RIGHT,'E');
-	send_char(USART_DIR_DOWN,'S');
-	send_char(USART_DIR_LEFT,'W');
-
 	led_init();
 	ticker_init();
 	disp_init();
@@ -196,7 +186,6 @@ int main(void)
 	ticker_msleep(500);
 	disp_clean();
 
-
 	for ( i = 0; i < 18; i++) {
 		print_smile(i);
 		led_on();
@@ -213,14 +202,13 @@ int main(void)
 		ticker_msleep(200);
 	}
 
-	usart_send_blocking(USART3,'b');
 	disp_clean();
 
 	led_on();
 	
 	while (1) {
 		cdcacm_worker();
-		__asm__ volatile ("wfi");
 		life_worker();
+		cpu_relax();
 	}
 }
