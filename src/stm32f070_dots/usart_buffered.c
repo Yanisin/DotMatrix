@@ -196,9 +196,15 @@ uint32_t get_char(uint8_t u)
 	return usart_buf_get(&usart->rxbuf);
 }
 
+void usart_buf_clear(int u)
+{
+	struct usart *usart = &usarts[u];
+	usart->rxbuf.rp = usart->rxbuf.wp = 0;
+	usart->txbuf.rp = usart->txbuf.wp = 0;
+}
+
 void usart_init(void)
 {
-
 	usart_setup(
 			USART_A_REG,
 			USART_A_RCC,
