@@ -17,6 +17,7 @@
 #include "life.h"
 #include "rand.h"
 #include "usart_buffered.h"
+#include "cdcacm.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -181,8 +182,8 @@ int main(void)
 	ticker_init();
 	disp_init();
 	rand_init();
+	cdcacm_init();
 
-	dots_init();
 	life_init();
 
 	disp_set(0, 0, 31);
@@ -218,6 +219,7 @@ int main(void)
 	led_on();
 	
 	while (1) {
+		cdcacm_worker();
 		__asm__ volatile ("wfi");
 		life_worker();
 	}

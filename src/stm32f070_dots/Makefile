@@ -25,7 +25,7 @@ BINARY = main
 HW_VERSION = "HW_38x38_rev_0_3"
 
 DEFS += -D$(HW_VERSION)
-OBJS= disp.o disp_spi.o ticker.o rand.o dots.o usart_buffered.o spi_dma.o life.o
+OBJS= disp.o disp_spi.o ticker.o rand.o usart_buffered.o spi_dma.o life.o cdcacm.o
 
 LDSCRIPT = ../stm32f070.ld
 
