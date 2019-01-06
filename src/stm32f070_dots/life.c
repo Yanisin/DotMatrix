@@ -315,9 +315,7 @@ static void life_tick(void)
 					break;
 #if HIGHLIFE
 			case 6:
-				if (!board_get(i, j)) {
-					newboard[i][j] = LIFE_CELL(i, j);
-				}
+				newboard[i][j] = LIFE_CELL(i, j);
 				break;
 #endif
 			default: /* death */
