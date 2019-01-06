@@ -16,8 +16,9 @@
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
 
-#define LIFE_TICK 150
-static int life_tick_interv = LIFE_TICK;
+#define LIFE_TICK 20
+static int life_tick_interv;
+static unsigned int life_tick_mult;
 static unsigned int life_tick_next;
 static int seeding;
 static int life_generation;
@@ -186,6 +187,23 @@ static void update_edge(enum board_edge edge, uint8_t edge_state, int invert)
 	}
 }
 
+static void update_life_tick(enum board_edge from_edge)
+{
+	enum board_edge edge;
+	uint8_t buf[1];
+
+
+	buf[0] = MSG_TYPE_TICK | MSG_SEQ_FIRST;
+	buf[0] |= life_tick_mult & 0x3f;
+
+	console_printf(" %i %02x ", life_tick_mult, buf[0]);
+
+	for (edge = TOP_EDGE; edge < NUM_EDGES; edge++) {
+		if (edge != from_edge) {
+			send_char(usart[edge].num, buf[0]);
+		}
+	}
+}
 
 static void receive_msg(void)
 {
@@ -197,6 +215,9 @@ static void receive_msg(void)
 		edge_state = 0;
 
 		while ((buf = get_char(usart[edge].num)) != (uint32_t)-1) {
+
+			console_printf(" buf:%02x ", buf);
+
 			if ((buf & MSG_TYPE_MASK) == MSG_TYPE_EDGE) {
 				if ((buf & MSG_SEQ_MASK) == MSG_SEQ_FIRST) {
 					edge_state |= (buf & 0x3f) << 2;
@@ -207,20 +228,18 @@ static void receive_msg(void)
 				}
 			} else
 			if ((buf & MSG_TYPE_MASK) == MSG_TYPE_TICK) {
-				life_tick_interv = (buf & 0x7f) << 2;
+				if ((buf & MSG_SEQ_MASK) == MSG_SEQ_FIRST) {
+					unsigned int new_mult = buf & 0x3f;
+
+					if (new_mult != life_tick_mult) {
+						life_tick_mult = new_mult;
+						life_tick_interv = life_tick_mult * LIFE_TICK;
+						update_life_tick(edge);
+					}
+				}
 			}
 		}
 	}
-}
-
-static void update_life_tick(void)
-{
-	enum board_edge edge;
-	uint8_t buf;
-
-	buf = MSG_TYPE_TICK | (life_tick_interv >> 2);
-	for (edge = TOP_EDGE; edge < NUM_EDGES; edge++)
-		send_char(usart[edge].num, buf);
 }
 
 static int adjacent_to(int i, int j)
@@ -370,15 +389,6 @@ void life_worker(void)
 	unsigned int tick = ticker_get_ticks();
 	uint32_t c;
 
-	c = cdcacm_get_char();
-	if (c != (uint32_t)-1) {
-		if (c == '+' && life_tick_interv < 1000)
-			life_tick_interv += 50;
-		if (c == '-' && life_tick_interv > 50)
-			life_tick_interv -= 50;
-
-		update_life_tick();
-	}
 	if (worker_state == WAIT_TICK) {
 		if ((int)(tick - life_tick_next) < 0)
 			return;
@@ -408,6 +418,17 @@ void life_worker(void)
 	}
 
 	if (worker_state == WORKER_BUSY) {
+
+		c = console_getc();
+		if (c == '+' || c == '-') {
+			if (c == '+' && life_tick_mult < 0x3f)
+				++life_tick_mult;
+			if (c == '-' && life_tick_mult > 0)
+				--life_tick_mult;
+
+			life_tick_interv = life_tick_mult * LIFE_TICK;
+			update_life_tick(-1);
+		}
 
 		receive_msg();
 
@@ -470,6 +491,8 @@ void life_init(void)
 	init_edges();
 
 	worker_state = WAIT_TICK;
+	life_tick_mult = 8;
+	life_tick_interv = life_tick_mult * LIFE_TICK;
 	life_tick_next = ticker_get_ticks() + life_tick_interv;
 	gpio_clear(GPIOF, GPIO0);
 }
