@@ -11,7 +11,7 @@
 #include "ticker.h"
 #include "rand.h"
 #include "usart_buffered.h"
-#include "cdcacm.h"
+#include "console.h"
 
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
@@ -111,7 +111,7 @@ static void board_clean(void)
 			board_set(col, row, 0);
 		}
 	}
-	cdcacm_write_char('C');
+	console_putc('C');
 }
 
 static void send_edge_msg(int u, uint8_t edge_state)
@@ -397,7 +397,7 @@ void life_worker(void)
 		/* set idle signal again */
 		gpio_clear(GPIOB, GPIO8|GPIO9);
 
-		cdcacm_write_char('T');
+		console_puts("T\n");
 
 		/* toggle the LED */
 		gpio_toggle(GPIOF, GPIO0);
@@ -413,7 +413,7 @@ void life_worker(void)
 
 		/* seed life */
 		while (seeding) {
-			cdcacm_write_char('S');
+			console_putc('S');
 			add_random_life();
 			--seeding;
 		}
