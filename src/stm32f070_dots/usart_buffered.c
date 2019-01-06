@@ -95,14 +95,10 @@ static void usart_setup(
 	rcc_periph_clock_enable(tx_rcc);
 	nvic_enable_irq(irq);
 
-	gpio_mode_setup(tx_port, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
-			tx_pin);
 	gpio_mode_setup(tx_port, GPIO_MODE_AF, GPIO_PUPD_NONE, tx_pin);
 	gpio_set_af(tx_port, tx_af_num, tx_pin);
 
-	gpio_mode_setup(rx_port, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
-			rx_pin);
-	gpio_mode_setup(rx_port, GPIO_MODE_AF, GPIO_PUPD_NONE, rx_pin);
+	gpio_mode_setup(rx_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, rx_pin);
 	gpio_set_af(rx_port, rx_af_num, rx_pin);
 
 	/* Setup UART parameters. */
