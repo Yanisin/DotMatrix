@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name TC15-11SRWA)(type Legacy)(uri ${KIPRJMOD}/lib/TC15-11SRWA.lib)(options "")(descr ""))
+  (lib (name bcl4v3-rescue)(type Legacy)(uri ${KIPRJMOD}/bcl4v3-rescue.lib)(options "")(descr ""))
 )

@@ -314,9 +314,9 @@ Wire Wire Line
 Wire Wire Line
 	7250 2500 7750 2500
 Text Label 4500 3400 0    50   ~ 0
-I2C_SDA
+SYN_RX
 Text Label 4500 3500 0    50   ~ 0
-I2C_SCL
+SYN_TX
 $Comp
 L Connector_Generic:Conn_01x04 J1
 U 1 1 5BE8317F
@@ -368,7 +368,7 @@ Wire Wire Line
 Wire Wire Line
 	1200 2500 1050 2500
 Wire Wire Line
-	1200 2500 1200 2650
+	1200 2500 1200 2600
 Connection ~ 1200 2500
 Wire Wire Line
 	2350 1600 2200 1600
@@ -901,41 +901,30 @@ VCC
 Text Label 4500 6600 0    50   ~ 0
 +5V
 Text Label 1300 1900 0    50   ~ 0
-I2C_SDA
+SYN_TX
 Text Label 1750 1900 0    50   ~ 0
-I2C_SDA
+SYN_RX
 Text Label 1300 2200 0    50   ~ 0
-I2C_SCL
+SYN_RX
 Text Label 1750 2200 0    50   ~ 0
-I2C_SCL
+SYN_TX
 Text Label 1300 3850 0    50   ~ 0
-I2C_SDA
+SYN_TX
 Text Label 1750 3850 0    50   ~ 0
-I2C_SDA
+SYN_RX
 Text Label 1300 4150 0    50   ~ 0
-I2C_SCL
+SYN_RX
 Text Label 1750 4150 0    50   ~ 0
-I2C_SCL
-$Comp
-L Transistor_FET:IRLML6402 Q1
-U 1 1 5BEBB389
-P 4200 6700
-F 0 "Q1" V 4543 6700 50  0000 C CNN
-F 1 "IRLML6402" V 4452 6700 50  0000 C CNN
-F 2 "Package_TO_SOT_SMD:SOT-23" H 4400 6625 50  0001 L CIN
-F 3 "https://www.infineon.com/dgdl/irlml6402pbf.pdf?fileId=5546d462533600a401535668d5c2263c" H 4200 6700 50  0001 L CNN
-	1    4200 6700
-	0    -1   -1   0   
-$EndComp
+SYN_TX
 $Comp
 L power:GND #PWR0123
 U 1 1 5BEE0BDD
-P 4200 6900
-F 0 "#PWR0123" H 4200 6650 50  0001 C CNN
-F 1 "GND" H 4205 6727 50  0000 C CNN
-F 2 "" H 4200 6900 50  0001 C CNN
-F 3 "" H 4200 6900 50  0001 C CNN
-	1    4200 6900
+P 4200 7000
+F 0 "#PWR0123" H 4200 6750 50  0001 C CNN
+F 1 "GND" H 4205 6827 50  0000 C CNN
+F 2 "" H 4200 7000 50  0001 C CNN
+F 3 "" H 4200 7000 50  0001 C CNN
+	1    4200 7000
 	1    0    0    -1  
 $EndComp
 Text Label 4600 1900 0    50   ~ 0
@@ -1149,46 +1138,35 @@ F 3 "http://www.st.com/st-web-ui/static/active/en/resource/technical/document/da
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3800 1600 3850 1600
+	3800 1600 3900 1600
 Text Label 3950 1600 0    50   ~ 0
 BOOT0
 $Comp
 L Device:R_Small R2
 U 1 1 5BF26B27
-P 3850 1800
-F 0 "R2" H 3909 1846 50  0000 L CNN
-F 1 "1k" H 3909 1755 50  0000 L CNN
-F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3850 1800 50  0001 C CNN
-F 3 "~" H 3850 1800 50  0001 C CNN
-	1    3850 1800
+P 3900 1800
+F 0 "R2" H 3959 1846 50  0000 L CNN
+F 1 "1k" H 3959 1755 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 3900 1800 50  0001 C CNN
+F 3 "~" H 3900 1800 50  0001 C CNN
+	1    3900 1800
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3850 1700 3850 1600
+	3900 1700 3900 1600
 Wire Wire Line
-	3850 1600 4200 1600
+	3900 1600 4200 1600
 Wire Wire Line
-	3850 1900 3850 2000
+	3900 1900 3900 2000
 $Comp
 L power:GND #PWR01
 U 1 1 5BF40857
-P 3850 2000
-F 0 "#PWR01" H 3850 1750 50  0001 C CNN
-F 1 "GND" H 3855 1827 50  0000 C CNN
-F 2 "" H 3850 2000 50  0001 C CNN
-F 3 "" H 3850 2000 50  0001 C CNN
-	1    3850 2000
-	1    0    0    -1  
-$EndComp
-$Comp
-L Jumper:Jumper_2_Open BOOT0
-U 1 1 5BF40A5A
-P 3600 1600
-F 0 "BOOT0" H 3600 1750 50  0000 C CNN
-F 1 "Jumper_2_Open" H 3600 1744 50  0001 C CNN
-F 2 "Jumpers:SMT-JUMPER_2_NO_SILK" H 3600 1600 50  0001 C CNN
-F 3 "~" H 3600 1600 50  0001 C CNN
-	1    3600 1600
+P 3900 2000
+F 0 "#PWR01" H 3900 1750 50  0001 C CNN
+F 1 "GND" H 3905 1827 50  0000 C CNN
+F 2 "" H 3900 2000 50  0001 C CNN
+F 3 "" H 3900 2000 50  0001 C CNN
+	1    3900 2000
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -1196,12 +1174,12 @@ Wire Wire Line
 $Comp
 L power:+3.3V #PWR0116
 U 1 1 5BF4E4E1
-P 3300 1600
-F 0 "#PWR0116" H 3300 1450 50  0001 C CNN
-F 1 "+3.3V" H 3315 1773 50  0000 C CNN
-F 2 "" H 3300 1600 50  0001 C CNN
-F 3 "" H 3300 1600 50  0001 C CNN
-	1    3300 1600
+P 3300 1450
+F 0 "#PWR0116" H 3300 1300 50  0001 C CNN
+F 1 "+3.3V" H 3315 1623 50  0000 C CNN
+F 2 "" H 3300 1450 50  0001 C CNN
+F 3 "" H 3300 1450 50  0001 C CNN
+	1    3300 1450
 	1    0    0    -1  
 $EndComp
 NoConn ~ 4950 2000
@@ -1277,7 +1255,7 @@ Wire Notes Line style solid
 	2050 4900 2050 7750
 Wire Notes Line style solid
 	550  7750 6900 7750
-Connection ~ 3850 1600
+Connection ~ 3900 1600
 Wire Notes Line style solid
 	550  4900 11100 4900
 Wire Notes Line style solid
@@ -1350,7 +1328,7 @@ F 3 "" H 1250 1300 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L SparkFun-Aesthetics:OSHW-LOGOM LOGO1
+L bcl4v3-rescue:OSHW-LOGOM-SparkFun-Aesthetics LOGO1
 U 1 1 5BFECBD9
 P 3750 4450
 F 0 "LOGO1" H 3750 4700 45  0001 C CNN
@@ -1406,4 +1384,119 @@ Text Label 3550 3300 0    50   ~ 0
 CAT_STROBE
 Text Label 3600 3500 0    50   ~ 0
 CAT_DATA
+Wire Wire Line
+	3300 1600 3300 1450
+$Comp
+L dk_Tactile-Switches:B3U-1000P BOOT0
+U 1 1 5C14C2E1
+P 3600 1600
+F 0 "BOOT0" H 3600 1897 60  0000 C CNN
+F 1 "B3U-1000P" H 3600 1791 60  0000 C CNN
+F 2 "digikey-footprints:Switch_Tactile_SMD_B3U-1000P" H 3800 1800 60  0001 L CNN
+F 3 "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf" H 3800 1900 60  0001 L CNN
+F 4 "SW1020CT-ND" H 3800 2000 60  0001 L CNN "Digi-Key_PN"
+F 5 "B3U-1000P" H 3800 2100 60  0001 L CNN "MPN"
+F 6 "Switches" H 3800 2200 60  0001 L CNN "Category"
+F 7 "Tactile Switches" H 3800 2300 60  0001 L CNN "Family"
+F 8 "https://omronfs.omron.com/en_US/ecb/products/pdf/en-b3u.pdf" H 3800 2400 60  0001 L CNN "DK_Datasheet_Link"
+F 9 "/product-detail/en/omron-electronics-inc-emc-div/B3U-1000P/SW1020CT-ND/1534357" H 3800 2500 60  0001 L CNN "DK_Detail_Page"
+F 10 "SWITCH TACTILE SPST-NO 0.05A 12V" H 3800 2600 60  0001 L CNN "Description"
+F 11 "Omron Electronics Inc-EMC Div" H 3800 2700 60  0001 L CNN "Manufacturer"
+F 12 "Active" H 3800 2800 60  0001 L CNN "Status"
+	1    3600 1600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:CP_Small C1
+U 1 1 5C14EFFD
+P 5900 7100
+F 0 "C1" H 5988 7146 50  0000 L CNN
+F 1 "22µF" H 5988 7055 50  0000 L CNN
+F 2 "Capacitor_Tantalum_SMD:CP_EIA-3528-15_AVX-H_Pad1.50x2.35mm_HandSolder" H 5900 7100 50  0001 C CNN
+F 3 "~" H 5900 7100 50  0001 C CNN
+	1    5900 7100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0131
+U 1 1 5C14F1BA
+P 5900 7250
+F 0 "#PWR0131" H 5900 7000 50  0001 C CNN
+F 1 "GND" H 5905 7077 50  0000 C CNN
+F 2 "" H 5900 7250 50  0001 C CNN
+F 3 "" H 5900 7250 50  0001 C CNN
+	1    5900 7250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 6950 5900 7000
+Wire Wire Line
+	5900 7200 5900 7250
+$Comp
+L power:VCC #PWR0130
+U 1 1 5C16B372
+P 5900 6950
+F 0 "#PWR0130" H 5900 6800 50  0001 C CNN
+F 1 "VCC" H 5917 7123 50  0000 C CNN
+F 2 "" H 5900 6950 50  0001 C CNN
+F 3 "" H 5900 6950 50  0001 C CNN
+	1    5900 6950
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 5C2D34FE
+P 1700 1300
+F 0 "#FLG0101" H 1700 1375 50  0001 C CNN
+F 1 "PWR_FLAG" H 1700 1474 50  0000 C CNN
+F 2 "" H 1700 1300 50  0001 C CNN
+F 3 "~" H 1700 1300 50  0001 C CNN
+	1    1700 1300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 1300 1250 1300
+Connection ~ 1250 1300
+$Comp
+L power:PWR_FLAG #FLG0102
+U 1 1 5C2E1A61
+P 4700 6500
+F 0 "#FLG0102" H 4700 6575 50  0001 C CNN
+F 1 "PWR_FLAG" H 4700 6674 50  0000 C CNN
+F 2 "" H 4700 6500 50  0001 C CNN
+F 3 "~" H 4700 6500 50  0001 C CNN
+	1    4700 6500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4700 6500 4700 6600
+$Comp
+L Transistor_FET:IRLML6402 Q1
+U 1 1 5BEBB389
+P 4200 6700
+F 0 "Q1" V 4543 6700 50  0000 C CNN
+F 1 "IRLML6402" V 4452 6700 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 4400 6625 50  0001 L CIN
+F 3 "https://www.infineon.com/dgdl/irlml6402pbf.pdf?fileId=5546d462533600a401535668d5c2263c" H 4200 6700 50  0001 L CNN
+	1    4200 6700
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	4200 6900 4200 7000
+$Comp
+L power:PWR_FLAG #FLG0103
+U 1 1 5C354764
+P 1700 2600
+F 0 "#FLG0103" H 1700 2675 50  0001 C CNN
+F 1 "PWR_FLAG" H 1700 2774 50  0000 C CNN
+F 2 "" H 1700 2600 50  0001 C CNN
+F 3 "~" H 1700 2600 50  0001 C CNN
+	1    1700 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1700 2600 1200 2600
+Connection ~ 1200 2600
+Wire Wire Line
+	1200 2600 1200 2650
 $EndSCHEMATC
