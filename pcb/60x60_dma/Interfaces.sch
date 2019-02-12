@@ -70,7 +70,7 @@ F 3 "" H 4250 2250 50  0001 C CNN
 	1    4250 2250
 	-1   0    0    -1  
 $EndComp
-Text Label 3950 4350 1    60   ~ 0
+Text Label 3550 4750 1    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR033
@@ -83,7 +83,7 @@ F 3 "" H 3200 4950 50  0001 C CNN
 	1    3200 4950
 	1    0    0    -1  
 $EndComp
-Text Label 3550 4350 1    60   ~ 0
+Text Label 3950 4800 1    60   ~ 0
 I2C_SDA
 Text Label 4050 5000 1    60   ~ 0
 UART_TX2
@@ -130,7 +130,7 @@ Text Label 5200 3300 2    60   ~ 0
 UART_TX1
 Text Label 5200 3900 2    60   ~ 0
 UART_RX1
-Text Label 5250 3400 2    60   ~ 0
+Text Label 5000 3800 2    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR035
@@ -143,7 +143,7 @@ F 3 "" H 5300 4200 50  0001 C CNN
 	1    5300 4200
 	-1   0    0    1   
 $EndComp
-Text Label 4500 3800 2    60   ~ 0
+Text Label 5100 3400 2    60   ~ 0
 I2C_SDA
 Text Label 2350 3300 0    60   ~ 0
 UART_RX3
@@ -585,7 +585,7 @@ Wire Wire Line
 Wire Wire Line
 	2200 3800 3550 3800
 Wire Wire Line
-	2200 3400 3950 3400
+	2200 3400 3750 3400
 Wire Wire Line
 	9450 3900 9850 3900
 Wire Wire Line
@@ -690,11 +690,33 @@ Wire Wire Line
 Wire Wire Line
 	9300 2300 9300 2350
 Wire Wire Line
-	3950 3400 3950 5150
+	5400 3400 4200 3400
 Wire Wire Line
-	3950 3400 5400 3400
+	4200 3400 4200 3800
 Wire Wire Line
-	3550 3800 3550 5150
+	4200 3800 3950 3800
 Wire Wire Line
-	3550 3800 5400 3800
+	3950 3400 4150 3400
+Wire Wire Line
+	4150 3400 4150 3750
+Wire Wire Line
+	4150 3750 4350 3750
+Wire Wire Line
+	4350 3750 4350 3800
+Wire Wire Line
+	4350 3800 5400 3800
+Wire Wire Line
+	3950 3800 3950 5150
+Connection ~ 3950 3800
+Wire Wire Line
+	3950 3800 3550 3800
+Wire Wire Line
+	3550 5150 3550 4050
+Wire Wire Line
+	3550 4050 3750 4050
+Wire Wire Line
+	3750 4050 3750 3400
+Connection ~ 3750 3400
+Wire Wire Line
+	3750 3400 3950 3400
 $EndSCHEMATC
