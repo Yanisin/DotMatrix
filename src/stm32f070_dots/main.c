@@ -18,6 +18,7 @@
 #include "rand.h"
 #include "usart_buffered.h"
 #include "cdcacm.h"
+#include "rtc.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -168,6 +169,7 @@ int main(void)
 	/* we want 48 MHz sysclk */
 	rcc_clock_setup_in_hsi_out_48mhz();
 	usart_init();
+	rtc_init();
 	led_init();
 	ticker_init();
 	disp_init();
@@ -209,6 +211,7 @@ int main(void)
 	while (1) {
 		cdcacm_worker();
 		life_worker();
+		rtc_worker();
 		cpu_relax();
 	}
 }
