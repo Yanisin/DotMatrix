@@ -24,6 +24,7 @@ void console_puts(const char *buf)
 	}
 }
 
+#ifdef CONSOLE_PRINTF
 void console_printf(const char *format, ...)
 {
 	   va_list arg;
@@ -35,3 +36,4 @@ void console_printf(const char *format, ...)
 
 	   console_puts(buf);
 }
+#endif
