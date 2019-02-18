@@ -177,7 +177,7 @@ int main(void)
 	rand_init();
 	cdcacm_init();
 
-	life_init();
+	//life_init();
 	clock_init();
 
 	disp_set(0, 0, 31);
@@ -212,7 +212,7 @@ int main(void)
 	
 	while (1) {
 		cdcacm_worker();
-		life_worker();
+		//life_worker();
 		clock_worker();
 		rtc_worker();
 		cpu_relax();
