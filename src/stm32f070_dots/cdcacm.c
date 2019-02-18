@@ -41,6 +41,11 @@ struct cdcacm_buffer {
 static struct cdcacm_buffer cdcacm_txbuf;
 static struct cdcacm_buffer cdcacm_rxbuf;
 
+static void cdcacm_buf_init(struct cdcacm_buffer *buf)
+{
+	buf->wp = buf->rp = 0;
+}
+
 static int cdcacm_buf_empty(struct cdcacm_buffer *buf)
 {
 	return (buf->wp - buf->rp) == 0;
@@ -334,6 +339,9 @@ int cdcacm_is_on(void)
 
 void cdcacm_init(void)
 {
+	cdcacm_buf_init(&cdcacm_txbuf);
+	cdcacm_buf_init(&cdcacm_rxbuf);
+
 	usb_setup();
 
 	cdcacm_usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config, usb_strings,
