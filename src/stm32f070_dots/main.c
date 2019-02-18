@@ -19,6 +19,7 @@
 #include "usart_buffered.h"
 #include "cdcacm.h"
 #include "rtc.h"
+#include "wordclock.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -177,6 +178,7 @@ int main(void)
 	cdcacm_init();
 
 	life_init();
+	clock_init();
 
 	disp_set(0, 0, 31);
 	ticker_msleep(500);
@@ -211,6 +213,7 @@ int main(void)
 	while (1) {
 		cdcacm_worker();
 		life_worker();
+		clock_worker();
 		rtc_worker();
 		cpu_relax();
 	}
