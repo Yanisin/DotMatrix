@@ -1,11 +1,14 @@
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/rtc.h>
 
 #include "hw_defs.h"
+#include "applet.h"
 #include "life.h"
 #include "disp.h"
 #include "ticker.h"
@@ -297,6 +300,8 @@ static void life_tick(void)
 	int have_life = 0;
 	int	i, j, a;
 
+	console_printf(" %08x ", RTC_TR);
+
 	memset(newboard, 0, sizeof(newboard));
 
 	/* apply B36/S23 rule to all cells */
@@ -382,7 +387,7 @@ static void init_edges(void)
 	}
 }
 
-void life_worker(void)
+static void life_worker(void)
 {
 	unsigned int tick = ticker_get_ticks();
 	uint32_t c;
@@ -464,7 +469,7 @@ void life_worker(void)
 	}
 }
 
-void life_init(void)
+static void life_init(void)
 {
 	memset(board, 0, sizeof(board));
 	rand_init();
@@ -494,3 +499,10 @@ void life_init(void)
 	life_tick_next = ticker_get_ticks() + life_tick_interv;
 	gpio_clear(GPIOF, GPIO0);
 }
+
+static const struct applet life_applet = {
+	.init = life_init,
+	.worker = life_worker,
+};
+
+applet_add(life);

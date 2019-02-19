@@ -11,15 +11,13 @@
 #endif
 
 #include "hw_defs.h"
+#include "applet.h"
 #include "disp.h"
 #include "ticker.h"
 #include "dots.h"
-#include "life.h"
 #include "rand.h"
 #include "usart_buffered.h"
 #include "cdcacm.h"
-#include "rtc.h"
-#include "wordclock.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -170,15 +168,12 @@ int main(void)
 	/* we want 48 MHz sysclk */
 	rcc_clock_setup_in_hsi_out_48mhz();
 	usart_init();
-	rtc_init();
 	led_init();
 	ticker_init();
 	disp_init();
 	rand_init();
-	cdcacm_init();
 
-	//life_init();
-	clock_init();
+	applet_init_all();
 
 	disp_set(0, 0, 31);
 	ticker_msleep(500);
@@ -211,10 +206,7 @@ int main(void)
 	led_on();
 	
 	while (1) {
-		cdcacm_worker();
-		//life_worker();
-		clock_worker();
-		rtc_worker();
+		applet_run_all();
 		cpu_relax();
 	}
 }

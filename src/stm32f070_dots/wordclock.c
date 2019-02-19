@@ -3,6 +3,7 @@
 
 #include <libopencm3/stm32/rtc.h>
 
+#include "applet.h"
 #include "ticker.h"
 #include "disp.h"
 #include "wordclock.h"
@@ -86,13 +87,13 @@ static int bcd_to_int(int bcd)
 	return (bcd & 0x0F) + ((bcd >> 4) & 0x0F) * 10;
 }
 
-void clock_init(void)
+static void clock_init(void)
 {
 	clock_tick_next = ticker_get_ticks() + 1000;
 	word_current = ONE;
 }
 
-void clock_worker(void)
+static void clock_worker(void)
 {
 	unsigned int tick = ticker_get_ticks();
 	uint8_t mask[8];
@@ -169,3 +170,11 @@ void clock_worker(void)
 
 	clock_tick_next = tick + 1000;
 }
+
+static const struct applet wordclock_applet = {
+		.init = clock_init,
+		.worker = clock_worker,
+};
+
+applet_add(wordclock);
+

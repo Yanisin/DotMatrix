@@ -30,3 +30,13 @@ MEMORY
 /* Include the common ld script. */
 INCLUDE cortex-m-generic.ld
 
+SECTIONS
+{
+	.applet_array : {
+		. = ALIGN(4);
+		__applet_array_start = .;
+		KEEP(*(.applet.*));
+		__applet_array_end = .;
+	} > rom
+}
+

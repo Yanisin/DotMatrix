@@ -26,6 +26,7 @@
 #include <libopencm3/cm3/nvic.h>
 
 #include "cdcacm.h"
+#include "applet.h"
 
 #define BUF_SIZE 64
 
@@ -337,7 +338,7 @@ int cdcacm_is_on(void)
 	return cdcacm_on;
 }
 
-void cdcacm_init(void)
+static void cdcacm_init(void)
 {
 	cdcacm_buf_init(&cdcacm_txbuf);
 	cdcacm_buf_init(&cdcacm_rxbuf);
@@ -350,7 +351,14 @@ void cdcacm_init(void)
 	nvic_enable_irq(NVIC_USB_IRQ);
 }
 
-void cdcacm_worker(void)
+static void cdcacm_worker(void)
 {
 	cdcacm_data_tx(cdcacm_usbd_dev);
 }
+
+static const struct applet cdcacm_applet = {
+		.init = cdcacm_init,
+		.worker = cdcacm_worker
+};
+
+applet_add(cdcacm);

@@ -7,6 +7,7 @@
 #include "console.h"
 #include "ticker.h"
 #include "cdcacm.h"
+#include "applet.h"
 
 enum worker_state {
 	WORKER_IDLE,
@@ -19,19 +20,6 @@ enum worker_state {
 
 static enum worker_state worker_state;
 static unsigned int bcd_time;
-
-void rtc_init(void)
-{
-	rcc_periph_clock_enable(RCC_PWR);
-	pwr_disable_backup_domain_write_protect ();
-	rcc_osc_on(RCC_LSE);
-	rcc_wait_for_osc_ready(RCC_LSE);
-	rcc_set_rtc_clock_source(RCC_LSE);
-	rcc_enable_rtc_clock();
-	pwr_enable_backup_domain_write_protect ();
-
-
-}
 
 static void rtc_set_time(unsigned int time)
 {
@@ -60,7 +48,20 @@ static void rtc_set_time(unsigned int time)
 	pwr_enable_backup_domain_write_protect();
 }
 
-void rtc_worker(void)
+static void rtc_init(void)
+{
+	rcc_periph_clock_enable(RCC_PWR);
+	pwr_disable_backup_domain_write_protect ();
+	rcc_osc_on(RCC_LSE);
+	rcc_wait_for_osc_ready(RCC_LSE);
+	rcc_set_rtc_clock_source(RCC_LSE);
+	rcc_enable_rtc_clock();
+	pwr_enable_backup_domain_write_protect ();
+
+
+}
+
+static void rtc_worker(void)
 {
 	uint32_t c = console_getc();
 
@@ -98,5 +99,11 @@ void rtc_worker(void)
 	default:
 		break;
 	}
-
 }
+
+static const struct applet rtc_applet = {
+	.init = rtc_init,
+	.worker = rtc_worker,
+};
+
+applet_add(rtc);
