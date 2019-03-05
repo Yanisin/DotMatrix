@@ -215,9 +215,11 @@ F 3 "http://www.ti.com/lit/ds/symlink/sn74hc595.pdf" H 6450 2150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L ti:TLC5916 U5
+L bcl4v2-rescue:TLC5916-ti U5
 U 1 1 5C401A25
 P 7650 4050
+AR Path="/5C401A25" Ref="U5"  Part="1" 
+AR Path="/5BD6AFE7/5C401A25" Ref="U5"  Part="1" 
 F 0 "U5" H 7400 4550 50  0000 C CNN
 F 1 "TLC5916" H 7900 4550 50  0000 C CNN
 F 2 "SMD_Packages:SO-16-N" H 7650 4050 60  0001 C CNN
