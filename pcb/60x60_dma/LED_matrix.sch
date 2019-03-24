@@ -18,13 +18,13 @@ Text Label 6900 4200 0    60   ~ 0
 OUT_C1
 Text Label 6900 4400 0    60   ~ 0
 OUT_C3
-Text Label 8100 4100 0    60   ~ 0
-OUT_C4
-Text Label 8100 4200 0    60   ~ 0
-OUT_C5
-Text Label 8100 4300 0    60   ~ 0
-OUT_C6
 Text Label 8100 4400 0    60   ~ 0
+OUT_C4
+Text Label 8100 4300 0    60   ~ 0
+OUT_C5
+Text Label 8100 4200 0    60   ~ 0
+OUT_C6
+Text Label 8100 4100 0    60   ~ 0
 OUT_C7
 Text Label 6900 4100 0    60   ~ 0
 OUT_C0
@@ -233,7 +233,7 @@ U 1 1 5C401B31
 P 7550 2050
 F 0 "U4" H 7300 2500 50  0000 C CNN
 F 1 "TBD62783A" H 7800 2500 50  0000 C CNN
-F 2 "Housings_SOIC:SOIC-18W_7.5x11.6mm_Pitch1.27mm" H 7550 1500 50  0001 C CNN
+F 2 "kicad_lib:badger_SOIC-18W_7.5x11.6mm_Pitch1.27mm" H 7550 1500 50  0001 C CNN
 F 3 "http://toshiba.semicon-storage.com/info/docget.jsp?did=30523&prodName=TBD62783APG" H 7250 2450 50  0001 C CNN
 	1    7550 2050
 	1    0    0    -1  
