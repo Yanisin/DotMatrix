@@ -24,7 +24,7 @@ Text Label 10600 3950 0    60   ~ 0
 SWDIO
 Text Label 1100 4200 1    60   ~ 0
 LED
-Text Label 4300 2450 0    60   ~ 0
+Text Label 4300 2250 0    60   ~ 0
 LED
 $Comp
 L bcl4v2-rescue:+5V #PWR01
@@ -1385,4 +1385,85 @@ Wire Wire Line
 	8300 6050 8300 6100
 Wire Wire Line
 	8450 6250 8450 6300
+$Comp
+L Device:Crystal Y2
+U 1 1 5C9B24E8
+P 2800 2850
+F 0 "Y2" H 2800 3118 50  0000 C CNN
+F 1 "ABS07-120-32.768kHz-T" H 2800 3027 50  0000 C CNN
+F 2 "kicad_lib:badger_crystal_ABS07-120-xx_handsolder" H 2800 2850 50  0001 C CNN
+F 3 "~" H 2800 2850 50  0001 C CNN
+	1    2800 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L bcl4v2-rescue:C C14
+U 1 1 5C9B270E
+P 2550 3050
+F 0 "C14" H 2665 3096 50  0000 L CNN
+F 1 "2pF" H 2665 3005 50  0000 L CNN
+F 2 "kicad_lib:badger_C_0603_HandSoldering" H 2588 2900 50  0001 C CNN
+F 3 "" H 2550 3050 50  0001 C CNN
+	1    2550 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L bcl4v2-rescue:GND #PWR028
+U 1 1 5C9B2815
+P 2550 3300
+F 0 "#PWR028" H 2550 3050 50  0001 C CNN
+F 1 "GND" H 2550 3150 50  0000 C CNN
+F 2 "" H 2550 3300 50  0001 C CNN
+F 3 "" H 2550 3300 50  0001 C CNN
+	1    2550 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L bcl4v2-rescue:GND #PWR046
+U 1 1 5C9B2876
+P 3050 3300
+F 0 "#PWR046" H 3050 3050 50  0001 C CNN
+F 1 "GND" H 3050 3150 50  0000 C CNN
+F 2 "" H 3050 3300 50  0001 C CNN
+F 3 "" H 3050 3300 50  0001 C CNN
+	1    3050 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2650 2850 2550 2850
+Wire Wire Line
+	2550 2850 2550 2900
+Wire Wire Line
+	2950 2850 3050 2850
+Wire Wire Line
+	3050 2850 3050 2900
+Wire Wire Line
+	3050 2850 3400 2850
+Connection ~ 3050 2850
+Wire Wire Line
+	2550 2850 2050 2850
+Connection ~ 2550 2850
+Text Label 3150 2850 0    60   ~ 0
+LSE_OUT
+Text Label 2100 2850 0    60   ~ 0
+LSE_IN
+Text Label 4200 2350 0    60   ~ 0
+LSE_IN
+Text Label 4200 2450 0    60   ~ 0
+LSE_OUT
+Wire Wire Line
+	2550 3200 2550 3300
+Wire Wire Line
+	3050 3200 3050 3300
+$Comp
+L bcl4v2-rescue:C C15
+U 1 1 5C9FD7D5
+P 3050 3050
+F 0 "C15" H 3165 3096 50  0000 L CNN
+F 1 "2pF" H 3165 3005 50  0000 L CNN
+F 2 "kicad_lib:badger_C_0603_HandSoldering" H 3088 2900 50  0001 C CNN
+F 3 "" H 3050 3050 50  0001 C CNN
+	1    3050 3050
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
