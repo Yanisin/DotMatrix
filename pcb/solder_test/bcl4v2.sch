@@ -1,0 +1,413 @@
+EESchema Schematic File Version 4
+LIBS:bcl4v2-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date "24 mar 2016"
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L bcl4v2-rescue:USB_OTG J?
+U 1 1 5CA3BDFE
+P 6550 2550
+AR Path="/5BD6EB23/5CA3BDFE" Ref="J?"  Part="1" 
+AR Path="/5CA3BDFE" Ref="J1"  Part="1" 
+F 0 "J1" H 6350 3000 50  0000 L CNN
+F 1 "USB_OTG" H 6350 2900 50  0000 L CNN
+F 2 "kicad_libraries_new:badger_USB_Micro-B_handsolder" H 6700 2500 50  0001 C CNN
+F 3 "" H 6700 2500 50  0001 C CNN
+	1    6550 2550
+	1    0    0    -1  
+$EndComp
+$Comp
+L bcl4v2-rescue:+5V #PWR?
+U 1 1 5CA3BE06
+P 7250 2300
+AR Path="/5BD6EB23/5CA3BE06" Ref="#PWR?"  Part="1" 
+AR Path="/5CA3BE06" Ref="#PWR0101"  Part="1" 
+F 0 "#PWR0101" H 7250 2150 50  0001 C CNN
+F 1 "+5V" H 7250 2440 50  0000 C CNN
+F 2 "" H 7250 2300 50  0001 C CNN
+F 3 "" H 7250 2300 50  0001 C CNN
+	1    7250 2300
+	1    0    0    -1  
+$EndComp
+$Comp
+L bcl4v2-rescue:GND #PWR?
+U 1 1 5CA3BE0C
+P 6550 3050
+AR Path="/5BD6EB23/5CA3BE0C" Ref="#PWR?"  Part="1" 
+AR Path="/5CA3BE0C" Ref="#PWR0102"  Part="1" 
+F 0 "#PWR0102" H 6550 2800 50  0001 C CNN
+F 1 "GND" H 6550 2900 50  0000 C CNN
+F 2 "" H 6550 3050 50  0001 C CNN
+F 3 "" H 6550 3050 50  0001 C CNN
+	1    6550 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6450 2950 6450 3000
+Wire Wire Line
+	6450 3000 6550 3000
+Wire Wire Line
+	6550 2950 6550 3000
+Connection ~ 6550 3000
+Wire Wire Line
+	6850 2350 7250 2350
+Wire Wire Line
+	7250 2350 7250 2300
+Wire Wire Line
+	6550 3000 6550 3050
+Text Notes 2150 650  0    60   ~ 0
+C12,C13 are only for stability if  the power supply is not stable enough
+$Comp
+L bcl4v2-rescue:Conn_01x05 J?
+U 1 1 5CAA3C53
+P 7750 2550
+AR Path="/5BD6EB23/5CAA3C53" Ref="J?"  Part="1" 
+AR Path="/5CAA3C53" Ref="J2"  Part="1" 
+F 0 "J2" H 7750 2850 50  0000 C CNN
+F 1 "Conn_01x05" H 7750 2250 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 7750 2550 50  0001 C CNN
+F 3 "" H 7750 2550 50  0001 C CNN
+	1    7750 2550
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	6850 2750 6950 2750
+Connection ~ 7250 2350
+Wire Wire Line
+	7100 2450 7100 2550
+Wire Wire Line
+	7100 2550 6850 2550
+Wire Wire Line
+	6850 2650 7150 2650
+Wire Wire Line
+	7150 2650 7150 2600
+Wire Wire Line
+	7250 2750 7250 2650
+Wire Wire Line
+	7250 2650 7550 2650
+Wire Wire Line
+	7550 2750 7350 2750
+Wire Wire Line
+	7350 2750 7350 3000
+Wire Wire Line
+	7350 3000 6550 3000
+$Comp
+L bcl4v2-rescue:LED D1
+U 1 1 5CB01935
+P 6800 3650
+F 0 "D1" H 6800 3750 50  0000 C CNN
+F 1 "LED" H 6800 3550 50  0000 C CNN
+F 2 "LEDs:LED_0805_HandSoldering" H 6800 3650 50  0001 C CNN
+F 3 "" H 6800 3650 50  0001 C CNN
+	1    6800 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R1
+U 1 1 5CB0193C
+P 6800 4000
+F 0 "R1" V 6880 4000 50  0000 C CNN
+F 1 "1k" V 6800 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 6730 4000 50  0001 C CNN
+F 3 "" H 6800 4000 50  0001 C CNN
+	1    6800 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6800 3800 6800 3850
+Wire Wire Line
+	6800 3400 6800 3500
+Wire Wire Line
+	6800 4150 6800 4400
+$Comp
+L bcl4v2-rescue:LED D2
+U 1 1 5CB01DA7
+P 7150 3650
+F 0 "D2" H 7150 3750 50  0000 C CNN
+F 1 "LED" H 7150 3550 50  0000 C CNN
+F 2 "LEDs:LED_0805_HandSoldering" H 7150 3650 50  0001 C CNN
+F 3 "" H 7150 3650 50  0001 C CNN
+	1    7150 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R2
+U 1 1 5CB01DAE
+P 7150 4000
+F 0 "R2" V 7230 4000 50  0000 C CNN
+F 1 "1k" V 7150 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 7080 4000 50  0001 C CNN
+F 3 "" H 7150 4000 50  0001 C CNN
+	1    7150 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7150 3800 7150 3850
+Wire Wire Line
+	7150 4150 7150 4400
+$Comp
+L bcl4v2-rescue:LED D3
+U 1 1 5CB02302
+P 7600 3650
+F 0 "D3" H 7600 3750 50  0000 C CNN
+F 1 "LED" H 7600 3550 50  0000 C CNN
+F 2 "LEDs:LED_0805_HandSoldering" H 7600 3650 50  0001 C CNN
+F 3 "" H 7600 3650 50  0001 C CNN
+	1    7600 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R3
+U 1 1 5CB02309
+P 7600 4000
+F 0 "R3" V 7680 4000 50  0000 C CNN
+F 1 "1k" V 7600 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 7530 4000 50  0001 C CNN
+F 3 "" H 7600 4000 50  0001 C CNN
+	1    7600 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7600 3800 7600 3850
+Wire Wire Line
+	7600 4150 7600 4400
+$Comp
+L bcl4v2-rescue:LED D4
+U 1 1 5CB02931
+P 7900 3650
+F 0 "D4" H 7900 3750 50  0000 C CNN
+F 1 "LED" H 7900 3550 50  0000 C CNN
+F 2 "LEDs:LED_0805_HandSoldering" H 7900 3650 50  0001 C CNN
+F 3 "" H 7900 3650 50  0001 C CNN
+	1    7900 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R4
+U 1 1 5CB02938
+P 7900 4000
+F 0 "R4" V 7980 4000 50  0000 C CNN
+F 1 "1k" V 7900 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 7830 4000 50  0001 C CNN
+F 3 "" H 7900 4000 50  0001 C CNN
+	1    7900 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 3800 7900 3850
+Wire Wire Line
+	7900 4150 7900 4400
+Wire Wire Line
+	7900 4400 7600 4400
+Wire Wire Line
+	7600 4400 7150 4400
+Connection ~ 7600 4400
+Wire Wire Line
+	7150 4400 6800 4400
+Connection ~ 7150 4400
+Wire Wire Line
+	6800 4400 6450 4400
+Wire Wire Line
+	6450 4400 6450 3000
+Connection ~ 6800 4400
+Connection ~ 6450 3000
+Wire Wire Line
+	6800 3400 6950 3400
+Wire Wire Line
+	6950 3400 6950 2750
+Connection ~ 6950 2750
+Wire Wire Line
+	6950 2750 7250 2750
+Wire Wire Line
+	7150 2650 7150 3350
+Connection ~ 7150 2650
+Wire Wire Line
+	7900 3250 7900 3500
+$Comp
+L bcl4v2-rescue:LED D5
+U 1 1 5CB08A82
+P 8250 3650
+F 0 "D5" H 8250 3750 50  0000 C CNN
+F 1 "LED" H 8250 3550 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 8250 3650 50  0001 C CNN
+F 3 "" H 8250 3650 50  0001 C CNN
+	1    8250 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R5
+U 1 1 5CB08A89
+P 8250 4000
+F 0 "R5" V 8330 4000 50  0000 C CNN
+F 1 "1k" V 8250 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 8180 4000 50  0001 C CNN
+F 3 "" H 8250 4000 50  0001 C CNN
+	1    8250 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8250 3800 8250 3850
+Wire Wire Line
+	8250 3400 8250 3500
+Wire Wire Line
+	8250 4150 8250 4400
+$Comp
+L bcl4v2-rescue:LED D6
+U 1 1 5CB08A94
+P 8600 3650
+F 0 "D6" H 8600 3750 50  0000 C CNN
+F 1 "LED" H 8600 3550 50  0000 C CNN
+F 2 "LEDs:LED_0603_HandSoldering" H 8600 3650 50  0001 C CNN
+F 3 "" H 8600 3650 50  0001 C CNN
+	1    8600 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R6
+U 1 1 5CB08A9B
+P 8600 4000
+F 0 "R6" V 8680 4000 50  0000 C CNN
+F 1 "1k" V 8600 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0603_HandSoldering" V 8530 4000 50  0001 C CNN
+F 3 "" H 8600 4000 50  0001 C CNN
+	1    8600 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8600 3800 8600 3850
+Wire Wire Line
+	8600 4150 8600 4400
+$Comp
+L bcl4v2-rescue:LED D7
+U 1 1 5CB08AA5
+P 9050 3650
+F 0 "D7" H 9050 3750 50  0000 C CNN
+F 1 "LED" H 9050 3550 50  0000 C CNN
+F 2 "LEDs:LED_0402" H 9050 3650 50  0001 C CNN
+F 3 "" H 9050 3650 50  0001 C CNN
+	1    9050 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R7
+U 1 1 5CB08AAC
+P 9050 4000
+F 0 "R7" V 9130 4000 50  0000 C CNN
+F 1 "1k" V 9050 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0402" V 8980 4000 50  0001 C CNN
+F 3 "" H 9050 4000 50  0001 C CNN
+	1    9050 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9050 3800 9050 3850
+Wire Wire Line
+	9050 4150 9050 4400
+$Comp
+L bcl4v2-rescue:LED D8
+U 1 1 5CB08AB7
+P 9350 3650
+F 0 "D8" H 9350 3750 50  0000 C CNN
+F 1 "LED" H 9350 3550 50  0000 C CNN
+F 2 "LEDs:LED_0402" H 9350 3650 50  0001 C CNN
+F 3 "" H 9350 3650 50  0001 C CNN
+	1    9350 3650
+	0    -1   -1   0   
+$EndComp
+$Comp
+L bcl4v2-rescue:R R8
+U 1 1 5CB08ABE
+P 9350 4000
+F 0 "R8" V 9430 4000 50  0000 C CNN
+F 1 "1k" V 9350 4000 50  0000 C CNN
+F 2 "Resistors_SMD:R_0402" V 9280 4000 50  0001 C CNN
+F 3 "" H 9350 4000 50  0001 C CNN
+	1    9350 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9350 3800 9350 3850
+Wire Wire Line
+	9350 4150 9350 4400
+Wire Wire Line
+	9350 4400 9050 4400
+Wire Wire Line
+	9050 4400 8600 4400
+Connection ~ 9050 4400
+Wire Wire Line
+	8600 4400 8250 4400
+Connection ~ 8600 4400
+Wire Wire Line
+	8250 4400 7900 4400
+Connection ~ 8250 4400
+Wire Wire Line
+	9350 3250 9350 3500
+Wire Wire Line
+	7100 2450 7200 2450
+Wire Wire Line
+	7250 2350 7300 2350
+Wire Wire Line
+	7600 3300 7200 3300
+Wire Wire Line
+	7200 3300 7200 2450
+Wire Wire Line
+	7600 3300 7600 3500
+Wire Wire Line
+	7900 3250 7300 3250
+Wire Wire Line
+	7300 3250 7300 2350
+Connection ~ 7300 2350
+Wire Wire Line
+	7300 2350 7550 2350
+Wire Wire Line
+	6950 3400 8250 3400
+Connection ~ 6950 3400
+Wire Wire Line
+	7150 3350 8600 3350
+Wire Wire Line
+	8600 3350 8600 3500
+Connection ~ 7150 3350
+Wire Wire Line
+	7150 3350 7150 3500
+Wire Wire Line
+	7600 3300 9050 3300
+Wire Wire Line
+	9050 3300 9050 3500
+Connection ~ 7600 3300
+Wire Wire Line
+	7900 3250 9350 3250
+Connection ~ 7900 3250
+Text Label 6900 2550 0    60   ~ 0
+D+
+Text Label 6950 2650 0    60   ~ 0
+D-
+Text Label 7000 2750 0    60   ~ 0
+ID
+Wire Wire Line
+	7500 2450 7500 2600
+Wire Wire Line
+	7500 2600 7150 2600
+Wire Wire Line
+	7500 2450 7550 2450
+Connection ~ 7150 2600
+Wire Wire Line
+	7150 2600 7150 2550
+Wire Wire Line
+	7550 2550 7400 2550
+Wire Wire Line
+	7400 2550 7400 2450
+Wire Wire Line
+	7400 2450 7200 2450
+Connection ~ 7200 2450
+$EndSCHEMATC

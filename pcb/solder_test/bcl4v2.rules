@@ -1,0 +1,143 @@
+
+(rules PCB bcl4v2
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 13150)
+    (layer_rule Front
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.0)
+    )
+    (layer_rule Back
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.0)
+    )
+  )
+  (rule
+    (width 203.2)
+    (clear 203.4)
+    (clear 101.6 (type smd_to_turn_gap))
+    (clear 254.2 (type default_power))
+    (clear 50.8 (type smd_smd))
+    (clear 254.2 (type smd_power))
+    (clear 254.2 (type "kicad_default"_power))
+    (clear 254.2 (type "led_power"_power))
+    (clear 254.2 (type power_power))
+  )
+  (padstack "Via[0-1]_889:609.6_um"
+    (shape
+      (circle Front 889.0 0.0 0.0)
+    )
+    (shape
+      (circle Back 889.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (padstack "Via[0-1]_1346.2:711.2_um"
+    (shape
+      (circle Front 1346.2 0.0 0.0)
+    )
+    (shape
+      (circle Back 1346.2 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_889:609.6_um" "Via[0-1]_889:609.6_um" default
+  )
+  (via 
+    "Via[0-1]_1346.2:711.2_um" "Via[0-1]_1346.2:711.2_um" default
+  )
+  (via 
+    "Via[0-1]_889:609.6_um-kicad_default" "Via[0-1]_889:609.6_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_1346.2:711.2_um-kicad_default" "Via[0-1]_1346.2:711.2_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_889:609.6_um-led_power" "Via[0-1]_889:609.6_um" "led_power"
+  )
+  (via 
+    "Via[0-1]_1346.2:711.2_um-led_power" "Via[0-1]_1346.2:711.2_um" "led_power"
+  )
+  (via 
+    "Via[0-1]_889:609.6_um-power" "Via[0-1]_889:609.6_um" power
+  )
+  (via 
+    "Via[0-1]_1346.2:711.2_um-power" "Via[0-1]_1346.2:711.2_um" power
+  )
+  (via_rule
+    default "Via[0-1]_889:609.6_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_889:609.6_um-kicad_default"
+  )
+  (via_rule
+    "led_power" "Via[0-1]_889:609.6_um-led_power"
+  )
+  (via_rule
+    power "Via[0-1]_1346.2:711.2_um-power"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 203.2)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+  (class "kicad_default"
+    /IN1 /NRST "/I2C_SCL" "/I2C_SDA" /LED "Net-(D5-Pad1)" /IN0 "/OSC_IN"
+    "/OSC_OUT" /BOOT0 /BTN0 /BTN1 "Net-(Q1-Pad1)" /IN0P /IN1P "/UART_RX4"
+    "/UART_TX2" "/UART_RX2" "/LEDS_A0" "/LEDS_A1" "/LEDS_A3" "/LEDS_A4" "/UART_TX3" "/UART_RX3"
+    /IN2 /IN3 "/LEDS_A2" "/UART_TX1" "/UART_RX1" /SWDIO /SWCLK "/CAT_STROBE"
+    "/CAT_CLK" "/LEDS_A5" "/CAT_DATA" "/LEDS_A6" "/LEDS_A7" "/USB_D-" "/USB_D+" "/UART_TX4"
+    (clearance_class "kicad_default")
+    (via_rule kicad_default)
+    (rule
+      (width 203.2)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+  (class "led_power"
+    GND +5V +3V3 "/LED_matrix/OUT_C8" "/LED_matrix/OUT_C7" "/LED_matrix/OUT_A1" "/LED_matrix/OUT_C1" "/LED_matrix/OUT_A3"
+    "/LED_matrix/OUT_C6" "/LED_matrix/OUT_C4" "/LED_matrix/OUT_A0" "/LED_matrix/OUT_A5" "/LED_matrix/OUT_A2" "/LED_matrix/OUT_C3" "/LED_matrix/OUT_A7" "/LED_matrix/OUT_C2"
+    "/LED_matrix/OUT_C5" "/LED_matrix/OUT_A6" "/LED_matrix/OUT_A4" "/LED_matrix/C1" "/LED_matrix/C2" "/LED_matrix/C3" "/LED_matrix/C4" "/LED_matrix/C5"
+    "/LED_matrix/C6" "/LED_matrix/C7" "/LED_matrix/C8"
+    (clearance_class "led_power")
+    (via_rule led_power)
+    (rule
+      (width 304.8)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+  (class power
+    VCC
+    (clearance_class power)
+    (via_rule power)
+    (rule
+      (width 609.6)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+)
