@@ -27,7 +27,7 @@ HW_VERSION = "HW_60x60_rev_0_4"
 
 DEFS += -D$(HW_VERSION)
 #DEFS += -DCONSOLE_PRINTF
-OBJS= led.o disp.o disp_spi.o ticker.o rand.o usart_buffered.o spi_dma.o applet.o
+OBJS= buttons.o led.o disp.o disp_spi.o ticker.o rand.o usart_buffered.o spi_dma.o applet.o
 OBJS += cdcacm.o console.o
 #OBJS += wordclock.o rtc.o
 OBJS += life.o

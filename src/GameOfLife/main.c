@@ -15,13 +15,6 @@
 #include "cdcacm.h"
 #include "led.h"
 
-/* Private typedef -----------------------------------------------------------*/
-
-
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-
-/* Private variables ---------------------------------------------------------*/
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
 
@@ -91,8 +84,6 @@ static const uint8_t digits[6][5][5] = {
 };
 #endif
 
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 static void print_smile(uint8_t num)
 {
 	int i,j,pos;
@@ -149,12 +140,16 @@ int main(void)
 
 	applet_init_all();
 
+	led_on();
 	disp_set(0, 0, 31);
 	ticker_msleep(200);
+	led_off();
 	disp_set(7, 0, 31);
 	ticker_msleep(200);
+	led_on();
 	disp_set(7, 7, 31);
 	ticker_msleep(200);
+	led_off();
 	disp_set(0, 7, 31);
 	ticker_msleep(200);
 	disp_clean();

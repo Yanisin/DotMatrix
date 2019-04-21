@@ -6,10 +6,26 @@
 #error The matching HW selection macro not defined
 #endif
 
+/**************************************
+ *	Debug LED Definitions
+ **************************************/
+#define LED_RCC RCC_GPIOC
+#define LED_PORT GPIOC
+#define LED_PIN GPIO15
 
-#define PORT_LED GPIOC
-#define PIN_LED GPIO15
+/**************************************
+ *	Buttons Definitions
+ **************************************/
+#define BTN0_RCC RCC_GPIOA 
+#define BTN0_PORT GPIOA
+#define BTN0_PIN GPIO6
+#define BTN0_EXTI EXTI6
+#define BTN0_IRQ NVIC_EXTI4_15_IRQ
 
+#define BTN1_RCC RCC_GPIOA 
+#define BTN1_PORT GPIOA
+#define BTN1_PIN GPIO7
+#define BTN1_EXTI NVIC_EXTI4_15_IRQ
 
 /**************************************
  *	Display Definitions
@@ -106,6 +122,5 @@
 #define USART_DIR_DOWN USART_D
 #define USART_DIR_LEFT USART_B
 #define USART_DIR_RIGHT USART_A
-
 
 #endif
