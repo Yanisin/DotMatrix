@@ -53,7 +53,6 @@ static void disp_kick(void)
 			DMA_ROW_LEN*DISP_ROWS_NUM);
 }
 
-	extern void blink_ticker(uint32_t,uint32_t);
 void disp_init(void)
 {
 	/* clean out the display state including DMA row buffers */
@@ -113,9 +112,7 @@ void disp_update_rows(void)
 
 void disp_clean(void)
 {
-	blink_ticker(3,100);
 	memset(disp_state, 0, sizeof(disp_state));
-	blink_ticker(1,500);
 	memset(disp_row_dmabuf, 0, sizeof(disp_row_dmabuf));
 }
 

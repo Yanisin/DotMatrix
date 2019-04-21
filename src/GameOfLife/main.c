@@ -1,14 +1,9 @@
-#include "stdint.h"
+#include <stdint.h>
 
-
-#ifdef STDPERIPH
-#include "stm32f0xx.h"
-#else
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
-#endif
 
 #include "hw_defs.h"
 #include "applet.h"
@@ -18,6 +13,7 @@
 #include "rand.h"
 #include "usart_buffered.h"
 #include "cdcacm.h"
+#include "led.h"
 
 /* Private typedef -----------------------------------------------------------*/
 
@@ -26,7 +22,6 @@
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
-void led_init(void);
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
 
@@ -98,33 +93,13 @@ static const uint8_t digits[6][5][5] = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-void led_init(void)
-{
-	/* Enable GPIOC clock. */
-	rcc_periph_clock_enable(RCC_GPIOC);
-
-	/* Set GPIO0 (in GPIO port F) to 'output push-pull'. */
-	/* Using API functions: */
-	gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED);
-}
-
-static void led_on(void)
-{
-	gpio_clear(PORT_LED, PIN_LED);	/* LED on */
-}
-
-static void led_off(void)
-{
-	gpio_set(PORT_LED, PIN_LED);	/* LED on */
-}
-
 static void print_smile(uint8_t num)
 {
 	int i,j,pos;
 	
 	if (num > 8) {
 		pos = 17-num;
-	}else{
+	} else {
 		pos = num;
 	}
 
@@ -161,17 +136,6 @@ static void print_grey(uint8_t num)
 }
 
 
-void blink_ticker(uint32_t cnt, uint32_t dly)
-{
-	int i;
-	for (i=0;i<cnt;i++) {
-		led_on();
-		ticker_msleep(dly);
-		led_off();
-		ticker_msleep(dly);
-	}
-}
-
 int main(void)
 {
 	int i=0;
@@ -186,17 +150,18 @@ int main(void)
 	applet_init_all();
 
 	disp_set(0, 0, 31);
-	ticker_msleep(500);
+	ticker_msleep(200);
 	disp_set(7, 0, 31);
-	ticker_msleep(500);
+	ticker_msleep(200);
 	disp_set(7, 7, 31);
-	ticker_msleep(500);
+	ticker_msleep(200);
 	disp_set(0, 7, 31);
-	ticker_msleep(500);
+	ticker_msleep(200);
 	disp_clean();
+
 	for ( i = 0; i < 18; i++) {
 		print_smile(i);
-
+		ticker_msleep(100);
 	}
 
 	for ( i = 0; i < 4; i++) {
