@@ -43,7 +43,7 @@ U 1 1 5B30C71A
 P 1100 3500
 F 0 "D5" H 1100 3600 50  0000 C CNN
 F 1 "LED" H 1100 3400 50  0000 C CNN
-F 2 "LEDs:LED_0805_HandSoldering" H 1100 3500 50  0001 C CNN
+F 2 "kicad_libraries_new:badger_LED_0805_HandSoldering" H 1100 3500 50  0001 C CNN
 F 3 "" H 1100 3500 50  0001 C CNN
 	1    1100 3500
 	0    -1   -1   0   

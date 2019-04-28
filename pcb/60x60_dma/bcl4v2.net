@@ -1,8 +1,8 @@
 (export (version D)
   (design
-    (source /home/badger/prj/DotMatrix/git/DotMatrix/pcb/60x60_dma/bcl4v2.sch)
-    (date Út 26. března 2019, 19:06:29 CET)
-    (tool "Eeschema 5.0.2-bee76a0~70~ubuntu18.04.1")
+    (source /home/badger/prj/dotMatrix/DotMatrix/pcb/60x60_dma/bcl4v2.sch)
+    (date Ne 28. duben 2019, 13:47:04 CEST)
+    (tool "Eeschema 5.0.2-bee76a0~70~ubuntu16.04.1")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
         (title)
@@ -39,7 +39,7 @@
   (components
     (comp (ref D5)
       (value LED)
-      (footprint LEDs:LED_0805_HandSoldering)
+      (footprint kicad_libraries_new:badger_LED_0805_HandSoldering)
       (libsource (lib bcl4v2-rescue) (part LED) (description ""))
       (sheetpath (names /) (tstamps /))
       (tstamp 5B30C71A))
@@ -444,7 +444,7 @@
       (sheetpath (names /LED_matrix/) (tstamps /5BD6AFE7/))
       (tstamp 5C401B31))
     (comp (ref R3)
-      (value 1k)
+      (value 470)
       (footprint Resistors_SMD:R_0805_HandSoldering)
       (libsource (lib bcl4v2-rescue) (part R) (description ""))
       (sheetpath (names /LED_matrix/) (tstamps /5BD6AFE7/))
@@ -811,7 +811,7 @@
     (library (logical Transistor_Array)
       (uri /usr/share/kicad/library/Transistor_Array.lib))
     (library (logical bcl4v2-rescue)
-      (uri /home/badger/prj/DotMatrix/git/DotMatrix/pcb/60x60_dma/bcl4v2-rescue.lib)))
+      (uri /home/badger/prj/dotMatrix/DotMatrix/pcb/60x60_dma/bcl4v2-rescue.lib)))
   (nets
     (net (code 1) (name "Net-(Q1-Pad1)")
       (node (ref SW3) (pin 2))

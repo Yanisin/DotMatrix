@@ -30,5 +30,8 @@ MIC2091-1YM5-TR","3,4","3,4","https://cz.farnell.com/microchip/mic2091-1ym5-tr/p
 "U5 ",1,"TLC5916",24,24,"https://cz.farnell.com/texas-instruments/tlc5916id/ic-led-driver-linear-16-soic/dp/1755247?st=TLC5916#","SO-16-N",
 "Y1 ",1,"Resonator",10,10,,"CSTCE_G",
 "Y2 ",1,"ABS07-120-32.768kHz-T",10,10,,"crystal_ABS07-120-xx","~"
-,,,,"244,9100000001",,,
-,,,"inc vat","296,3411000001",,,
+,,,,,,,
+"other:",,,,,,,
+,4,"nylon spacers",,,,,
+,4,"nylon nuts",,,,,
+,4,"mini breadboard joints",,,,,
