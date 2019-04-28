@@ -1,8 +1,8 @@
-#ifndef HW_DEFS_38X38_REV_0_3_H
-#define HW_DEFS_38X38_REV_0_3_H
+#ifndef HW_DEFS_60X60_REV_0_5_H
+#define HW_DEFS_60X60_REV_0_5_H
 
 
-#ifndef HW_60x60_rev_0_4
+#ifndef HW_60x60_rev_0_5
 #error The matching HW selection macro not defined
 #endif
 
@@ -70,14 +70,14 @@
 #define USART_A_REG USART1
 #define USART_A_RCC RCC_USART1
 #define USART_A_IRQ NVIC_USART1_IRQ
-#define USART_A_RX_RCC RCC_GPIOB
-#define USART_A_RX_PORT GPIOB
-#define USART_A_RX_PIN GPIO7
-#define USART_A_RX_AF_NUM GPIO_AF0
-#define USART_A_TX_RCC RCC_GPIOB
-#define USART_A_TX_PORT GPIOB
-#define USART_A_TX_PIN GPIO6
-#define USART_A_TX_AF_NUM GPIO_AF0
+#define USART_A_RX_RCC RCC_GPIOA
+#define USART_A_RX_PORT GPIOA
+#define USART_A_RX_PIN GPIO10
+#define USART_A_RX_AF_NUM GPIO_AF1
+#define USART_A_TX_RCC RCC_GPIOA
+#define USART_A_TX_PORT GPIOA
+#define USART_A_TX_PIN GPIO9
+#define USART_A_TX_AF_NUM GPIO_AF1
 
 #define USART_B 1
 #define USART_B_REG USART2
@@ -118,9 +118,9 @@
 #define USART_D_TX_PIN GPIO0
 #define USART_D_TX_AF_NUM GPIO_AF4
 
-#define USART_DIR_UP USART_C
-#define USART_DIR_DOWN USART_D
-#define USART_DIR_LEFT USART_B
+#define USART_DIR_UP USART_D
+#define USART_DIR_DOWN USART_B
+#define USART_DIR_LEFT USART_C
 #define USART_DIR_RIGHT USART_A
 
 #endif

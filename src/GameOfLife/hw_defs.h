@@ -18,6 +18,11 @@
 
 #include "hw_defs_60x60_rev_0_4.h"
 
+
+#elif defined (HW_60x60_rev_0_5)
+
+#include "hw_defs_60x60_rev_0_5.h"
+
 #else
 
 #error HW version not defined

@@ -76,6 +76,7 @@ static uint8_t gamma_lookup(uint8_t val)
 
 	return gamma18_lut[val];
 }
+#if 0
 static uint8_t fix_ver_04(uint8_t in)
 {
 	uint8_t out;
@@ -88,8 +89,28 @@ static uint8_t fix_ver_04(uint8_t in)
 	return out;
 
 }
+#endif
+
+static uint8_t fix_ver_05(uint8_t in)
+{
+	uint8_t out;
+
+	out = (in & 0x1) << 7;
+	out |= (in & 0x2) << 5;
+	out |= (in & 0x4) << 3;
+	out |= (in & 0x8) << 1;
+	out |= (in & 0x10) >> 1;
+	out |= (in & 0x20) >> 3;
+	out |= (in & 0x40) >> 5;
+	out |= (in & 0x80) >> 7;
+	return out;
+
+}
+
+
 static void disp_row_update(int row_num)
 {
+	uint8_t col_fixed,row_fixed;
 	uint8_t row = 0x80 >> row_num;
 
 	for (int i=0; i < COLOR_DEPTH; i++) {
@@ -98,9 +119,11 @@ static void disp_row_update(int row_num)
 			if (gamma_lookup(disp_state[row_num][c]) > i)
 				col |= 0x80 >> c;
 		}
-		col = fix_ver_04(col);
+//		col = fix_ver_04(col);
+		col_fixed = fix_ver_05(col);
+		row_fixed = fix_ver_05(row);
 
-		disp_row_dmabuf[row_num][i] = (col << 8) | row;
+		disp_row_dmabuf[row_num][i] = (col_fixed << 8) | row_fixed;
 	}
 }
 

@@ -138,6 +138,11 @@ int main(void)
 	disp_init();
 	rand_init();
 
+//	usart_send(USART_DIR_UP,'U');
+//	usart_send(USART_DIR_DOWN,'D');
+//	usart_send(USART_DIR_LEFT,'L');
+//	usart_send(USART_DIR_RIGHT,'R');
+
 	applet_init_all();
 
 	led_on();
