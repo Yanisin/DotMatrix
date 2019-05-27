@@ -18,13 +18,14 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
+ifeq ($(SIM),)
 LIBNAME		= opencm3_stm32f0
 DEFS		+= -DSTM32F0
 
 FP_FLAGS	?= -msoft-float
 ARCH_FLAGS	= -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 
-OPENCM3_DIR = /home/badger/prj/libopencm3/libopencm3-master/
+OPENCM3_DIR = /home/roman/build/libopencm3
 
 ################################################################################
 # OpenOCD specific variables
@@ -44,3 +45,4 @@ BMP_PORT	?=
 
 
 include ../rules.mk
+endif

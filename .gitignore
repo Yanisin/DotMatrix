@@ -4,4 +4,4 @@
 *.map
 *.o
 *.d
-
+proto_defs.h

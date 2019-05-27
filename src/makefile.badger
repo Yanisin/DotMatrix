@@ -1,3 +1,4 @@
+ifeq ($(SIM),)
 %.bin:%.elf
 	@echo 'Creating a binary ($@) from the .elf ($@) file. . . .'
 	arm-none-eabi-objcopy -O binary "$<" "$@"
@@ -10,3 +11,5 @@ prg: $(BINARY).elf
 # FIXME what is the meaning of the number behind colon?
 prg_usb: $(BINARY).bin
 	@sudo dfu-util -a 0 -D $(BINARY).bin -s 0x08000000:131072
+
+endif

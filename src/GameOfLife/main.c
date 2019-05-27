@@ -1,11 +1,13 @@
 #include <stdint.h>
 
 
+#ifndef SIM
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
-
 #include "hw_defs.h"
+#endif
+
 #include "applet.h"
 #include "disp.h"
 #include "ticker.h"
@@ -14,6 +16,7 @@
 #include "usart_buffered.h"
 #include "cdcacm.h"
 #include "led.h"
+#include "console.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -127,11 +130,9 @@ static void print_grey(uint8_t num)
 }
 
 
-int main(void)
+void common_main(void)
 {
 	int i=0;
-	/* we want 48 MHz sysclk */
-	rcc_clock_setup_in_hsi_out_48mhz();
 	usart_init();
 	led_init();
 	ticker_init();
@@ -146,6 +147,8 @@ int main(void)
 	applet_init_all();
 
 	led_on();
+	console_puts("Starting...\n");
+
 	disp_set(0, 0, 31);
 	ticker_msleep(200);
 	led_off();
@@ -183,3 +186,11 @@ int main(void)
 	
 
 }
+
+#ifndef SIM
+int main() {
+	common_main();
+	/* we want 48 MHz sysclk */
+	rcc_clock_setup_in_hsi_out_48mhz();
+}
+#endif

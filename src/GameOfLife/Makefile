@@ -28,13 +28,33 @@ HW_VERSION = "HW_60x60_rev_0_5"
 
 DEFS += -D$(HW_VERSION)
 #DEFS += -DCONSOLE_PRINTF
-OBJS= buttons.o led.o disp.o disp_spi.o ticker.o rand.o usart_buffered.o spi_dma.o applet.o
-OBJS += cdcacm.o console.o
+
+DEV_OBJS = \
+	buttons.o led.o disp.o disp_spi.o ticker.o \
+	cdcacm.o console.o \
+	usart_buffered.o spi_dma.o applet.o
+
+SIM_OBJS = \
+	sim/main.o \
+	sim/sim_proto.o \
+	sim/led.o \
+	sim/ticker.o \
+	sim/disp.o \
+	sim/usart.o \
+	sim/console.o
+	
+OBJS += \
+	rand.o \
+	main.o \
+	applet.o
+
 #OBJS += wordclock.o rtc.o
-OBJS += life.o
+#OBJS += life.o
+
 
 LDSCRIPT = ../stm32f070.ld
 CFLAGS += -Werror
 
 include ../Makefile.include.f0
 include ../makefile.badger
+include ../makefile.sim

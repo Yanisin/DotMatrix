@@ -1,21 +1,19 @@
+#ifdef SIM
+#include <time.h>
+#else
 #include <libopencm3/cm3/systick.h>
-
+#endif
 #include "rand.h"
-#include "ticker.h"
 
 static uint32_t random[1];
 
 void rand_init(void)
 {
+#ifdef SIM
+	random[0] = time(NULL);
+#else
 	random[0] = STK_CVR;
-}
-
-void rand_tick(void)
-{
-}
-
-void rand_worker(void)
-{
+#endif
 }
 
 static uint32_t xorshift32(uint32_t state[static 1])
