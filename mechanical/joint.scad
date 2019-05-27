@@ -142,7 +142,47 @@ module joint_simple()
 
 }
 
+module joint_cut_v05()
+{
+difference(){
+translate([-5,-5,0])
+joint_simple();
+
+translate([-6,-14,0])
+minkowski(){
+cylinder(r=1,h=2,$fn=8);
+cube([4,5,5]);
+}
+
+rotate([0,0,90])
+translate([-6,-14,0])
+minkowski(){
+cylinder(r=1,h=2,$fn=8);
+cube([4,5,5]);
+}
+
+
+rotate([0,0,180])
+translate([-6,-14,0])
+minkowski(){
+cylinder(r=1,h=2,$fn=8);
+cube([4,5,5]);
+}
+
+
+rotate([0,0,270])
+translate([-6,-14,0])
+minkowski(){
+cylinder(r=1,h=2,$fn=8);
+cube([4,5,5]);
+}
+
+}
+}
+
 //multiple();
 //joint_thread();
-joint_simple();
+//joint_simple();
+
+joint_cut_v05();
 
