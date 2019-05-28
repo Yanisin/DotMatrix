@@ -2,6 +2,7 @@ import random
 import binascii
 import re
 import threading
+import subprocess
 from PySide2.QtCore import QObject, Signal, Property, Slot
 
 id_byte_len = 12
@@ -41,6 +42,16 @@ class Field(QObject):
         if at in self.cell_by_position:
             raise CellNotEmpty(at)
 
+    @Slot()
+    def restartAll(self):
+        for c in self.cells:
+            c.restart()
+
+    @Slot()
+    def killAll(self):
+        for c in self.cells:
+            c.kill()
+
     def create(self, at: (int, int), id: str = None):
         if id == None:
             id = gen_id()
@@ -64,6 +75,24 @@ class Cell(QObject):
         self.id = id
         self._display = [Pixel((x % display_size, x / display_size)) for x in range(display_size * display_size)]
         self._led_state = False
+        self._client = None
+        self._target = None
+
+    @Slot()
+    def restart(self):
+        if self._target is not None:
+            self._target.terminate()
+            self._target = None
+
+        self._target = subprocess.Popen(['../GameOfLife/build_sim/main', '-i', self.id])
+        self.changed.emit()
+
+    @Slot()
+    def kill(self):
+        if self._target is not None:
+            self._target.terminate()
+            self._target = None
+            self.changed.emit()
 
     @Property(bool, notify = changed)
     def ledState(self):
@@ -88,6 +117,24 @@ class Cell(QObject):
     def update_display_row(self, row, row_data):
         for i, v in enumerate(row_data):
             self._display[row * display_size + i].update(v)
+
+    def client_connected(self, client):
+        assert self._client is None
+        self._client = client
+        self.changed.emit()
+
+    def client_disconnected(self):
+        self._client = None
+        self.changed.emit()
+
+    @Property(bool, notify = changed)
+    def connected(self):
+        return self._client is not None
+
+    @Property(bool, notify=changed)
+    def targetRunning(self):
+        return self._target is not None
+
 
     def __str__(self):
         return 'Cell[{}]'.format(self.id)

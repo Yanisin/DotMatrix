@@ -1,5 +1,4 @@
 import QtQuick 2.12
-import QtQuick.Shapes 1.12
 import QtQuick.Controls 2.5
 
 ApplicationWindow {
@@ -7,6 +6,20 @@ ApplicationWindow {
     visible: true
     width: 640
     height: 640
+    background: Rectangle {
+        color: "white"
+    }
+
+    header: Row {
+        Button {
+            text: "(Re-)Start All"
+            onClicked: field.restartAll()
+        }
+        Button {
+            text: "Kill"
+            onClicked: field.killAll()
+        }
+    }
 
     Repeater {
         model: field.qCells
@@ -15,7 +28,7 @@ ApplicationWindow {
             property var cell: modelData
             property var cellSize: 80
             property var pixelSize: 10
-            color: "gray"
+            color: "#cfcfcf"
             width: cellSize
             height: cellSize
             x: cell.x * cellSize
@@ -34,20 +47,23 @@ ApplicationWindow {
                 }
             }
 
-            /* Led diode */
-            Shape {
-                visible: cell.ledState
-                ShapePath {
-                    fillColor: "blue"
-                    strokeWidth: -1
-
-                    PathAngleArc {
-                        startAngle: 0
-                        sweepAngle: 360
-                        centerX: 0
-                        centerY: 0
-                        radiusX: 5
-                        radiusY: 5
+            Row {
+                /* Connection indicator */
+                Led {
+                    ledColor: {
+                        if (cell.connected) {
+                            return "green";
+                        } else if (cell.targetRunning) {
+                            return "orange";
+                        } else {
+                            return "red";
+                        }
+                    }
+                }
+                /* Led diode */
+                Led {
+                    ledColor: {
+                        return cell.ledState ? "lightblue" : "black";
                     }
                 }
             }

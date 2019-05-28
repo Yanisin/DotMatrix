@@ -1,6 +1,7 @@
 from PySide2.QtGui import QGuiApplication
 from PySide2.QtQml import QQmlApplicationEngine
 from PySide2.QtCore import QUrl, qInstallMessageHandler, QtInfoMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg
+import os
 
 def msg_handler(mode, context, message):
     if mode == QtInfoMsg:
@@ -17,6 +18,9 @@ def msg_handler(mode, context, message):
 
 def run(args, field):
     qInstallMessageHandler(msg_handler)
+
+    if "QT_QUICK_CONTROLS_STYLE" not in os.environ:
+        os.environ["QT_QUICK_CONTROLS_STYLE"] = "Fusion"
 
     app = QGuiApplication(args)
     eng = QQmlApplicationEngine()

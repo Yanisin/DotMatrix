@@ -48,14 +48,17 @@ class ClientHandler(socketserver.BaseRequestHandler):
             else:
                 raise CommException('Unknown message ID {} received'.format(msg.msgid))
 
+        if self.cell is not None:
+            self.cell.client_disconnected()
         print('Disconnected')
 
     def msg_hello(self, msg: Message):
         assert self.cell_id is None
-        self.cell_id = binascii.b2a_hex(msg.data).decode('ascii')
+        self.cell_id = binascii.b2a_hex(msg.data).decode('ascii').upper()
         if self.cell_id not in self.field.cell_by_id:
             raise CommException('Cell with unknown ID {} tried to connected'.format(self.cell_id))
         self.cell = self.field.cell_by_id[self.cell_id]
+        self.cell.client_connected(self)
 
     def msg_disp(self, msg: Message):
         self.cell.update_display_row(msg.data[0], msg.data[1:])
