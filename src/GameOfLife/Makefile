@@ -32,7 +32,7 @@ DEFS += -D$(HW_VERSION)
 DEV_OBJS = \
 	buttons.o led.o disp.o disp_spi.o ticker.o \
 	cdcacm.o console.o \
-	usart_buffered.o spi_dma.o applet.o
+	usart_buffered.o spi_dma.o
 
 SIM_OBJS = \
 	sim/main.o \

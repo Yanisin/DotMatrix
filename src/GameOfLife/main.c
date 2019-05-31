@@ -129,6 +129,7 @@ static void print_grey(uint8_t num)
 
 }
 
+void common_main(void);
 
 void common_main(void)
 {
@@ -188,9 +189,9 @@ void common_main(void)
 }
 
 #ifndef SIM
-int main() {
-	common_main();
+int main(void) {
 	/* we want 48 MHz sysclk */
 	rcc_clock_setup_in_hsi_out_48mhz();
+	common_main();
 }
 #endif

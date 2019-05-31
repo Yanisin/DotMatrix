@@ -51,8 +51,6 @@ CSTD		?= -std=c99
 # Source files
 
 OBJS += $(DEV_OBJS)
-OBJS		+= $(BINARY).o
-
 
 ifeq ($(strip $(OPENCM3_DIR)),)
 # user has not specified the library path, so we try to detect it
