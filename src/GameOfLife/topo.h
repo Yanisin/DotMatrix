@@ -25,8 +25,8 @@ void topo_send_down(uint8_t msgid, uint8_t len, const void *data);
 void topo_send_to(uint8_t recipient, uint8_t msgid, uint8_t len, const void *data);
 
 /**
- * Positions are sent accross uart as vector relative to this cell, with the outgoing direction as the
- * "up" direction.
+ * Positions are sent accross uart as vector relative to this cell, with the outgoing direction as
+ * the "up" direction.
  *
  * This function rotates the vector appropriately.
  */

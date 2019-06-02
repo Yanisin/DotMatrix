@@ -370,13 +370,14 @@ static void announce_route(void)
 }
 
 vector2 pos_tx(vector2 v, enum direction d) {
-	return vector_rotate(v, d);
+	int rot = d;
+	return vector_rotate(v, -rot);
 }
 
 vector2 pos_rx(vector2 v, enum direction d) {
 	/* Make the vector relative to us */
-	v.y -= 1;
+	v.y += 1;
 	int rot = reverse_direction(d);
 	/* And re-establish the top axis */
-	return vector_rotate(v, -rot);
+	return vector_rotate(v, rot);
 }
