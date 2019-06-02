@@ -32,7 +32,8 @@ DEFS += -D$(HW_VERSION)
 DEV_OBJS = \
 	buttons.o led.o disp.o disp_spi.o ticker.o \
 	cdcacm.o console.o \
-	usart_buffered.o spi_dma.o
+	common_gpio.o \
+	spi_dma.o
 
 SIM_OBJS = \
 	sim/main.o \
@@ -40,20 +41,23 @@ SIM_OBJS = \
 	sim/led.o \
 	sim/ticker.o \
 	sim/disp.o \
-	sim/usart.o \
-	sim/console.o
+	sim/console.o \
+	sim/common_gpio.o \
+	sim/int.o
 	
 OBJS += \
 	rand.o \
 	main.o \
-	applet.o
+	applet.o \
+	life.o \
+	usart_buffered.o
 
 #OBJS += wordclock.o rtc.o
 #OBJS += life.o
 
 
 LDSCRIPT = ../stm32f070.ld
-CFLAGS += -Werror
+CFLAGS += -Werror -DCONSOLE_PRINTF
 
 include ../Makefile.include.f0
 include ../makefile.badger

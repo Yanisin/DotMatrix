@@ -4,13 +4,18 @@
 #include <libopencm3/cm3/systick.h>
 #endif
 #include "rand.h"
+#include "cell_id.h"
 
 static uint32_t random[1];
 
 void rand_init(void)
 {
 #ifdef SIM
-	random[0] = time(NULL);
+	uint32_t acc = 0;
+	for(int i = 0; i<CELL_ID_LEN; i++) {
+		acc = acc*31 ^ get_cell_id()->bytes[0];
+	}
+	random[0] = time(NULL) ^ acc;
 #else
 	random[0] = STK_CVR;
 #endif

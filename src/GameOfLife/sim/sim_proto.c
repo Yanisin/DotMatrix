@@ -9,11 +9,13 @@
 #include "../cell_id.h"
 #include <arpa/inet.h>
 #include <memory.h>
+#include "../usart_buffered.h"
 
 #define MAX_MSG_SIZE 256
 
 int server_socket;
-char sim_recvbuf[MAX_MSG_SIZE];
+uint8_t sim_recvbuf[MAX_MSG_SIZE];
+bool sim_common_gpio = true;
 
 struct msg_hdr {
 	uint16_t len;
@@ -63,24 +65,41 @@ static void perror_fail(const char *msg)
 	abort();
 }
 
-void sim_lock()
+void sim_irq_start(void)
 {
-
+	// TODO: implement
 }
 
-void sim_unlock()
+void sim_irq_end(void)
 {
+	// TODO: implement
+}
 
+void sim_int_disable(int *state)
+{
+	(void)state;
+	// TODO: implement
+}
+
+void sim_int_restore(const int *old_state)
+{
+	(void)old_state;
+	// TODO: implement
+}
+
+void sim_irq_wait(void)
+{
 }
 
 void sim_send(uint16_t msgid, uint16_t len, const void *data)
 {
 	ssize_t r;
+	int int_state;
 	struct msg_hdr hdr = {
 		.len = htobe16(len),
 		.msgid = htobe16(msgid),
 	};
-	sim_lock();
+	sim_int_disable(&int_state);
 	r = send(server_socket, &hdr, sizeof(hdr), 0);
 	if (r != sizeof(hdr))
 		perror_fail("send");
@@ -88,7 +107,7 @@ void sim_send(uint16_t msgid, uint16_t len, const void *data)
 	r = send(server_socket, data, len, 0);
 	if (r != len)
 		perror_fail("send");
-	sim_unlock();
+	sim_int_restore(&int_state);
 }
 
 static void sim_recv(uint16_t *msgid, uint16_t *len)
@@ -102,7 +121,7 @@ static void sim_recv(uint16_t *msgid, uint16_t *len)
 	*len = be16toh(hdr.len);
 	*msgid = be16toh(hdr.msgid);
 	if (*len > MAX_MSG_SIZE) {
-		fprintf(stderr, "oversize message received from server\n");
+		fprintf(stderr, "oversize message received from server, len = 0x%x\n", *len);
 		abort();
 	}
 	r = recv(server_socket, sim_recvbuf, *len, MSG_WAITALL);
@@ -110,10 +129,23 @@ static void sim_recv(uint16_t *msgid, uint16_t *len)
 		perror_fail("recv");
 }
 
+static void sim_dispatch(uint16_t msgid, uint16_t len)
+{
+	switch (msgid) {
+	case MSGID_GPIO_INPUT_STATE:
+		sim_common_gpio = sim_recvbuf[0];
+		break;
+	case MSGID_UART_RX:
+		usart_sim_recv(sim_recvbuf[0], sim_recvbuf + 1, len -1);
+		break;
+	}
+}
+
 void sim_recv_loop(void)
 {
 	for(;;) {
 		uint16_t msg, len;
 		sim_recv(&msg, &len);
+		sim_dispatch(msg, len);
 	}
 }

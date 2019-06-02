@@ -3,10 +3,26 @@ import binascii
 import re
 import threading
 import subprocess
+import proto_defs
+import  struct
 from PySide2.QtCore import QObject, Signal, Property, Slot
 
 id_byte_len = 12
 display_size = 8
+
+direction_offsets = {
+    proto_defs.DIR_LEFT: (-1, 0),
+    proto_defs.DIR_RIGHT: (1, 0),
+    proto_defs.DIR_UP: (0, 1),
+    proto_defs.DIR_DOWN: (0, -1),
+}
+
+direction_reverse = {
+    proto_defs.DIR_LEFT: proto_defs.DIR_RIGHT,
+    proto_defs.DIR_RIGHT: proto_defs.DIR_LEFT,
+    proto_defs.DIR_UP: proto_defs.DIR_DOWN,
+    proto_defs.DIR_DOWN: proto_defs.DIR_UP,
+}
 
 def hexify(bytes):
     return binascii.b2a_hex(bytes).decode('ascii')
@@ -16,7 +32,6 @@ def gen_id():
 
 def test_id(n: int):
     return hexify(n.to_bytes(id_byte_len, 'big'))
-
 
 re_hex_string = re.compile('^[A-Za-z0-9]*$')
 
@@ -37,6 +52,16 @@ class Field(QObject):
         self.cell_by_position = dict()
         self.cell_by_id = dict()
         self.lock = threading.Lock()
+        self.gpio_state = True
+
+    def recompute_gpio(self):
+        new_state = True
+        for c in self.cells:
+            new_state = new_state and c._gpio_state
+        if new_state != self.gpio_state:
+            self.gpio_state = new_state
+            for c in self.cells:
+                c.send_msg(proto_defs.MSGID_GPIO_STATE, b'1' if self.gpio_state else b'0')
 
     def checkEmpty(self, at: (int, int)):
         if at in self.cell_by_position:
@@ -75,11 +100,16 @@ class Cell(QObject):
         self.id = id
         self._display = [Pixel((x % display_size, x / display_size)) for x in range(display_size * display_size)]
         self._led_state = False
+        self._gpio_state = True
         self._client = None
         self._target = None
 
     @Slot()
     def restart(self):
+        if self._target is None and self._client is not None:
+            # Do not restart if the target is not run by us
+            return
+
         if self._target is not None:
             self._target.terminate()
             self._target = None
@@ -118,6 +148,10 @@ class Cell(QObject):
         for i, v in enumerate(row_data):
             self._display[row * display_size + i].update(v)
 
+    def update_gpio(self, value: bool):
+        self._gpio_state = value
+        self.field.recompute_gpio()
+
     def client_connected(self, client):
         assert self._client is None
         self._client = client
@@ -135,8 +169,19 @@ class Cell(QObject):
     def targetRunning(self):
         return self._target is not None
 
+    def send_msg(self, msgid: int, data: bytes):
+        if self._client is not None:
+            self._client.send(msgid, data)
 
-    def __str__(self):
+    def uart_tx(self, direction: int, data: bytes):
+        (xo, yo) = direction_offsets[direction]
+        (x, y) = self.position
+        cell = self.field.cell_by_position.get((x + xo, y + yo), None)
+        rev_dir = direction_reverse[direction]
+        if cell is not None:
+            cell.send_msg(proto_defs.MSGID_UART_RX, struct.pack('!B', rev_dir) + data)
+
+def __str__(self):
         return 'Cell[{}]'.format(self.id)
 
 class Pixel(QObject):

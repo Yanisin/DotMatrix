@@ -2,11 +2,6 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/stm32/usart.h>
-#include <libopencm3/stm32/rtc.h>
-
 #include "hw_defs.h"
 #include "applet.h"
 //#include "life.h"
@@ -15,6 +10,8 @@
 #include "rand.h"
 #include "usart_buffered.h"
 #include "console.h"
+#include "led.h"
+#include "common_gpio.h"
 
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
@@ -37,14 +34,10 @@ enum worker_state {
 static enum worker_state worker_state;
 
 #define HIGHLIFE	1
-#define MONOCHROME	0
-
-#define MSG_TYPE_MASK 0x80
-#define MSG_TYPE_EDGE 0x00
-#define MSG_TYPE_TICK 0x80
-#define MSG_SEQ_MASK  0x40
-#define MSG_SEQ_FIRST 0x00
-#define MSG_SEQ_SECND 0x40
+#define MONOCHROME	1
+#define MSG_TYPE_EDGE MSG_USER_ID(1)
+#define MSG_TYPE_TICK MSG_USER_ID(2)
+#define MSG_TYPE_INIT MSG_USER_ID(3)
 
 #if MONOCHROME
 #define LIFE_CELL(i, j) (31)
@@ -65,11 +58,12 @@ enum board_edge {
 static struct {
 	int num;
 	int invert;
+	bool initialized;
 } usart[NUM_EDGES] = {
-		{ USART_DIR_UP, 0 },
-		{ USART_DIR_RIGHT, 0 },
-		{ USART_DIR_DOWN, 0 },
-		{ USART_DIR_LEFT, 0 }
+		{ USART_DIR_UP, 0, false },
+		{ USART_DIR_RIGHT, 0, false },
+		{ USART_DIR_DOWN, 0, false },
+		{ USART_DIR_LEFT, 0, false }
 };
 
 static const int edge_invert[NUM_EDGES][NUM_EDGES] = {
@@ -87,15 +81,6 @@ static uint8_t revers8bit(uint8_t x)
 	unsigned char b = x;
 	b = ((b * 0x0802LU & 0x22110LU) | (b * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16;
 	return b;
-}
-
-static uint32_t get_final_char(int u)
-{
-	uint32_t last = (uint32_t)-1, curr;
-
-	while ((curr = get_char(u)) != (uint32_t)-1)
-		last = curr;
-	return last;
 }
 
 static int board_get(int col, int row)
@@ -120,15 +105,7 @@ static void board_clean(void)
 
 static void send_edge_msg(int u, uint8_t edge_state)
 {
-	uint8_t buf[2];
-
-	buf[0] = MSG_TYPE_EDGE|MSG_SEQ_FIRST;
-	buf[0] |= edge_state >> 2;
-	buf[1] = MSG_TYPE_EDGE|MSG_SEQ_SECND;
-	buf[1] |= edge_state & 0x03;
-
-	send_char(u, buf[0]);
-	send_char(u, buf[1]);
+	usart_send_msg(u, MSG_TYPE_EDGE, 1, &edge_state);
 }
 
 static void transmit_edges(void)
@@ -168,6 +145,7 @@ static void update_edge(enum board_edge edge, uint8_t edge_state, int invert)
 	if (invert)
 		edge_state = revers8bit(edge_state);
 
+	console_printf("edge %d %x\n", edge, edge_state);
 	switch (edge) {
 	case TOP_EDGE:
 		for (int col = 0; col < BOARD_WIDTH; col++)
@@ -193,55 +171,90 @@ static void update_edge(enum board_edge edge, uint8_t edge_state, int invert)
 static void update_life_tick(enum board_edge from_edge)
 {
 	enum board_edge edge;
-	uint8_t buf[1];
-
-
-	buf[0] = MSG_TYPE_TICK | MSG_SEQ_FIRST;
-	buf[0] |= life_tick_mult & 0x3f;
-
-	console_printf(" %i %02x ", life_tick_mult, buf[0]);
+	uint8_t buf = life_tick_mult;
+	console_printf(" %i %02x ", life_tick_mult, buf);
 
 	for (edge = TOP_EDGE; edge < NUM_EDGES; edge++) {
 		if (edge != from_edge) {
-			send_char(usart[edge].num, buf[0]);
+			usart_send_msg(usart[edge].num, MSG_TYPE_TICK, 1, &buf);
 		}
 	}
 }
 
-static void receive_msg(void)
+static void init_edge(enum board_edge edge, char val)
 {
-	enum board_edge edge;
-	uint32_t edge_state;
-	uint32_t buf;
 
-	for (edge = TOP_EDGE; edge < NUM_EDGES; edge++) {
-		edge_state = 0;
+	enum board_edge remote_edge = NUM_EDGES;
 
-		while ((buf = get_char(usart[edge].num)) != (uint32_t)-1) {
+	switch (val) {
+	case 'T':
+		remote_edge = TOP_EDGE;
+		break;
+	case 'B':
+		remote_edge = BOTTOM_EDGE;
+		break;
+	case 'L':
+		remote_edge = LEFT_EDGE;
+		break;
+	case 'R':
+		remote_edge = RIGHT_EDGE;
+		break;
+	default:
+		remote_edge = NUM_EDGES;
+		break;
+	}
+	if (remote_edge != NUM_EDGES) {
+		usart[edge].initialized = true;
+		usart[edge].invert = edge_invert[edge][remote_edge];
+	}
+}
 
-			console_printf(" buf:%02x ", buf);
+static bool receive_msg(const usart_header *hdr)
+{
+	enum board_edge edge = NUM_EDGES;
 
-			if ((buf & MSG_TYPE_MASK) == MSG_TYPE_EDGE) {
-				if ((buf & MSG_SEQ_MASK) == MSG_SEQ_FIRST) {
-					edge_state |= (buf & 0x3f) << 2;
-				} else
-				if ((buf & MSG_SEQ_MASK) == MSG_SEQ_SECND) {
-					edge_state |= buf & 0x03;
-					update_edge(edge, edge_state, usart[edge].invert);
-				}
-			} else
-			if ((buf & MSG_TYPE_MASK) == MSG_TYPE_TICK) {
-				if ((buf & MSG_SEQ_MASK) == MSG_SEQ_FIRST) {
-					unsigned int new_mult = buf & 0x3f;
+	for (int i = 0; i < NUM_EDGES; i++) {
+		if (usart[i].num == hdr->usart)
+			edge = i;
+	}
+	if (edge == NUM_EDGES)
+		return false;
 
-					if (new_mult != life_tick_mult) {
-						life_tick_mult = new_mult;
-						life_tick_interv = life_tick_mult * LIFE_TICK;
-						update_life_tick(edge);
-					}
-				}
+	//console_printf("msg id=%d, len=%d from %d\n", hdr->id, hdr->length, edge);
+
+	switch (hdr->id) {
+	case MSG_TYPE_EDGE: {
+		uint8_t edge_state;
+		if(usart_recv_msg(hdr->usart, &edge_state, 1)) {
+			update_edge(edge, edge_state, usart[edge].invert);
+		}
+		return true;
+	}; break;
+
+	case MSG_TYPE_INIT: {
+		char remote_edge;
+		if(usart_recv_msg(hdr->usart, &remote_edge, 1)) {
+			init_edge(edge, remote_edge);
+		}
+		return true;
+	}; break;
+
+	case MSG_TYPE_TICK: {
+		uint8_t buf;
+		if(usart_recv_msg(hdr->usart, &buf, 1)) {
+			unsigned int new_mult = buf;
+
+			if (new_mult != life_tick_mult) {
+				life_tick_mult = new_mult;
+				life_tick_interv = life_tick_mult * LIFE_TICK;
+				update_life_tick(edge);
 			}
 		}
+		return true;
+	}; break;
+
+	default:
+		return false;
 	}
 }
 
@@ -300,8 +313,6 @@ static void life_tick(void)
 	int have_life = 0;
 	int	i, j, a;
 
-	console_printf(" %08x ", RTC_TR);
-
 	memset(newboard, 0, sizeof(newboard));
 
 	/* apply B36/S23 rule to all cells */
@@ -357,34 +368,12 @@ static void life_tick(void)
 
 }
 
-static void init_edges(void)
+static void life_start(void)
 {
-	enum board_edge edge;
-	enum board_edge remote_edge;
-	uint8_t val;
-
-	for (edge = TOP_EDGE; edge < NUM_EDGES; edge++) {
-		val = get_final_char(usart[edge].num);
-		switch (val) {
-		case 'T':
-			remote_edge = TOP_EDGE;
-			break;
-		case 'B':
-			remote_edge = BOTTOM_EDGE;
-			break;
-		case 'L':
-			remote_edge = LEFT_EDGE;
-			break;
-		case 'R':
-			remote_edge = RIGHT_EDGE;
-			break;
-		default:
-			remote_edge = NUM_EDGES;
-			break;
-		}
-		if (remote_edge != NUM_EDGES)
-			usart[edge].invert = edge_invert[edge][remote_edge];
-	}
+	life_tick_mult = 8;
+	life_tick_interv = life_tick_mult * LIFE_TICK;
+	life_tick_next = ticker_get_ticks() + life_tick_interv;
+	worker_state = WAIT_TICK;
 }
 
 static void life_worker(void)
@@ -401,19 +390,20 @@ static void life_worker(void)
 
 	if (worker_state == WAIT_ENTRY) {
 		/* release the idle signal */
-		gpio_set(GPIOB, GPIO8|GPIO9);
+		common_gpio_set(true);
+
 		/* if somebody else holds it down, wait */
-		while (gpio_get(GPIOB, GPIO8|GPIO9) == 0)
+		while (common_gpio_get() == false)
 			;
 		/* wait a bit to make sure everybody got it */
 		ticker_msleep(2);
 		/* set idle signal again */
-		gpio_clear(GPIOB, GPIO8|GPIO9);
+		common_gpio_set(false);
 
-		console_puts("T\n");
+		//console_puts("T\n");
 
 		/* toggle the LED */
-		gpio_toggle(GPIOF, GPIO0);
+		led_toggle();
 
 		worker_state = WORKER_BUSY;
 
@@ -432,8 +422,6 @@ static void life_worker(void)
 			life_tick_interv = life_tick_mult * LIFE_TICK;
 			update_life_tick(-1);
 		}
-
-		receive_msg();
 
 		/* seed life */
 		while (seeding) {
@@ -471,38 +459,32 @@ static void life_worker(void)
 
 static void life_init(void)
 {
+	uint8_t b;
 	memset(board, 0, sizeof(board));
 	rand_init();
 	seeding = 12;
+	common_gpio_set(false);
+	console_printf("Life starting\n");
 
-	for (int u=0; u < 4; u++)
-		usart_buf_clear(u);
+	b = 'T';
+	usart_send_msg(usart[TOP_EDGE].num, MSG_TYPE_INIT, 1, &b);
 
-	gpio_mode_setup(GPIOB,
-		GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, GPIO8|GPIO9);
-	gpio_set_output_options(GPIOB,
-			GPIO_OTYPE_OD, GPIO_OSPEED_LOW, GPIO8|GPIO9);
-	gpio_clear(GPIOB, GPIO8|GPIO9);
+	b = 'B';
+	usart_send_msg(usart[BOTTOM_EDGE].num, MSG_TYPE_INIT, 1, &b);
 
-	send_char(usart[TOP_EDGE].num, 'T');
-	send_char(usart[BOTTOM_EDGE].num, 'B');
-	send_char(usart[LEFT_EDGE].num, 'L');
-	send_char(usart[RIGHT_EDGE].num, 'R');
+	b = 'L';
+	usart_send_msg(usart[LEFT_EDGE].num, MSG_TYPE_INIT, 1, &b);
 
-	ticker_msleep(100);
+	b = 'R';
+	usart_send_msg(usart[RIGHT_EDGE].num, MSG_TYPE_INIT, 1, &b);
 
-	init_edges();
-
-	worker_state = WAIT_TICK;
-	life_tick_mult = 8;
-	life_tick_interv = life_tick_mult * LIFE_TICK;
-	life_tick_next = ticker_get_ticks() + life_tick_interv;
-	gpio_clear(GPIOF, GPIO0);
+	life_start();
 }
 
 static const struct applet life_applet = {
 	.init = life_init,
 	.worker = life_worker,
+	.check_usart = receive_msg,
 };
 
 applet_add(life);

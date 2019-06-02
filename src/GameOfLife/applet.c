@@ -1,24 +1,30 @@
 #include "applet.h"
 
-extern const char __applet_array_start;
-extern const char __applet_array_end;
+extern const struct applet *__applet_array_start;
+extern const struct applet *__applet_array_end;
 
-void applet_init_all(void)
+static const struct applet* current;
+
+const struct applet* applet_current(void)
 {
-	const struct applet **array_start = (const struct applet **)&__applet_array_start;
-	const struct applet **array_end = (const struct applet **)&__applet_array_end;
-
-	for (const struct applet **p = array_start; p < array_end; ++p)
-		if ((*p)->init)
-			(*p)->init();
+	return current;
 }
 
-void applet_run_all(void)
+void applet_select(const struct applet *applet)
 {
-	/*const struct applet **array_start = (const struct applet **)&__applet_array_start;
-	const struct applet **array_end = (const struct applet **)&__applet_array_end;
+	if (current && current->destroy) {
+		current->destroy();
+	}
+	current = applet;
+	current->init();
+}
 
-	for (const struct applet **p = array_start; p < array_end; ++p)
-		if ((*p)->worker)
-			(*p)->worker();*/
+size_t applet_count(void)
+{
+	return &__applet_array_end - &__applet_array_start;
+}
+
+const struct applet* applet_get(int index)
+{
+	return (&__applet_array_start)[index];
 }

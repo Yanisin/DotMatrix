@@ -11,7 +11,7 @@ import model
 import ui
 
 field = model.Field()
-field.create((1, 1), model.gen_id())
+field.create((1, 1), model.test_id(1))
 field.create((2, 1), model.gen_id())
 field.create((3, 1), model.gen_id())
 

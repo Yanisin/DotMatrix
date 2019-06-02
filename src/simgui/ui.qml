@@ -24,15 +24,16 @@ ApplicationWindow {
     Repeater {
         model: field.qCells
 
-        Rectangle {
+        MouseArea {
             property var cell: modelData
             property var cellSize: 80
             property var pixelSize: 10
-            color: "#cfcfcf"
             width: cellSize
             height: cellSize
             x: cell.x * cellSize
             y: cell.y * cellSize
+            id: mouseArea
+            hoverEnabled: true
 
             /* Pixels */
             Repeater {
@@ -45,6 +46,14 @@ ApplicationWindow {
                     x: pixel.x * pixelSize
                     y: pixel.y * pixelSize
                 }
+            }
+
+            /* Mouse Over effect */
+            Rectangle {
+                visible: mouseArea.containsMouse
+                color: "green"
+                opacity: 0.5
+                anchors.fill: parent
             }
 
             Row {
@@ -66,20 +75,6 @@ ApplicationWindow {
                         return cell.ledState ? "lightblue" : "black";
                     }
                 }
-            }
-
-            /* Mouse Over effect */
-            Rectangle {
-                visible: mouseArea.containsMouse
-                color: "green"
-                opacity: 0.5
-                anchors.fill: parent
-            }
-
-            MouseArea {
-                id: mouseArea
-                anchors.fill: parent
-                hoverEnabled: true
             }
         }
     }

@@ -50,6 +50,7 @@ const cell_id_t *get_cell_id(void) {
 
 static void *worker(void *arg)
 {
+	(void)arg;
 	common_main();
 	return NULL;
 }
@@ -59,8 +60,6 @@ int main(int argc, char *argv[]) {
 	const char *opt_server = "localhost";
 	bool opt_has_cell_id = false;
 	const char *opt_port = "6788";
-	char *ptr;
-	int r;
 
 	while (1)
 	{

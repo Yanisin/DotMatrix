@@ -1,7 +1,6 @@
 #ifndef HW_DEFS_H
 #define HW_DEFS_H
 
-
 #if defined (HW_38x38_rev_0_1)
 
 #include "hw_defs_38x38_rev_0_1.h"
@@ -23,6 +22,8 @@
 
 #include "hw_defs_60x60_rev_0_5.h"
 
+#elif defined(SIM)
+#include "sim/hw_defs.h"
 #else
 
 #error HW version not defined

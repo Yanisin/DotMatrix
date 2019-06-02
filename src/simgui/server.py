@@ -32,6 +32,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
             proto_defs.MSGID_LED_STATE: self.msg_led,
             proto_defs.MSGID_UART_TX: self.msg_uart_tx,
             proto_defs.MSGID_UPDATE_DISP: self.msg_disp,
+            proto_defs.MSGID_GPIO_STATE: self.msg_gpio_state,
         }
         while True:
             header = self.request.recv(4, socket.MSG_WAITALL)
@@ -52,6 +53,11 @@ class ClientHandler(socketserver.BaseRequestHandler):
             self.cell.client_disconnected()
         print('Disconnected')
 
+    def send(self, msgid, data: bytes):
+        msg = struct.pack('!HH', len(data), msgid) + data
+        # print(binascii.b2a_hex(msg)
+        self.request.send(msg, 0)
+
     def msg_hello(self, msg: Message):
         assert self.cell_id is None
         self.cell_id = binascii.b2a_hex(msg.data).decode('ascii').upper()
@@ -60,6 +66,9 @@ class ClientHandler(socketserver.BaseRequestHandler):
         self.cell = self.field.cell_by_id[self.cell_id]
         self.cell.client_connected(self)
 
+    def msg_gpio_state(self, msg: Message):
+        self.cell.update_gpio(msg.data[0] != 0)
+
     def msg_disp(self, msg: Message):
         self.cell.update_display_row(msg.data[0], msg.data[1:])
 
@@ -67,4 +76,6 @@ class ClientHandler(socketserver.BaseRequestHandler):
         self.cell.update_led(msg.data[0] != 0)
 
     def msg_uart_tx(self, msg: Message):
-        pass
+        dir = msg.data[0]
+        data = msg.data[1:]
+        self.cell.uart_tx(dir, data)

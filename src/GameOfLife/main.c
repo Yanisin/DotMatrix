@@ -17,6 +17,7 @@
 #include "cdcacm.h"
 #include "led.h"
 #include "console.h"
+#include "common_gpio.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -139,13 +140,12 @@ void common_main(void)
 	ticker_init();
 	disp_init();
 	rand_init();
+	common_gpio_init();
 
 //	usart_send(USART_DIR_UP,'U');
 //	usart_send(USART_DIR_DOWN,'D');
 //	usart_send(USART_DIR_LEFT,'L');
 //	usart_send(USART_DIR_RIGHT,'R');
-
-	applet_init_all();
 
 	led_on();
 	console_puts("Starting...\n");
@@ -179,9 +179,16 @@ void common_main(void)
 	disp_clean();
 
 	led_on();
+
+	if (applet_count() > 0) {
+		applet_select(applet_get(0));
+	}
 	
 	while (1) {
-		applet_run_all();
+		if (applet_current()) {
+			applet_current()->worker();
+		}
+		usart_recv_dispatch();
 		cpu_relax();
 	}
 	
