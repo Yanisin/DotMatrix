@@ -13,8 +13,8 @@ display_size = 8
 direction_offsets = {
     proto_defs.DIR_LEFT: (-1, 0),
     proto_defs.DIR_RIGHT: (1, 0),
-    proto_defs.DIR_UP: (0, 1),
-    proto_defs.DIR_DOWN: (0, -1),
+    proto_defs.DIR_UP: (0, -1),
+    proto_defs.DIR_DOWN: (0, 1),
 }
 
 direction_reverse = {

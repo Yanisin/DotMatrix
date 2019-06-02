@@ -17,7 +17,7 @@
 #define MSG_ID_FLAG_MGMT 0x80
 #define MSG_ID_MASK 0x3F
 
-#define MSG_MGMT_ID(x) (((x) & MSG_ID_MASK) | USART_ID_FLAG_MGMT)
+#define MSG_MGMT_ID(x) (((x) & MSG_ID_MASK) | MSG_ID_FLAG_MGMT)
 #define MSG_USER_ID(x) ((x) & MSG_ID_MASK)
 
 typedef struct usart_header_str {
@@ -27,6 +27,8 @@ typedef struct usart_header_str {
 	uint8_t remaining;
 	uint8_t available;
 } usart_header;
+
+typedef bool (*usart_msg_dispatcher)(const usart_header *msg);
 
 void usart_init(void);
 void usart_buf_clear(int u);
@@ -47,7 +49,7 @@ const usart_header* usart_peek(uint8_t usart);
  *
  * @see applet#check_usart
  */
-void usart_recv_dispatch(void);
+void usart_recv_dispatch(usart_msg_dispatcher dispatch);
 
 
 /**

@@ -13,7 +13,7 @@ void rand_init(void)
 #ifdef SIM
 	uint32_t acc = 0;
 	for(int i = 0; i<CELL_ID_LEN; i++) {
-		acc = acc*31 ^ get_cell_id()->bytes[0];
+		acc = acc*31 ^ get_cell_id()->bytes[i];
 	}
 	random[0] = time(NULL) ^ acc;
 #else

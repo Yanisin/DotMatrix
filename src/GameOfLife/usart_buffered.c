@@ -36,7 +36,12 @@
 
 /* ---------------- Macro Definition --------------- */
 
-#define BUF_SIZE 8
+#ifdef SIM
+/* Work-around for lack of rate limiting */
+#define BUF_SIZE 512
+#else
+#define BUF_SIZE 32
+#endif
 #define USART_COUNT 4
 
 struct usart_buffer {
@@ -222,10 +227,16 @@ void usart_send_char(uint8_t u, uint8_t c)
 }
 
 #ifdef SIM
+#include <stdio.h>
+#include <stdlib.h>
 void usart_sim_recv(uint8_t u, const uint8_t *data, size_t len)
 {
 	struct usart *usart = &usarts[u];
 	for(size_t i = 0; i < len; i++) {
+		if (usart_buf_full(&usart->rxbuf)) {
+			printf("USART buffer overrun\n");
+			abort();
+		}
 		usart_buf_put(&usart->rxbuf, data[i]);
 	}
 }
@@ -246,10 +257,11 @@ const usart_header* usart_peek(uint8_t u)
 
 	if (usart->header_received) {
 		/* Update the number of available bytes */
-		usart->hdr.available = usart_buf_available(&usart->rxbuf);
-		if (hdr->available > hdr->length) {
-			hdr->available = hdr->length;
+		int avail = usart_buf_available(&usart->rxbuf);
+		if (avail > hdr->length) {
+			avail = hdr->length;
 		}
+		hdr->available = avail;
 		return &usart->hdr;
 	} else {
 		return NULL;
@@ -305,20 +317,12 @@ void usart_skip(uint8_t u)
 	}
 }
 
-void usart_recv_dispatch(void)
+void usart_recv_dispatch(usart_msg_dispatcher dispatch)
 {
 	for(int u = 0; u < USART_COUNT; u++) {
 		const usart_header *hdr;
 		while((hdr = usart_peek(u)) != NULL) {
-			bool recognized = false;
-			if (hdr->id & MSG_ID_FLAG_MGMT) {
-				/* Not handled yet */
-			} else {
-				const struct applet * a = applet_current();
-				if (a && a->check_usart) {
-					recognized = a->check_usart(hdr);
-				}
-			}
+			bool recognized = dispatch(hdr);
 			if (!recognized) {
 				usart_skip(u);
 			}

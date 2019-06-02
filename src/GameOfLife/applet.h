@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 struct usart_header_str;
 
@@ -14,6 +15,7 @@ struct applet {
 	 * @returns false if the message is not recognized
 	 */
 	bool (*check_usart)(const struct usart_header_str *msg);
+	const uint8_t icon[8];
 };
 
 #define applet_add(name) \

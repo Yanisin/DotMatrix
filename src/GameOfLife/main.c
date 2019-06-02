@@ -19,6 +19,7 @@
 #include "console.h"
 #include "common_gpio.h"
 #include "int.h"
+#include "topo.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -34,6 +35,7 @@ static const uint8_t smileys [1][8][8] = {
 	 { 0, 0, 1, 1, 1, 1, 0, 0}
 	 }};
 
+#if 0
 static const uint8_t grey [1][8][8] = {
 	{{ 0, 1, 2, 3, 4 ,5, 6, 7},
 	 { 1, 2, 3, 4, 5, 6, 7, 8},
@@ -44,6 +46,7 @@ static const uint8_t grey [1][8][8] = {
 	 { 6, 7, 8, 9,11,16,20,27},
 	 { 7, 8, 9,11,16,20,27,31}
 	 }};
+#endif
 
 
 #if 0
@@ -91,21 +94,16 @@ static const uint8_t digits[6][5][5] = {
 
 static void print_smile(uint8_t num)
 {
-	int i,j,pos;
-	
-	if (num > 8) {
-		pos = 17-num;
-	} else {
-		pos = num;
-	}
+	int i,j;
 
 	for (i=0;i<8;i++) {
 		for (j=0;j<8;j++) {
-			disp_set(j,i,bright[pos]*smileys[0][i][j]);
+			disp_set(j,i, 31*smileys[0][i][j]);
 		}
 	}
 }
 
+#if 0
 static void print_grey(uint8_t num)
 {
 	int i,j;
@@ -128,14 +126,29 @@ static void print_grey(uint8_t num)
 			}
 		}
 	}
-
 }
+#endif
+
+extern const struct applet topo_applet;
+
+static bool dispatch_usart(const usart_header* hdr)
+{
+	if (hdr->id & MSG_ID_FLAG_MGMT) {
+		/* Not handled yet */
+	} else {
+		const struct applet * a = applet_current();
+		if (a && a->check_usart) {
+			return a->check_usart(hdr);
+		}
+	}
+	return false;
+}
+
 
 void common_main(void);
 
 void common_main(void)
 {
-	int i=0;
 	usart_init();
 	led_init();
 	ticker_init();
@@ -143,14 +156,12 @@ void common_main(void)
 	rand_init();
 	common_gpio_init();
 
-//	usart_send(USART_DIR_UP,'U');
-//	usart_send(USART_DIR_DOWN,'D');
-//	usart_send(USART_DIR_LEFT,'L');
-//	usart_send(USART_DIR_RIGHT,'R');
-
-	led_on();
 	console_puts("Starting...\n");
+	led_on();
+	print_smile(0);
 
+
+#if 0
 	disp_set(0, 0, 31);
 	ticker_msleep(200);
 	led_off();
@@ -165,7 +176,7 @@ void common_main(void)
 	disp_clean();
 
 	for ( i = 0; i < 18; i++) {
-		print_smile(i);
+
 		ticker_msleep(100);
 	}
 
@@ -180,16 +191,16 @@ void common_main(void)
 	disp_clean();
 
 	led_on();
+#endif
+	topo_run();
 
-	if (applet_count() > 0) {
-		applet_select(applet_get(0));
-	}
+	applet_select(&topo_applet);
 	
 	while (1) {
 		if (applet_current()) {
 			applet_current()->worker();
 		}
-		usart_recv_dispatch();
+		usart_recv_dispatch(dispatch_usart);
 		cpu_relax();
 	}
 	

@@ -13,10 +13,10 @@ Shape {
         PathAngleArc {
             startAngle: 0
             sweepAngle: 360
-            centerX: 0
-            centerY: 0
-            radiusX: 5
-            radiusY: 5
+            centerX: 3
+            centerY: 3
+            radiusX: 3
+            radiusY: 3
         }
     }
 }

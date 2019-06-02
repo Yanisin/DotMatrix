@@ -51,7 +51,11 @@ OBJS += \
 	main.o \
 	applet.o \
 	life.o \
-	usart_buffered.o
+	usart_buffered.o \
+	topo.o \
+	vector.o \
+	topo_applet.o \
+	icons.o 
 
 #OBJS += wordclock.o rtc.o
 #OBJS += life.o

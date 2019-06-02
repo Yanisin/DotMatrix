@@ -5,14 +5,16 @@ static int disable_nesting;
 
 void int_disable(int_state *state)
 {
+	(void)state;
 	disable_nesting++;
-	sim_int_disable(state);
+	sim_int_disable();
 }
 
 void int_restore(const int_state *state)
 {
+	(void)state;
 	disable_nesting--;
-	sim_int_restore(state);
+	sim_int_restore();
 }
 
 bool int_is_disabled(void)

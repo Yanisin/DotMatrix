@@ -61,6 +61,9 @@ int main(int argc, char *argv[]) {
 	bool opt_has_cell_id = false;
 	const char *opt_port = "6788";
 
+	setlinebuf(stdout);
+	setlinebuf(stderr);
+
 	while (1)
 	{
 		int option_index = 0;

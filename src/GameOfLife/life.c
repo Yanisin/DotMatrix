@@ -12,6 +12,7 @@
 #include "console.h"
 #include "led.h"
 #include "common_gpio.h"
+#include "icons.h"
 
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
@@ -145,7 +146,7 @@ static void update_edge(enum board_edge edge, uint8_t edge_state, int invert)
 	if (invert)
 		edge_state = revers8bit(edge_state);
 
-	console_printf("edge %d %x\n", edge, edge_state);
+	// console_printf("edge %d %x\n", edge, edge_state);
 	switch (edge) {
 	case TOP_EDGE:
 		for (int col = 0; col < BOARD_WIDTH; col++)
@@ -485,6 +486,16 @@ static const struct applet life_applet = {
 	.init = life_init,
 	.worker = life_worker,
 	.check_usart = receive_msg,
+	.icon = {
+		ICON_ROW(0, 0, 0, 0, 0, 1, 0, 0),
+		ICON_ROW(0, 1, 0, 1, 0, 0, 1, 0),
+		ICON_ROW(0, 1, 0, 1, 0, 0, 1, 0),
+		ICON_ROW(0, 1, 0, 0, 1, 0, 0, 0),
+		ICON_ROW(0, 1, 0, 0, 0, 0, 0, 0),
+		ICON_ROW(0, 1, 0, 0, 0, 0, 0, 0),
+		ICON_ROW(0, 1, 1, 1, 1, 0, 0, 0),
+		ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	}
 };
 
 applet_add(life);
