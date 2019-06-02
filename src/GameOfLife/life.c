@@ -34,7 +34,7 @@ enum worker_state {
 static enum worker_state worker_state;
 
 #define HIGHLIFE	1
-#define MONOCHROME	1
+#define MONOCHROME	0
 #define MSG_TYPE_EDGE MSG_USER_ID(1)
 #define MSG_TYPE_TICK MSG_USER_ID(2)
 #define MSG_TYPE_INIT MSG_USER_ID(3)

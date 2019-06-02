@@ -18,6 +18,7 @@
 #include "led.h"
 #include "console.h"
 #include "common_gpio.h"
+#include "int.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};

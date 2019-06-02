@@ -10,12 +10,17 @@
 #include <arpa/inet.h>
 #include <memory.h>
 #include "../usart_buffered.h"
+#include <pthread.h>
 
 #define MAX_MSG_SIZE 256
 
 int server_socket;
 uint8_t sim_recvbuf[MAX_MSG_SIZE];
 bool sim_common_gpio = true;
+
+static pthread_mutex_t sim_lock;
+static bool int_happened = true;
+static pthread_cond_t int_happened_cond = PTHREAD_COND_INITIALIZER;
 
 struct msg_hdr {
 	uint16_t len;
@@ -26,6 +31,11 @@ bool sim_connect(const char *server, const char *port)
 {
 	struct addrinfo* ai;
 	struct addrinfo hints;
+
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&sim_lock, &attr);
 
 	memset (&hints, 0, sizeof (hints));
 	/* Python's soccketserver does not seem to support ipv6 yet */
@@ -67,39 +77,51 @@ static void perror_fail(const char *msg)
 
 void sim_irq_start(void)
 {
-	// TODO: implement
+	pthread_mutex_lock(&sim_lock);
 }
 
 void sim_irq_end(void)
 {
-	// TODO: implement
+	int_happened = true;
+	pthread_cond_broadcast(&int_happened_cond);
+	pthread_mutex_unlock(&sim_lock);
 }
 
-void sim_int_disable(int *state)
+void sim_int_disable()
 {
-	(void)state;
-	// TODO: implement
+	pthread_mutex_lock(&sim_lock);
 }
 
-void sim_int_restore(const int *old_state)
+void sim_int_restore()
 {
-	(void)old_state;
-	// TODO: implement
+	pthread_mutex_unlock(&sim_lock);
 }
 
 void sim_irq_wait(void)
 {
+	struct timespec ts;
+	clock_gettime(CLOCK_REALTIME, &ts);
+	/* Wait until next ticker tick */
+	ts.tv_nsec += 1000*1000;
+	ts.tv_nsec /= 1000*1000;
+	ts.tv_nsec *= 1000*1000;
+	pthread_mutex_lock(&sim_lock);
+	/* The lack of while loop is intentional here */
+	if (!int_happened) {
+		pthread_cond_timedwait(&int_happened_cond, &sim_lock, &ts);
+	}
+	int_happened = false;
+	pthread_mutex_unlock(&sim_lock);
 }
 
 void sim_send(uint16_t msgid, uint16_t len, const void *data)
 {
 	ssize_t r;
-	int int_state;
 	struct msg_hdr hdr = {
 		.len = htobe16(len),
 		.msgid = htobe16(msgid),
 	};
-	sim_int_disable(&int_state);
+	sim_int_disable();
 	r = send(server_socket, &hdr, sizeof(hdr), 0);
 	if (r != sizeof(hdr))
 		perror_fail("send");
@@ -107,7 +129,7 @@ void sim_send(uint16_t msgid, uint16_t len, const void *data)
 	r = send(server_socket, data, len, 0);
 	if (r != len)
 		perror_fail("send");
-	sim_int_restore(&int_state);
+	sim_int_restore();
 }
 
 static void sim_recv(uint16_t *msgid, uint16_t *len)

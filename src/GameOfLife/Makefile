@@ -33,7 +33,8 @@ DEV_OBJS = \
 	buttons.o led.o disp.o disp_spi.o ticker.o \
 	cdcacm.o console.o \
 	common_gpio.o \
-	spi_dma.o
+	spi_dma.o \
+	int.o
 
 SIM_OBJS = \
 	sim/main.o \

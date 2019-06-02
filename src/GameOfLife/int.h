@@ -8,5 +8,6 @@ typedef int int_state;
 void int_disable(int_state *state);
 void int_restore(const int_state *state);
 bool int_is_disabled(void);
+void cpu_relax(void);
 
 #endif // INT_H

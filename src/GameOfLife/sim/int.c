@@ -1,21 +1,26 @@
 #include "../int.h"
 #include "sim_proto.h"
 
-static bool disabled;
+static int disable_nesting;
 
 void int_disable(int_state *state)
 {
+	disable_nesting++;
 	sim_int_disable(state);
-	disabled = true;
 }
 
 void int_restore(const int_state *state)
 {
-	disabled = *state;
+	disable_nesting--;
 	sim_int_restore(state);
 }
 
 bool int_is_disabled(void)
 {
-	return disabled;
+	return disable_nesting != 0;
+}
+
+void cpu_relax(void)
+{
+	sim_irq_wait();
 }

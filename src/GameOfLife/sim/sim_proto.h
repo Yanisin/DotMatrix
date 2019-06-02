@@ -47,11 +47,11 @@ void sim_irq_end(void);
 /**
  * Called from worker thread to disable interrupts (blocks sim_irq_start).
  */
-void sim_int_disable(int *state);
+void sim_int_disable(void);
 /**
  * @see sim_int_disable
  */
-void sim_int_restore(const int *old_state);
+void sim_int_restore(void);
 
 /**
  * Wait for simulated interrupt to happen.

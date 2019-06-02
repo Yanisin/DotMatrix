@@ -14,3 +14,13 @@ void int_restore(const int_state *state)
 		cm_enable_interrupts();
 	}
 }
+
+bool int_is_disabled(void)
+{
+	return cm_is_masked_interrupts();
+}
+
+void cpu_relax(void)
+{
+	__asm__ volatile("wfi");
+}
