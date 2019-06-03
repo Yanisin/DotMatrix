@@ -41,6 +41,4 @@ MODS += \
 
 #OBJS += wordclock.o rtc.o
 
-LDSCRIPT = ../stm32f070.ld
-
 include ../common.mk

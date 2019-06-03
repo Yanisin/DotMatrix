@@ -23,10 +23,8 @@
 /* Define memory regions. */
 MEMORY
 {
-	/* First 8K is reserved for DDFU */
-	rom (rx) : ORIGIN = 0x08002000, LENGTH = 128K - 8K -8K
-	/* And we reserve 0x100 for interrupt vector table */
-	ram (rwx) : ORIGIN = 0x20000100, LENGTH = 16K - 0x100
+	rom (rx) : ORIGIN = 0x08000000, LENGTH = 128K
+	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
 }
 
 /* Include the common ld script. */

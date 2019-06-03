@@ -18,7 +18,6 @@
 ##
 
 BINARY = miniblink
-LDSCRIPT = ../stm32f070.ld
 MODS = miniblink
 
 include ../common.mk

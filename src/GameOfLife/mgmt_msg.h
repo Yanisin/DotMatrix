@@ -2,6 +2,7 @@
 #define MGMT_MSG_H
 
 #include <stdint.h>
+#ifndef DDFU
 #include "cell_id.h"
 #include "usart_buffered.h"
 
@@ -43,5 +44,26 @@ struct mgmt_change_applet {
  */
 #define MGM_INTERRTUP MSG_MGMT_ID(6)
 struct mgmt_interrupt {};
+#endif
+
+#define MGMT_BL_START MSGM_MTM_ID(64 + 0)
+struct mgmt_bl_start {
+	uint8_t distance;
+};
+
+#define MGMT_BL_ACK MSGM_MTM_ID(64 + 1)
+struct mgmt_bl_ack {
+};
+
+#define MGMT_BL_PAGE MSGM_MTM_ID(64 + 2)
+struct mgmt_bl_page {
+	uint16_t page;
+};
+
+#define MGMT_BL_DATA MSGM_MTM_ID(64 + 3)
+struct mgmt_bl_data {
+	uint8_t data[64];
+	uint32_t crc;
+};
 
 #endif // MGMT_MSG_H

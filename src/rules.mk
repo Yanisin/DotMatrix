@@ -38,7 +38,8 @@ STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
-TGT_OPT		:= -Os
+TGT_OPT		?= -Os
+
 
 
 ###############################################################################
@@ -58,8 +59,9 @@ endif
 # Old style, assume LDSCRIPT exists
 TGT_DEFS		+= -I$(OPENCM3_DIR)/include
 TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib
+# https://www.tablix.org/~avian/blog/archives/2012/11/gnu_linker_and_elf_program_header/
+TGT_LDFLAGS += -z max-page-size=2048
 TGT_LDLIBS		+= -l$(LIBNAME)
-LDSCRIPT	?= $(BINARY).ld
 
 OPENCM3_SCRIPT_DIR = $(OPENCM3_DIR)/scripts
 EXAMPLES_SCRIPT_DIR	= $(OPENCM3_DIR)/../scripts
@@ -67,13 +69,13 @@ EXAMPLES_SCRIPT_DIR	= $(OPENCM3_DIR)/../scripts
 ###############################################################################
 # C flags
 
-TGT_CFLAGS	+= $(OPT) -std=c99
+TGT_CFLAGS	+= $(TGT_OPT) -std=c99
 TGT_CFLAGS	+= $(ARCH_FLAGS)
 
 ###############################################################################
 # C++ flags
 
-TGT_CXXFLAGS	+= $(OPT)
+TGT_CXXFLAGS	+= $(TGT_OPT)
 TGT_CXXFLAGS	+= $(ARCH_FLAGS)
 
 ###############################################################################

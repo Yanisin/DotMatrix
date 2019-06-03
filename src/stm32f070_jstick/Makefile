@@ -19,6 +19,5 @@
 
 BINARY = main
 MODS = sled jstick disp disp_spi ticker usart_buffered
-LDSCRIPT = ../stm32f070.ld
 
 include ../common.mk

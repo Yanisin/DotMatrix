@@ -39,12 +39,18 @@ Q := @
 NULL := 2>/dev/null
 endif
 
-ALL := $(TGT_BUILDDIR)/$(BINARY).elf
+ifeq ($(NO_BOOTLOADER), 1)
+LDSCRIPT = ../stm32f070-preboot.ld
+else
+LDSCRIPT = ../stm32f070.ld
+endif
+
+ALL := $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).bin
 ifeq ($(SIM), 1)
 ALL += $(SIM_BUILDDIR)/$(BINARY)
 endif
 
-.PHONY: all clean prg prg_usb gdb
+.PHONY: all clean prg prg_usb prg_bl gdb
 .SUFFIXES:
 
 all: $(ALL)
@@ -69,12 +75,38 @@ prg: $(TGT_RESULT).elf
 	$(OOCD) -f ../openocd_stm32_orange.cfg -c"program $(TGT_RESULT).elf verify reset exit"
 
 # FIXME what is the meaning of the number behind colon?
-prg_usb: $(TGT_RESULT).bin
+
+ifeq ($(NO_BOOTLOADER), 1)
+# Program using the ST link bootloader
+prg_bl: $(TGT_RESULT).bin
 	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08000000:131072
+
+prg_usb:
+	$(error Program is built without bootloader support)
+
+else
+prg_bl: $(TGT_RESULT).bin
+	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08002000:131072
+# program using our prebooter (DDFU)
+prg_usb: $(TGT_RESULT).bin
+	@echo Waiting for the bootloader to connect, please restart the device
+	@../wait_for_dfu.py
+	@sudo dfu-util -D $(TGT_RESULT).bin
+endif
 
 gdb:  $(TGT_RESULT).elf
 		$(TGT_GDB) -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg -c "gdb_port pipe; log_output openocd.log"' \
 			-ex 'monitor reset halt' \
-			-ex 'b common_main' -ex 'c' \
-			$(TFT_RESULT).elf
+			-ex 'b main' -ex 'c' \
+			$(TGT_RESULT).elf
+
+###############################################################################
+# Help
+#
+help:
+	@echo "all (default)   - build the $(TGT_RESULT).elf and $(TGT_RESULT).bin files"
+	@echo "prg             - program the binary using OpenOCD and STlink"
+	@echo "prg_bl          - program the binary using ST's bootloader"
+	@echo "prg_usb         - program all cells over USB"
+	@echo "gdb             - debug the target over OpenOCD"
 
