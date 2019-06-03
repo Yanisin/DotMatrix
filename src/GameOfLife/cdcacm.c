@@ -316,7 +316,7 @@ void usb_isr(void)
 static void usb_setup(void)
 {
 	crs_autotrim_usb_enable();
-	rcc_set_usbclk_source(RCC_HSI48);
+	rcc_set_usbclk_source(RCC_PLL);
 }
 
 /*
