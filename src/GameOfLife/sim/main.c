@@ -22,7 +22,7 @@ static struct option long_options[] =
 	{0, 0, 0, 0}
 };
 
-static void help() {
+static void help(void) {
 	printf("-s simulator server address\n");
 	printf("-p simulator port\n");
 	printf("-i cell id\n");

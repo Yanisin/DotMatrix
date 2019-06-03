@@ -212,9 +212,8 @@ void usart_send_msg(uint8_t usart, uint8_t id, uint8_t len, const void *data)
 
 void usart_send_char(uint8_t u, uint8_t c)
 {
-	struct usart *usart = &usarts[u];
 #ifndef SIM
-
+	struct usart *usart = &usarts[u];
 	while (usart_buf_full(&usart->txbuf))
 		;
 

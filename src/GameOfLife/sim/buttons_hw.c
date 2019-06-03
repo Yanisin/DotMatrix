@@ -12,4 +12,5 @@ bool button_is_pressed(enum button btn)
 	case BTN_ANY:
 		return sim_button_state[0] || sim_button_state[1];
 	}
+	return false;
 }
