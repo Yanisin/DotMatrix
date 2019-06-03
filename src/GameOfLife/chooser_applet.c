@@ -35,6 +35,8 @@ static void chooser_update(void) {
 		msg.cell_id = i;
 		msg.applet = page * topo_cell_count + i;
 		msg.selected = msg.applet == selected;
+		if (topo_cell_count == 1)
+			msg.selected = false;
 		if (topo_send_to(msg.cell_id, MSG_SHOW_APPLET, sizeof(msg), &msg)) {
 			chooser_show(&msg);
 		}
