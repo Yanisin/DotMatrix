@@ -45,7 +45,8 @@ SIM_OBJS = \
 	sim/disp.o \
 	sim/console.o \
 	sim/common_gpio.o \
-	sim/int.o
+	sim/int.o \
+	sim/buttons_hw.o
 	
 OBJS += \
 	rand.o \
@@ -55,8 +56,10 @@ OBJS += \
 	usart_buffered.o \
 	topo.o \
 	vector.o \
+	icons.o \
+	chooser_applet.o \
 	topo_applet.o \
-	icons.o 
+	buttons.o
 
 #OBJS += wordclock.o rtc.o
 #OBJS += life.o

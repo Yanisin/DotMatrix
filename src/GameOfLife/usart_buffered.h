@@ -70,7 +70,7 @@ static inline bool usart_is_complete(usart_header *hdr)
  * @return false if the message is longer than \a size
  * @return false if the message is not completely buffered
  */
-bool usart_recv_msg(uint8_t usart, void *buf, size_t size);
+bool usart_recv_msg(uint8_t usart, size_t size, void *buf);
 
 void usart_skip(uint8_t usart);
 
@@ -79,7 +79,7 @@ void usart_skip(uint8_t usart);
  *
  * @returns number of bytes read
  */
-uint8_t usart_recv_partial(uint8_t usart, void *buf, size_t size);
+uint8_t usart_recv_partial(uint8_t usart, size_t size, void *buf);
 
 void usart_send_msg(uint8_t usart, uint8_t id, uint8_t len, const void *data);
 void usart_send_char(uint8_t u, uint8_t c);

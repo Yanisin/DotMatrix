@@ -33,6 +33,7 @@
 #include "usart_buffered.h"
 #include "int.h"
 #include "applet.h"
+#include "console.h"
 
 /* ---------------- Macro Definition --------------- */
 
@@ -267,7 +268,7 @@ const usart_header* usart_peek(uint8_t u)
 	}
 }
 
-uint8_t usart_recv_partial(uint8_t u, void *buf, size_t size)
+uint8_t usart_recv_partial(uint8_t u, size_t size,  void *buf)
 {
 	struct usart *usart = &usarts[u];
 	uint8_t recv = usart->hdr.available;
@@ -286,7 +287,7 @@ uint8_t usart_recv_partial(uint8_t u, void *buf, size_t size)
 	return recv;
 }
 
-bool usart_recv_msg(uint8_t u, void *buf, size_t size)
+bool usart_recv_msg(uint8_t u, size_t size, void *buf)
 {
 	struct usart *usart = &usarts[u];
 	uint8_t recv;
@@ -297,7 +298,7 @@ bool usart_recv_msg(uint8_t u, void *buf, size_t size)
 		usart_skip(u);
 		return false;
 	}
-	recv = usart_recv_partial(u, buf, size);
+	recv = usart_recv_partial(u, size, buf);
 	assert(recv == usart->hdr.length);
 	return true;
 

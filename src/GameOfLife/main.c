@@ -20,6 +20,7 @@
 #include "common_gpio.h"
 #include "int.h"
 #include "topo.h"
+#include "mgmt_msg.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -129,12 +130,17 @@ static void print_grey(uint8_t num)
 }
 #endif
 
-extern const struct applet topo_applet;
+extern const struct applet chooser_applet;
 
 static bool dispatch_usart(const usart_header* hdr)
 {
 	if (hdr->id & MSG_ID_FLAG_MGMT) {
-		/* Not handled yet */
+		if(hdr->id == MGMT_CHANGE_APPLET) {
+			struct mgmt_change_applet msg;
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+				applet_select(msg.applet);
+			}
+		}
 	} else {
 		const struct applet * a = applet_current();
 		if (a && a->check_usart) {
@@ -194,14 +200,18 @@ void common_main(void)
 	console_puts("Starting...\n");
 	topo_run();
 
-	applet_select(&topo_applet);
+	if (topo_is_master)
+		ticker_msleep(150);
+
+	applet_select_local(&chooser_applet);
 	
 	while (1) {
 		if (applet_current()) {
-			applet_current()->worker();
+			if (applet_current()->worker)
+				applet_current()->worker();
 		}
 		usart_recv_dispatch(dispatch_usart);
-		worker_init_all();
+		worker_run_all();
 		cpu_relax();
 	}
 	

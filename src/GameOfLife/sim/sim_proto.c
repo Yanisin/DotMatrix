@@ -17,6 +17,7 @@
 int server_socket;
 uint8_t sim_recvbuf[MAX_MSG_SIZE];
 bool sim_common_gpio = true;
+bool sim_button_state[2];
 
 static pthread_mutex_t sim_lock;
 static bool int_happened = true;
@@ -159,6 +160,12 @@ static void sim_dispatch(uint16_t msgid, uint16_t len)
 		break;
 	case MSGID_UART_RX:
 		usart_sim_recv(sim_recvbuf[0], sim_recvbuf + 1, len -1);
+		break;
+	case MSGID_BUTTON_UP:
+		sim_button_state[sim_recvbuf[0]] = 0;
+		break;
+	case MSGID_BUTTON_DOWN:
+		sim_button_state[sim_recvbuf[0]] = 1;
 		break;
 	}
 }

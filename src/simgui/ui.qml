@@ -75,6 +75,18 @@ ApplicationWindow {
                         return cell.ledState ? "lightblue" : "black";
                     }
                 }
+                Button {
+                    onPressed: {
+                        cell.buttonPressed(0)
+                    }
+                    onReleased: {
+                        cell.buttonReleased(0)
+                    }
+                    text: "1"
+                    width: 20
+                    height: 20
+                    visible: mouseArea.containsMouse
+                }
             }
         }
     }

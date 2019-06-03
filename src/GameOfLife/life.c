@@ -226,7 +226,7 @@ static bool receive_msg(const usart_header *hdr)
 	switch (hdr->id) {
 	case MSG_TYPE_EDGE: {
 		uint8_t edge_state;
-		if(usart_recv_msg(hdr->usart, &edge_state, 1)) {
+		if(usart_recv_msg(hdr->usart, 1, &edge_state)) {
 			update_edge(edge, edge_state, usart[edge].invert);
 		}
 		return true;
@@ -234,7 +234,7 @@ static bool receive_msg(const usart_header *hdr)
 
 	case MSG_TYPE_INIT: {
 		char remote_edge;
-		if(usart_recv_msg(hdr->usart, &remote_edge, 1)) {
+		if(usart_recv_msg(hdr->usart, 1, &remote_edge)) {
 			init_edge(edge, remote_edge);
 		}
 		return true;
@@ -242,7 +242,7 @@ static bool receive_msg(const usart_header *hdr)
 
 	case MSG_TYPE_TICK: {
 		uint8_t buf;
-		if(usart_recv_msg(hdr->usart, &buf, 1)) {
+		if(usart_recv_msg(hdr->usart, 1, &buf)) {
 			unsigned int new_mult = buf;
 
 			if (new_mult != life_tick_mult) {

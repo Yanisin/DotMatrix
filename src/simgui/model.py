@@ -124,6 +124,14 @@ class Cell(QObject):
             self._target = None
             self.changed.emit()
 
+    @Slot(int)
+    def buttonPressed(self, btn: int):
+        self.send_msg(proto_defs.MSGID_BUTTON_DOWN, struct.pack('!b', btn))
+
+    @Slot(int)
+    def buttonReleased(self, btn: int):
+        self.send_msg(proto_defs.MSGID_BUTTON_UP, struct.pack('!b', btn))
+
     @Property(bool, notify = changed)
     def ledState(self):
         return self._led_state

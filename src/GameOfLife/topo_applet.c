@@ -21,4 +21,17 @@ static void topo_worker(void)
 const struct applet topo_applet = {
 	.init = topo_init,
 	.worker = topo_worker,
+	.icon = {
+		ICON_ROW(0, 1, 1, 0, 0, 0, 0, 0),
+		ICON_ROW(0, 1, 1, 0, 0, 0, 0, 0),
+		ICON_ROW(0, 0, 1, 0, 1, 1, 0, 0),
+		ICON_ROW(0, 0, 1, 1, 1, 1, 0, 0),
+		ICON_ROW(0, 0, 0, 1, 0, 1, 1, 1),
+		ICON_ROW(0, 1, 1, 1, 0, 0, 1, 1),
+		ICON_ROW(0, 1, 1, 0, 0, 0, 0, 0),
+		ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	}
 };
+
+
+applet_add(topo);

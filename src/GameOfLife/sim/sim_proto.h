@@ -7,6 +7,7 @@
 extern int server_socket;
 extern uint8_t sim_recvbuf[];
 extern bool sim_common_gpio;
+extern bool sim_button_state[];
 
 /**
  * Connect to the simulator server.

@@ -12,7 +12,7 @@
 #define MAX_CELL_COUNT 64
 #define FIND_SS_TIMEOUT 1000
 #define REANNOUNCE 100
-#define TRACE
+// #define TRACE
 
 enum topo_state {
 	/* In this phase, the spanning tree is established by. Each cell broadcasts in how many
@@ -44,7 +44,7 @@ enum topo_state {
 	 * re-sends the CHILD_ANNOUNCE messages, add its own announcement and then send
 	 * CHILD_ANNOUNCE_END.
 	 *
-	 * Note: Buffering of CHILD_ANNOUNCE allows the cell to know how may children it has in each
+	 * Note: Buffering of CHILD_ANNOUNCE cated ws the cell to know how may children it has in each
 	 * direction and assing consecutive ids to each direction.
 	 */
 	ANNOUNCE_CHILDREN,
@@ -94,11 +94,11 @@ static void announce_children(void);
 uint8_t topo_my_id;
 bool topo_is_master;
 cell_info topo_cells[MAX_CELL_COUNT];
+size_t topo_cell_count;
 enum direction topo_master_direction;
 
 static edge_info edges[DIR_COUNT];
 static cell_info sort_cells[MAX_CELL_COUNT];
-static size_t cell_count;
 static uint8_t first_cell_id;
 
 static unsigned int topo_start_tick;
@@ -152,20 +152,20 @@ void topo_run(void)
 		cpu_relax();
 	}
 
-	topo_my_id = first_cell_id + (cell_count++);
+	topo_my_id = first_cell_id + (topo_cell_count++);
 	cell_info *me = &topo_cells[topo_my_id];
 	me->dir = DIR_COUNT;
 	me->pos = mk_vector2(0, 0);
-	for (size_t i = 0; i < cell_count; i++) {
+	for (size_t i = 0; i < topo_cell_count; i++) {
 		topo_cells[i].id = first_cell_id + i;
 	}
 
 #ifdef TRACE
 	if (topo_is_master) {
 		console_printf("Topo finished:\n");
-		for(size_t i = 0; i < cell_count; i++) {
+		for(size_t i = 0; i < topo_cell_count; i++) {
 			const cell_info *c = &topo_cells[i];
-			console_printf("(%02d, %02d) has id %d\n", c->pos.x, c->pos.y, c->id);
+			console_printf("(%02d, %02d) has id %d, dir = %d\n", c->pos.x, c->pos.y, c->id, c->dir);
 		}
 	}
 #endif
@@ -232,12 +232,12 @@ static void sort_children(void)
 		start += edges[d].children_count;
 	}
 
-	for(size_t i = 0; i < cell_count; i++) {
+	for(size_t i = 0; i < topo_cell_count; i++) {
 		enum direction d = topo_cells[i].dir;
 		sort_cells[wptr[d]] = topo_cells[i];
 		wptr[d]++;
 	}
-	memcpy(topo_cells, sort_cells, sizeof(cell_info) * cell_count);
+	memcpy(topo_cells, sort_cells, sizeof(cell_info) * topo_cell_count);
 
 }
 
@@ -249,6 +249,9 @@ static void send_ids(void)
 			struct mgmt_alloc_ids msg;
 			msg.first_id = e->first_cell + first_cell_id;
 			msg.id_count = e->children_count;
+#ifdef TRACE
+			console_printf("--> %d - %d, dir = %d\n", msg.first_id, msg.first_id + msg.id_count, d);
+#endif
 			usart_send_msg(direction_to_usart(d), MGMT_ALLOC_IDS, sizeof(msg), &msg);
 		}
 	}
@@ -270,9 +273,9 @@ static void announce_children(void)
 	/* It is ok to block for the usart, since we do not expect any messages */
 	struct mgmt_child_announce msg;
 #ifdef TRACE
-	console_printf("Announcing %u children\n", cell_count);
+	console_printf("Announcing %u children\n", topo_cell_count);
 #endif
-	for(size_t i = 0; i < cell_count; i++) {
+	for(size_t i = 0; i < topo_cell_count; i++) {
 		cell_info *c = &topo_cells[i];
 		vector2 pos = pos_tx(c->pos, topo_master_direction);
 		msg.x = pos.x;
@@ -298,7 +301,7 @@ static bool topo_dispatch(const usart_header *hdr)
 			struct mgmt_route_announce msg;
 			if (state != FIND_SS)
 				break;
-			if (usart_recv_msg(hdr->usart, &msg, sizeof(msg))) {
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
 				int cmp = memcmp(&msg.id.bytes, &master_cell_id.bytes, CELL_ID_LEN);
 				if (cmp < 0 || (cmp == 0 && msg.distance < master_distance)) {
 					topo_is_master = false;
@@ -318,7 +321,7 @@ static bool topo_dispatch(const usart_header *hdr)
 				break;
 			if (e->type == EDGE_LIVE_UNKNOWN)
 				e->type = EDGE_NORMAL;
-			usart_recv_msg(hdr->usart, &msg, sizeof(msg));
+			usart_recv_msg(hdr->usart, sizeof(msg), &msg);
 
 			return true;
 		};
@@ -327,9 +330,9 @@ static bool topo_dispatch(const usart_header *hdr)
 			transition_announce_children();
 			if (state != ANNOUNCE_CHILDREN)
 				break;
-			if (usart_recv_msg(hdr->usart, &msg, sizeof(msg))) {
-				if (cell_count < MAX_CELL_COUNT) {
-					cell_info *c = &topo_cells[cell_count++];
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+				if (topo_cell_count < MAX_CELL_COUNT) {
+					cell_info *c = &topo_cells[topo_cell_count++];
 					c->pos.x = msg.x;
 					c->pos.y = msg.y;
 					c->pos = pos_rx(c->pos, dir);
@@ -350,7 +353,10 @@ static bool topo_dispatch(const usart_header *hdr)
 			struct mgmt_alloc_ids msg;
 			if (state != ALLOCATE_IDS)
 				break;
-			if (usart_recv_msg(hdr->usart, &msg, sizeof(msg))) {
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+#ifdef TRACE
+				console_printf("Allocated ids %d - %d\n", msg.first_id, msg.first_id + msg.id_count - 1);
+#endif
 				first_cell_id = msg.first_id;
 				send_ids();
 				state = DONE;
@@ -371,6 +377,38 @@ static void announce_route(void)
 	}
 }
 
+bool topo_send_up(uint8_t msgid, uint8_t len, const void *data)
+{
+	if (topo_is_master)
+		return true;
+	usart_send_msg(master_usart, msgid, len, data);
+	return false;
+}
+
+void topo_send_down(uint8_t msgid, uint8_t len, const void *data)
+{
+	for(enum direction d = 0; d < DIR_COUNT; d++) {
+		if (edges[d].type == EDGE_CHILD)
+			usart_send_msg(direction_to_usart(d), msgid, len, data);
+	}
+}
+
+bool topo_send_to(uint8_t recipient, uint8_t msgid, uint8_t len, const void *data)
+{
+	if (recipient == topo_my_id)
+		return true;
+	if (recipient < first_cell_id || recipient >= first_cell_id + topo_cell_count) {
+		console_printf(
+			"topo_send_to: %d is not mine, I serve %d - %d\n",
+			recipient, first_cell_id, first_cell_id + topo_cell_count);
+		return false;
+	}
+	const cell_info *c = &topo_cells[recipient - first_cell_id];
+	// console_printf("topo_send_to: id %d -> %d\n", recipient, c->dir);
+	usart_send_msg(direction_to_usart(c->dir), msgid, len, data);
+	return false;
+}
+
 vector2 pos_tx(vector2 v, enum direction d) {
 	int rot = d;
 	return vector_rotate(v, -rot);
@@ -383,3 +421,5 @@ vector2 pos_rx(vector2 v, enum direction d) {
 	/* And re-establish the top axis */
 	return vector_rotate(v, rot);
 }
+
+

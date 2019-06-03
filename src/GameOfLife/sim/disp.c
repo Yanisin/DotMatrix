@@ -36,6 +36,7 @@ void disp_init(void)
 void disp_clean(void)
 {
 	memset(disp_state, 0, sizeof(disp_state));
+	disp_update_rows();
 }
 
 void disp_set(int col, int row, uint8_t val)

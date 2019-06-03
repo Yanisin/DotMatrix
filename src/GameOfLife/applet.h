@@ -35,7 +35,8 @@ void worker_init_all(void);
 void worker_run_all(void);
 
 const struct applet* applet_current(void);
-void applet_select(const struct applet *applet);
+void applet_select_local(const struct applet *applet);
+void applet_select(uint8_t applet);
 size_t applet_count(void);
 const struct applet* applet_get(int index);
 
