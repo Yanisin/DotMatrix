@@ -17,16 +17,8 @@
 ## along with this library.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-TOPDIR = $(shell pwd)
-
 BINARY = main
-#HW_VERSION = "HW_38x38_rev_0_1"
-HW_VERSION = "HW_60x60_rev_0_2"
-
-DEFS += -D$(HW_VERSION)
-OBJS= sled.o jstick.o disp.o disp_spi.o ticker.o usart_buffered.o
-
+MODS = sled jstick disp disp_spi ticker usart_buffered
 LDSCRIPT = ../stm32f070.ld
 
-include ../Makefile.include.f0
-include ../makefile.badger
+include ../common.mk

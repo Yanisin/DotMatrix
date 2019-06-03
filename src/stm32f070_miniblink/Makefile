@@ -18,8 +18,7 @@
 ##
 
 BINARY = miniblink
-
 LDSCRIPT = ../stm32f070.ld
+MODS = miniblink
 
-include ../Makefile.include.f0
-include ../makefile.badger
+include ../common.mk

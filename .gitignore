@@ -1,7 +1,6 @@
 *bak
-*.elf
-*.bin
-*.map
-*.o
-*.d
+build-sim/
+build/
+settings.mk
 proto_defs.h
+__pycache__
