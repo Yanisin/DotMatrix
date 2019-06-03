@@ -12,4 +12,10 @@ prg: $(BINARY).elf
 prg_usb: $(BINARY).bin
 	@sudo dfu-util -a 0 -D $(BINARY).bin -s 0x08000000:131072
 
+gdb: $(BINARY).elf
+		arm-none-eabi-gdb -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg -c "gdb_port pipe; log_output openocd.log"' \
+			-ex 'monitor reset halt' \
+			-ex 'b common_main' -ex 'c' \
+			main.elf
+
 endif

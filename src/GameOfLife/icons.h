@@ -12,7 +12,7 @@ typedef const uint8_t icon_data[8];
 
 void draw_icon(icon_data icon, bool invert);
 
-icon_data icon_arrow;
-icon_data icon_square;
+extern icon_data icon_arrow;
+extern icon_data icon_square;
 
 #endif // ICONS_H

@@ -92,7 +92,7 @@ static const uint8_t digits[6][5][5] = {
 };
 #endif
 
-static void print_smile(uint8_t num)
+static void print_smile(void)
 {
 	int i,j;
 
@@ -155,10 +155,8 @@ void common_main(void)
 	disp_init();
 	rand_init();
 	common_gpio_init();
-
-	console_puts("Starting...\n");
 	led_on();
-	print_smile(0);
+	print_smile();
 
 
 #if 0
@@ -192,6 +190,8 @@ void common_main(void)
 
 	led_on();
 #endif
+	worker_init_all();
+	console_puts("Starting...\n");
 	topo_run();
 
 	applet_select(&topo_applet);
@@ -201,6 +201,7 @@ void common_main(void)
 			applet_current()->worker();
 		}
 		usart_recv_dispatch(dispatch_usart);
+		worker_init_all();
 		cpu_relax();
 	}
 	

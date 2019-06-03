@@ -48,7 +48,7 @@ const cell_id_t *get_cell_id(void) {
 	return &cell_id;
 }
 
-static void *worker(void *arg)
+static void *run(void *arg)
 {
 	(void)arg;
 	common_main();
@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 	if (!sim_connect(opt_server, opt_port))
 		return 2;
 
-	if (pthread_create(&worker_thread, NULL, worker, NULL) != 0) {
+	if (pthread_create(&worker_thread, NULL, run, NULL) != 0) {
 		perror("pthread_create");
 		return 2;
 	}

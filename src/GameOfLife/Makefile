@@ -34,7 +34,8 @@ DEV_OBJS = \
 	cdcacm.o console.o \
 	common_gpio.o \
 	spi_dma.o \
-	int.o
+	int.o \
+	cell_id.o
 
 SIM_OBJS = \
 	sim/main.o \

@@ -351,14 +351,14 @@ static void cdcacm_init(void)
 	nvic_enable_irq(NVIC_USB_IRQ);
 }
 
-static void cdcacm_worker(void)
+static void cdcacm_worker_run(void)
 {
 	cdcacm_data_tx(cdcacm_usbd_dev);
 }
 
-static const struct applet cdcacm_applet = {
+static const struct worker cdcacm_worker = {
 		.init = cdcacm_init,
-		.worker = cdcacm_worker
+		.run = cdcacm_worker_run
 };
 
-applet_add(cdcacm);
+worker_add(cdcacm);

@@ -6,6 +6,7 @@
 #include "console.h"
 #include "usart_buffered.h"
 #include "int.h"
+#include "applet.h"
 
 
 #define MAX_CELL_COUNT 64
@@ -124,7 +125,7 @@ void topo_run(void)
 
 	topo_start_tick = ticker_get_ticks();
 #ifdef TRACE
-	enum topo_state prev;
+	enum topo_state prev = DONE;
 #endif
 
 	while (state != DONE) {
@@ -147,6 +148,7 @@ void topo_run(void)
 		if (state == ANNOUNCE_CHILDREN && check_announcements_end()) {
 			continue;
 		}
+		worker_run_all();
 		cpu_relax();
 	}
 

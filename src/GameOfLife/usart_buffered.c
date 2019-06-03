@@ -52,8 +52,6 @@ struct usart_buffer {
 
 /* ---------------- Local Variables --------------- */
 
-static int usart_num;
-
 static struct usart {
 	uint32_t reg_base;
 	struct usart_buffer rxbuf;
@@ -99,16 +97,16 @@ static uint32_t usart_buf_get(struct usart_buffer *buf)
 
 static void usart_setup(uint8_t usart)
 {
-	usarts[usart_num].reg_base = usart;
-	usarts[usart_num].rxbuf.wp = 0;
-	usarts[usart_num].rxbuf.rp = 0;
-	usarts[usart_num].txbuf.wp = 0;
-	usarts[usart_num].txbuf.rp = 0;
-	usarts[usart_num].hdr.usart = usart_num;
-	++usart_num;
+	usarts[usart].rxbuf.wp = 0;
+	usarts[usart].rxbuf.rp = 0;
+	usarts[usart].txbuf.wp = 0;
+	usarts[usart].txbuf.rp = 0;
+	usarts[usart].hdr.usart = usart;
 }
+
 #ifndef SIM
 static void usart_setup_hw(
+		uint8_t usart_num,
 		uint32_t usart, 
 		enum rcc_periph_clken usart_rcc,
 		uint8_t irq, 
@@ -122,6 +120,7 @@ static void usart_setup_hw(
 		uint8_t tx_af_num
 		)
 {
+	usarts[usart_num].reg_base = usart;
 	rcc_periph_clock_enable(usart_rcc);
 	rcc_periph_clock_enable(rx_rcc);
 	rcc_periph_clock_enable(tx_rcc);
@@ -349,7 +348,7 @@ void usart_init(void)
 	usart_setup(3);
 
 #ifndef SIM
-	usart_setup_hw(
+	usart_setup_hw(0,
 			USART_A_REG,
 			USART_A_RCC,
 			USART_A_IRQ,
@@ -362,7 +361,7 @@ void usart_init(void)
 			USART_A_TX_PIN,
 			USART_A_TX_AF_NUM);
 
-	usart_setup_hw(
+	usart_setup_hw(1,
 			USART_B_REG,
 			USART_B_RCC,
 			USART_B_IRQ,
@@ -375,7 +374,7 @@ void usart_init(void)
 			USART_B_TX_PIN,
 			USART_B_TX_AF_NUM);
 
-	usart_setup_hw(
+	usart_setup_hw(2,
 			USART_C_REG,
 			USART_C_RCC,
 			USART_C_IRQ,
@@ -388,7 +387,7 @@ void usart_init(void)
 			USART_C_TX_PIN,
 			USART_C_TX_AF_NUM);
 
-	usart_setup_hw(
+	usart_setup_hw(3,
 			USART_D_REG,
 			USART_D_RCC,
 			USART_D_IRQ,

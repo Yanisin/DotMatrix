@@ -8,8 +8,9 @@ void draw_icon(icon_data icon, bool invert)
 		uint8_t val = icon[i / 8];
 		val >>= i % 8;
 		val ^= xor;
-		disp_set(i % 8, i / 8, (val & 1) * 31);
+		disp_set_noupdate(i % 8, i / 8, (val & 1) * 31);
 	}
+	disp_update_rows();
 }
 
 

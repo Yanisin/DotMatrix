@@ -3,7 +3,7 @@
 
 void int_disable(int_state *state)
 {
-	asm volatile("": : :"memory");
+	__asm__ volatile("": : :"memory");
 	*state = cm_is_masked_interrupts();
 	cm_disable_interrupts();
 }

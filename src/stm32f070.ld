@@ -37,6 +37,10 @@ SECTIONS
 		__applet_array_start = .;
 		KEEP(*(.applet.*));
 		__applet_array_end = .;
+
+		__worker_array_start = .;
+		KEEP(*(.applet.*));
+		__worker_array_end = .;
 	} > rom
 }
 

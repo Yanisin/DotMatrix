@@ -25,6 +25,18 @@ static const uint8_t gamma18_lut[COLOR_DEPTH] = {
 
 static uint8_t disp_state[DISP_ROWS_NUM][DISP_COLS_NUM];
 static uint16_t disp_row_dmabuf[DISP_ROWS_NUM][DMA_ROW_LEN];
+static int disp_rotation;
+
+static inline vector2 rot(int col, int row)
+{
+	/* Y axis on vector2 points up, whereas display vectors go down, which gives them diferent basis */
+	return disp_rotate_coords(mk_vector2(col, row), DISP_COLS_NUM, disp_rotation);
+}
+
+void disp_set_rotation(int cw)
+{
+	disp_rotation = cw;
+}
 
 static void disp_out_init(void) 
 {
@@ -141,20 +153,23 @@ void disp_clean(void)
 
 void disp_set_noupdate(int col, int row, uint8_t val)
 {
-	disp_state[row][col] = val;
+	vector2 pos = rot(col, row);
+	disp_state[pos.y][pos.x] = val;
 }
 void disp_set(int col, int row, uint8_t val)
 {
-	disp_set_noupdate(col, row, val);
+	vector2 pos = rot(col, row);
+	disp_state[pos.y][pos.x] = val;
 	disp_row_update(row);
 }
 
 uint8_t disp_get(int col, int row)
 {
+	vector2 pos = rot(col, row);
 	if (col < 0 || col >= DISP_COLS_NUM)
 		return 0;
 	if (row < 0 || row >= DISP_ROWS_NUM)
 		return 0;
 
-	return disp_state[row][col];
+	return disp_state[pos.y][pos.x];
 }

@@ -81,15 +81,10 @@ static void btn_init(void)
 //	}
 }
 
-static void btn_worker(void)
-{
 
-}
-
-
-static const struct applet btn_applet = {
+static const struct worker btn_worker = {
 	.init = btn_init,
-	.worker = btn_worker,
+	.run = NULL,
 };
 
-applet_add(btn);
+worker_add(btn);
