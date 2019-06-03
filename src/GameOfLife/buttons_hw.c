@@ -6,12 +6,7 @@
 #include "hw_defs.h"
 #include "applet.h"
 #include "led.h"
-
-
-static void clock_setup(void)
-{
-	rcc_clock_setup_in_hsi_out_48mhz();
-}
+#include "buttons_hw.h"
 
 static void gpio_setup(void)
 {
@@ -24,47 +19,24 @@ static void gpio_setup(void)
 	gpio_mode_setup(BTN1_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BTN1_PIN);
 }
 
-static void exti_setup(void)
-{
-	/* Enable EXTI0 interrupt. */
-	nvic_enable_irq(NVIC_EXTI4_15_IRQ);
-
-	/* Configure the EXTI subsystem. */
-	exti_select_source(EXTI6, GPIOA);
-	exti_set_trigger(EXTI6, EXTI_TRIGGER_FALLING);
-	exti_enable_request(EXTI6);
-	/*FIXME make this via defines from hw_defs*/
-	exti_select_source(EXTI7, GPIOA);
-	exti_set_trigger(EXTI7, EXTI_TRIGGER_FALLING);
-	exti_enable_request(EXTI7);
-}
-
-void exti4_15_isr(void)
-{
-	if(exti_get_flag_status(EXTI6)){
-		exti_reset_request(EXTI6);
-
-	if(exti_get_flag_status(EXTI7)) {
-		exti_reset_request(EXTI7);
-	}
-#if 0
-	if (exti_direction == FALLING) {
-		gpio_set(LED_PORT, LED_PIN);
-		exti_direction = RISING;
-		exti_set_trigger(EXTI6, EXTI_TRIGGER_RISING);
-	} else {
-		gpio_clear(LED_PORT,LED_PIN);
-		exti_direction = FALLING;
-		exti_set_trigger(EXTI6, EXTI_TRIGGER_FALLING);
-	}
-#endif
-}
-
 static void btn_init(void)
 {
-	clock_setup();
 	gpio_setup();
-	exti_setup();
+}
+
+bool button_is_pressed(enum button b) {
+	bool b0 = !gpio_get(BTN0_PORT, BTN0_PIN);
+	bool b1 = !gpio_get(BTN1_PORT, BTN1_PIN);
+	switch (b) {
+	case BTN_1:
+		return b0;
+	case BTN_2:
+		return b1;
+	case BTN_ANY:
+		return b0 || b1;
+	default:
+		return false;
+	}
 }
 
 

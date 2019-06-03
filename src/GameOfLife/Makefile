@@ -30,12 +30,13 @@ DEFS += -D$(HW_VERSION)
 #DEFS += -DCONSOLE_PRINTF
 
 DEV_OBJS = \
-	buttons.o led.o disp.o disp_spi.o ticker.o \
+	led.o disp.o disp_spi.o ticker.o \
 	cdcacm.o console.o \
 	common_gpio.o \
 	spi_dma.o \
 	int.o \
-	cell_id.o
+	cell_id.o \
+	buttons_hw.o
 
 SIM_OBJS = \
 	sim/main.o \
