@@ -39,7 +39,7 @@ SECTIONS
 		__applet_array_end = .;
 
 		__worker_array_start = .;
-		KEEP(*(.applet.*));
+		KEEP(*(.worker.*));
 		__worker_array_end = .;
 	} > rom
 }
