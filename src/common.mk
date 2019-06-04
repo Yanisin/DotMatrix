@@ -33,6 +33,10 @@ LDFLAGS += -Wl,--gc-sections
 
 ###############################################################################
 # Build sim & target
+#
+
+SIM ?= 0
+TGT ?= 1
 
 ifneq ($(V),1)
 Q := @
@@ -45,7 +49,10 @@ else
 LDSCRIPT = ../stm32f070.ld
 endif
 
-ALL := $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).bin
+ALL :=
+ifeq ($(TGT), 1)
+ALL += $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).bin
+endif
 ifeq ($(SIM), 1)
 ALL += $(SIM_BUILDDIR)/$(BINARY)
 endif
@@ -62,7 +69,10 @@ clean:
 ifeq ($(SIM), 1)
 include ../rules.sim.mk
 endif
+
+ifeq ($(TGT), 1)
 include ../rules.mk
+endif
 
 ###############################################################################
 # Programming & debugging
