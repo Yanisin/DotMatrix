@@ -18,10 +18,6 @@
 ##
 
 BINARY = miniblink
-HW_VERSION = "HW_60x60_rev_0_4"
-DEFS += -D$(HW_VERSION)
+MODS = miniblink
 
-LDSCRIPT = ../stm32f070.ld
-
-include ../Makefile.include.f0
-include ../makefile.badger
+include ../common.mk

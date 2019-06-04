@@ -17,20 +17,33 @@
  * along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SIM
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
+#else
+#include "sim/sim_proto.h"
+#include "sim/proto_defs.h"
+#endif
+#include <assert.h>
 
 #include "hw_defs.h"
 #include "usart_buffered.h"
-
-
+#include "int.h"
+#include "applet.h"
+#include "console.h"
 
 /* ---------------- Macro Definition --------------- */
 
-#define BUF_SIZE 8
+#ifdef SIM
+/* Work-around for lack of rate limiting */
+#define BUF_SIZE 512
+#else
+#define BUF_SIZE 32
+#endif
+#define USART_COUNT 4
 
 struct usart_buffer {
 	uint8_t buf[BUF_SIZE];
@@ -40,13 +53,13 @@ struct usart_buffer {
 
 /* ---------------- Local Variables --------------- */
 
-static int usart_num;
-
 static struct usart {
 	uint32_t reg_base;
 	struct usart_buffer rxbuf;
 	struct usart_buffer txbuf;
-} usarts[4];
+	bool header_received;
+	usart_header hdr;
+} usarts[USART_COUNT];
 
 /* ---------------- Local Functions --------------- */
 
@@ -59,6 +72,12 @@ static int usart_buf_full(struct usart_buffer *buf)
 {
 	return (buf->wp - buf->rp) >= BUF_SIZE-1;
 }
+
+static int usart_buf_available(struct usart_buffer *buf)
+{
+	return buf->wp - buf->rp;
+}
+
 static void usart_buf_put(struct usart_buffer *buf, uint8_t val)
 {
 	if (!usart_buf_full(buf)) {
@@ -76,7 +95,19 @@ static uint32_t usart_buf_get(struct usart_buffer *buf)
 	}
 	return val;
 }
-static void usart_setup(
+
+static void usart_setup(uint8_t usart)
+{
+	usarts[usart].rxbuf.wp = 0;
+	usarts[usart].rxbuf.rp = 0;
+	usarts[usart].txbuf.wp = 0;
+	usarts[usart].txbuf.rp = 0;
+	usarts[usart].hdr.usart = usart;
+}
+
+#ifndef SIM
+static void usart_setup_hw(
+		uint8_t usart_num,
 		uint32_t usart, 
 		enum rcc_periph_clken usart_rcc,
 		uint8_t irq, 
@@ -90,6 +121,7 @@ static void usart_setup(
 		uint8_t tx_af_num
 		)
 {
+	usarts[usart_num].reg_base = usart;
 	rcc_periph_clock_enable(usart_rcc);
 	rcc_periph_clock_enable(rx_rcc);
 	rcc_periph_clock_enable(tx_rcc);
@@ -111,13 +143,6 @@ static void usart_setup(
 
 	/* Enable USART Receive interrupt. */
 	USART_CR1(usart) |= USART_CR1_RXNEIE;
-
-	usarts[usart_num].reg_base = usart;
-	usarts[usart_num].rxbuf.wp = 0;
-	usarts[usart_num].rxbuf.rp = 0;
-	usarts[usart_num].txbuf.wp = 0;
-	usarts[usart_num].txbuf.rp = 0;
-	++usart_num;
 
 	/* Finally enable the USART. */
 	usart_enable(usart);
@@ -171,37 +196,159 @@ void usart3_4_isr(void)
 	usart_isr_common(2);
 	usart_isr_common(3);
 }
+#endif
 
 /* ---------------- Global Functions --------------- */
 
-void send_char(uint8_t u, uint8_t c)
+void usart_send_msg(uint8_t usart, uint8_t id, uint8_t len, const void *data)
 {
-	struct usart *usart = &usarts[u];
+	usart_send_char(usart, len);
+	usart_send_char(usart, id);
+	for(uint8_t i = 0; i < len; i++) {
+		uint8_t c = ((const uint8_t*)data)[i];
+		usart_send_char(usart, c);
+	}
+}
 
+void usart_send_char(uint8_t u, uint8_t c)
+{
+#ifndef SIM
+	struct usart *usart = &usarts[u];
 	while (usart_buf_full(&usart->txbuf))
 		;
 
 	usart_buf_put(&usart->txbuf, c);
 	USART_CR1(usart->reg_base) |= USART_CR1_TXEIE;
+#else
+	uint8_t buf[2] = {u, c};
+	sim_send(MSGID_UART_TX, 2, &buf);
+#endif
 }
 
-
-uint32_t get_char(uint8_t u)
+#ifdef SIM
+#include <stdio.h>
+#include <stdlib.h>
+void usart_sim_recv(uint8_t u, const uint8_t *data, size_t len)
 {
 	struct usart *usart = &usarts[u];
-	return usart_buf_get(&usart->rxbuf);
+	for(size_t i = 0; i < len; i++) {
+		if (usart_buf_full(&usart->rxbuf)) {
+			printf("USART buffer overrun\n");
+			abort();
+		}
+		usart_buf_put(&usart->rxbuf, data[i]);
+	}
+}
+#endif
+
+const usart_header* usart_peek(uint8_t u)
+{
+	// TODO: add some self-synchronization to the protocol,
+	// like with the old game of life protocol
+	struct usart *usart = &usarts[u];
+	usart_header *hdr = &usart->hdr;
+	if (!usart->header_received && usart_buf_available(&usart->rxbuf) >= 2) {
+		usart->header_received = true;
+		hdr->length = usart_buf_get(&usart->rxbuf);
+		hdr->id = usart_buf_get(&usart->rxbuf);
+		hdr->remaining = hdr->length;
+	}
+
+	if (usart->header_received) {
+		/* Update the number of available bytes */
+		int avail = usart_buf_available(&usart->rxbuf);
+		if (avail > hdr->length) {
+			avail = hdr->length;
+		}
+		hdr->available = avail;
+		return &usart->hdr;
+	} else {
+		return NULL;
+	}
+}
+
+uint8_t usart_recv_partial(uint8_t u, size_t size,  void *buf)
+{
+	struct usart *usart = &usarts[u];
+	uint8_t recv = usart->hdr.available;
+	if (size < recv) {
+		recv = size;
+	}
+
+	for(uint8_t i = 0; i < recv; i++) {
+		((uint8_t*)buf)[i] = usart_buf_get(&usart->rxbuf);
+	}
+	usart->hdr.available = 0;
+	usart->hdr.remaining -= recv;
+	if (usart->hdr.remaining == 0) {
+		usart->header_received = false;
+	}
+	return recv;
+}
+
+bool usart_recv_msg(uint8_t u, size_t size, void *buf)
+{
+	struct usart *usart = &usarts[u];
+	uint8_t recv;
+	if (!usart_is_complete(&usart->hdr)) {
+		return false;
+	}
+	if (usart->hdr.length > size) {
+		usart_skip(u);
+		return false;
+	}
+	recv = usart_recv_partial(u, size, buf);
+	assert(recv == usart->hdr.length);
+	return true;
+
+}
+
+void usart_skip(uint8_t u)
+{
+	struct usart *usart = &usarts[u];
+	while(usart->hdr.available) {
+		usart_buf_get(&usart->rxbuf);
+		usart->hdr.available --;
+		usart->hdr.remaining--;
+	}
+	if (usart->hdr.remaining == 0) {
+		usart->header_received = false;
+	}
+}
+
+void usart_recv_dispatch(usart_msg_dispatcher dispatch)
+{
+	for(int u = 0; u < USART_COUNT; u++) {
+		const usart_header *hdr;
+		while((hdr = usart_peek(u)) != NULL) {
+			bool recognized = dispatch(hdr);
+			if (!recognized) {
+				usart_skip(u);
+			}
+		}
+	}
 }
 
 void usart_buf_clear(int u)
 {
 	struct usart *usart = &usarts[u];
+	int_state ints;
+	usart->header_received = false;
+	int_disable(&ints);
 	usart->rxbuf.rp = usart->rxbuf.wp = 0;
 	usart->txbuf.rp = usart->txbuf.wp = 0;
+	int_restore(&ints);
 }
 
 void usart_init(void)
 {
-	usart_setup(
+	usart_setup(0);
+	usart_setup(1);
+	usart_setup(2);
+	usart_setup(3);
+
+#ifndef SIM
+	usart_setup_hw(0,
 			USART_A_REG,
 			USART_A_RCC,
 			USART_A_IRQ,
@@ -214,7 +361,7 @@ void usart_init(void)
 			USART_A_TX_PIN,
 			USART_A_TX_AF_NUM);
 
-	usart_setup(
+	usart_setup_hw(1,
 			USART_B_REG,
 			USART_B_RCC,
 			USART_B_IRQ,
@@ -227,7 +374,7 @@ void usart_init(void)
 			USART_B_TX_PIN,
 			USART_B_TX_AF_NUM);
 
-	usart_setup(
+	usart_setup_hw(2,
 			USART_C_REG,
 			USART_C_RCC,
 			USART_C_IRQ,
@@ -240,7 +387,7 @@ void usart_init(void)
 			USART_C_TX_PIN,
 			USART_C_TX_AF_NUM);
 
-	usart_setup(
+	usart_setup_hw(3,
 			USART_D_REG,
 			USART_D_RCC,
 			USART_D_IRQ,
@@ -252,4 +399,5 @@ void usart_init(void)
 			USART_D_TX_PORT,
 			USART_D_TX_PIN,
 			USART_D_TX_AF_NUM);
+#endif
 }

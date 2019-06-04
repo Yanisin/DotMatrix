@@ -1,11 +1,13 @@
 #include <stdint.h>
 
 
+#ifndef SIM
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
-
 #include "hw_defs.h"
+#endif
+
 #include "applet.h"
 #include "disp.h"
 #include "ticker.h"
@@ -14,6 +16,11 @@
 #include "usart_buffered.h"
 #include "cdcacm.h"
 #include "led.h"
+#include "console.h"
+#include "common_gpio.h"
+#include "int.h"
+#include "topo.h"
+#include "mgmt_msg.h"
 
 
 uint8_t bright[]={1,2,3,5,7,10,14, 20, 31};
@@ -29,6 +36,7 @@ static const uint8_t smileys [1][8][8] = {
 	 { 0, 0, 1, 1, 1, 1, 0, 0}
 	 }};
 
+#if 0
 static const uint8_t grey [1][8][8] = {
 	{{ 0, 1, 2, 3, 4 ,5, 6, 7},
 	 { 1, 2, 3, 4, 5, 6, 7, 8},
@@ -39,6 +47,7 @@ static const uint8_t grey [1][8][8] = {
 	 { 6, 7, 8, 9,11,16,20,27},
 	 { 7, 8, 9,11,16,20,27,31}
 	 }};
+#endif
 
 
 #if 0
@@ -84,23 +93,18 @@ static const uint8_t digits[6][5][5] = {
 };
 #endif
 
-static void print_smile(uint8_t num)
+static void print_smile(void)
 {
-	int i,j,pos;
-	
-	if (num > 8) {
-		pos = 17-num;
-	} else {
-		pos = num;
-	}
+	int i,j;
 
 	for (i=0;i<8;i++) {
 		for (j=0;j<8;j++) {
-			disp_set(j,i,bright[pos]*smileys[0][i][j]);
+			disp_set(j,i, 31*smileys[0][i][j]);
 		}
 	}
 }
 
+#if 0
 static void print_grey(uint8_t num)
 {
 	int i,j;
@@ -123,29 +127,45 @@ static void print_grey(uint8_t num)
 			}
 		}
 	}
+}
+#endif
 
+extern const struct applet chooser_applet;
+
+static bool dispatch_usart(const usart_header* hdr)
+{
+	if (hdr->id & MSG_ID_FLAG_MGMT) {
+		if(hdr->id == MGMT_CHANGE_APPLET) {
+			struct mgmt_change_applet msg;
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+				applet_select(msg.applet);
+			}
+		}
+	} else {
+		const struct applet * a = applet_current();
+		if (a && a->check_usart) {
+			return a->check_usart(hdr);
+		}
+	}
+	return false;
 }
 
 
-int main(void)
+void common_main(void);
+
+void common_main(void)
 {
-	int i=0;
-	/* we want 48 MHz sysclk */
-	rcc_clock_setup_in_hsi_out_48mhz();
 	usart_init();
 	led_init();
 	ticker_init();
 	disp_init();
 	rand_init();
-
-//	usart_send(USART_DIR_UP,'U');
-//	usart_send(USART_DIR_DOWN,'D');
-//	usart_send(USART_DIR_LEFT,'L');
-//	usart_send(USART_DIR_RIGHT,'R');
-
-	applet_init_all();
-
+	common_gpio_init();
 	led_on();
+	print_smile();
+
+
+#if 0
 	disp_set(0, 0, 31);
 	ticker_msleep(200);
 	led_off();
@@ -160,7 +180,7 @@ int main(void)
 	disp_clean();
 
 	for ( i = 0; i < 18; i++) {
-		print_smile(i);
+
 		ticker_msleep(100);
 	}
 
@@ -175,11 +195,33 @@ int main(void)
 	disp_clean();
 
 	led_on();
+#endif
+	worker_init_all();
+	console_puts("Starting...\n");
+	topo_run();
+
+	if (topo_is_master)
+		ticker_msleep(150);
+
+	applet_select_local(&chooser_applet);
 	
 	while (1) {
-		applet_run_all();
+		if (applet_current()) {
+			if (applet_current()->worker)
+				applet_current()->worker();
+		}
+		usart_recv_dispatch(dispatch_usart);
+		worker_run_all();
 		cpu_relax();
 	}
 	
 
 }
+
+#ifndef SIM
+int main(void) {
+	/* we want 48 MHz sysclk */
+	rcc_clock_setup_in_hsi_out_48mhz();
+	common_main();
+}
+#endif

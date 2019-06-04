@@ -7,6 +7,7 @@
 #include "led.h"
 #include "hw_defs.h"
 
+#ifndef SIM
 void led_init(void)
 {
 	/* Enable GPIOC clock. */
@@ -31,6 +32,7 @@ void led_toggle(void)
 {
 	gpio_toggle(LED_PORT, LED_PIN);	/* LED on */
 }
+#endif
 
 void led_blink_background(uint32_t cnt, uint32_t dly)
 {

@@ -1,7 +1,7 @@
 *bak
-*.elf
-*.bin
-*.map
-*.o
-*.d
-
+build-sim/
+build/
+settings.mk
+openocd.log
+proto_defs.h
+__pycache__

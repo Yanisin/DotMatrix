@@ -1,6 +1,8 @@
 #ifndef _CONSOLE_H
 #define _CONSOLE_H
 
+#include <stdint.h>
+
 #ifdef CONSOLE_PRINTF
 extern void console_printf(const char *format, ...);
 #else

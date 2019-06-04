@@ -20,78 +20,48 @@
 ##
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
-ifneq ($(V),1)
-Q		:= @
-NULL		:= 2>/dev/null
-endif
 
 ###############################################################################
 # Executables
 
-PREFIX		?= arm-none-eabi
+TGT_PREFIX		?= arm-none-eabi
 
-CC		:= $(PREFIX)-gcc
-CXX		:= $(PREFIX)-g++
-LD		:= $(PREFIX)-gcc
-AR		:= $(PREFIX)-ar
-AS		:= $(PREFIX)-as
-OBJCOPY		:= $(PREFIX)-objcopy
-OBJDUMP		:= $(PREFIX)-objdump
-GDB		:= $(PREFIX)-gdb
+TGT_CC		:= $(TGT_PREFIX)-gcc
+TGT_CXX		:= $(TGT_PREFIX)-g++
+TGT_LD		:= $(TGT_PREFIX)-gcc
+TGT_AR		:= $(TGT_PREFIX)-ar
+TGT_AS		:= $(TGT_PREFIX)-as
+TGT_OBJCOPY		:= $(TGT_PREFIX)-objcopy
+TGT_OBJDUMP		:= $(TGT_PREFIX)-objdump
+TGT_GDB		:= $(TGT_PREFIX)-gdb
 STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
-OPT		:= -Os
-DEBUG		:= -ggdb3
-CSTD		?= -std=c99
+TGT_OPT		?= -Os
+
 
 
 ###############################################################################
 # Source files
 
-OBJS		+= $(BINARY).o
-
-
-ifeq ($(strip $(OPENCM3_DIR)),)
-# user has not specified the library path, so we try to detect it
-
-# where we search for the library
-LIBPATHS := ./libopencm3 ../../../../libopencm3 ../../../../../libopencm3
-
-OPENCM3_DIR := $(wildcard $(LIBPATHS:=/locm3.sublime-project))
-OPENCM3_DIR := $(firstword $(dir $(OPENCM3_DIR)))
+TGT_OBJS = $(addsuffix .o, $(addprefix $(TGT_BUILDDIR)/, $(TGT_MODS) $(MODS)))
 
 ifeq ($(strip $(OPENCM3_DIR)),)
 $(warning Cannot find libopencm3 library in the standard search paths.)
 $(error Please specify it through OPENCM3_DIR variable!)
-endif
 endif
 
 ifeq ($(V),1)
 $(info Using $(OPENCM3_DIR) path to library)
 endif
 
-define ERR_DEVICE_LDSCRIPT_CONFLICT
-You can either specify DEVICE=blah, and have the LDSCRIPT generated,
-or you can provide LDSCRIPT, and ensure CPPFLAGS, LDFLAGS and LDLIBS
-all contain the correct values for the target you wish to use.
-You cannot provide both!
-endef
-
-ifeq ($(strip $(DEVICE)),)
 # Old style, assume LDSCRIPT exists
-DEFS		+= -I$(OPENCM3_DIR)/include
-LDFLAGS		+= -L$(OPENCM3_DIR)/lib
-LDLIBS		+= -l$(LIBNAME)
-LDSCRIPT	?= $(BINARY).ld
-else
-# New style, assume device is provided, and we're generating the rest.
-ifneq ($(strip $(LDSCRIPT)),)
-$(error $(ERR_DEVICE_LDSCRIPT_CONFLICT))
-endif
-include $(OPENCM3_DIR)/mk/genlink-config.mk
-endif
+TGT_DEFS		+= -I$(OPENCM3_DIR)/include
+TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib
+# https://www.tablix.org/~avian/blog/archives/2012/11/gnu_linker_and_elf_program_header/
+TGT_LDFLAGS += -z max-page-size=2048
+TGT_LDLIBS		+= -l$(LIBNAME)
 
 OPENCM3_SCRIPT_DIR = $(OPENCM3_DIR)/scripts
 EXAMPLES_SCRIPT_DIR	= $(OPENCM3_DIR)/../scripts
@@ -99,26 +69,19 @@ EXAMPLES_SCRIPT_DIR	= $(OPENCM3_DIR)/../scripts
 ###############################################################################
 # C flags
 
-TGT_CFLAGS	+= $(OPT) $(CSTD) $(DEBUG)
+TGT_CFLAGS	+= $(TGT_OPT) -std=c99
 TGT_CFLAGS	+= $(ARCH_FLAGS)
-TGT_CFLAGS	+= -Wextra -Wshadow -Wimplicit-function-declaration
-TGT_CFLAGS	+= -Wredundant-decls -Wmissing-prototypes -Wstrict-prototypes
-TGT_CFLAGS	+= -fno-common -ffunction-sections -fdata-sections
 
 ###############################################################################
 # C++ flags
 
-TGT_CXXFLAGS	+= $(OPT) $(CXXSTD) $(DEBUG)
+TGT_CXXFLAGS	+= $(TGT_OPT)
 TGT_CXXFLAGS	+= $(ARCH_FLAGS)
-TGT_CXXFLAGS	+= -Wextra -Wshadow -Wredundant-decls  -Weffc++
-TGT_CXXFLAGS	+= -fno-common -ffunction-sections -fdata-sections
 
 ###############################################################################
 # C & C++ preprocessor common flags
 
-TGT_CPPFLAGS	+= -MD
-TGT_CPPFLAGS	+= -Wall -Wundef
-TGT_CPPFLAGS	+= $(DEFS)
+TGT_CPPFLAGS	+= $(TGT_DEFS)
 
 ###############################################################################
 # Linker flags
@@ -126,8 +89,7 @@ TGT_CPPFLAGS	+= $(DEFS)
 TGT_LDFLAGS		+= --static -nostartfiles
 TGT_LDFLAGS		+= -T$(LDSCRIPT)
 TGT_LDFLAGS		+= $(ARCH_FLAGS) $(DEBUG)
-TGT_LDFLAGS		+= -Wl,-Map=$(*).map -Wl,--cref
-TGT_LDFLAGS		+= -Wl,--gc-sections
+TGT_LDFLAGS		+= -Wl,-Map=$(TGT_BUILDDIR)/$(*).map -Wl,--cref
 ifeq ($(V),99)
 TGT_LDFLAGS		+= -Wl,--print-gc-sections
 endif
@@ -135,7 +97,7 @@ endif
 ###############################################################################
 # Used libraries
 
-LDLIBS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+TGT_LDLIBS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 
 ###############################################################################
 ###############################################################################
@@ -145,27 +107,8 @@ LDLIBS		+= -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 .SECONDEXPANSION:
 .SECONDARY:
 
-all: elf
+GENERATED_BINARIES=$(addprefix $(TGT_BUILDDIR)/$(BINARY), .elf .bin .hex .srec .list .map)
 
-elf: $(BINARY).elf
-bin: $(BINARY).bin
-hex: $(BINARY).hex
-srec: $(BINARY).srec
-list: $(BINARY).list
-GENERATED_BINARIES=$(BINARY).elf $(BINARY).bin $(BINARY).hex $(BINARY).srec $(BINARY).list $(BINARY).map
-
-images: $(BINARY).images
-flash: $(BINARY).flash
-
-# Either verify the user provided LDSCRIPT exists, or generate it.
-ifeq ($(strip $(DEVICE)),)
-$(LDSCRIPT):
-    ifeq (,$(wildcard $(LDSCRIPT)))
-        $(error Unable to find specified linker script: $(LDSCRIPT))
-    endif
-else
-include $(OPENCM3_DIR)/mk/genlink-rules.mk
-endif
 
 # Define a helper macro for debugging make errors online
 # you can type "make print-OPENCM3_DIR" and it will show you
@@ -174,44 +117,40 @@ endif
 print-%:
 	@echo $*=$($*)
 
-%.images: %.bin %.hex %.srec %.list %.map
-	@#printf "*** $* images generated ***\n"
+$(TGT_BUILDDIR)/%.bin: $(TGT_BUILDDIR)/%.elf
+	@printf "  OBJCOPY $(*).bin\n"
+	$(Q)$(TGT_OBJCOPY) -Obinary $< $@
 
-%.bin: %.elf
-	@#printf "  OBJCOPY $(*).bin\n"
-	$(Q)$(OBJCOPY) -Obinary $(*).elf $(*).bin
+$(TGT_BUILDDIR)/%.hex: $(TGT_BUILDDIR)/%.elf
+	@printf "  OBJCOPY $(*).hex\n"
+	$(Q)$(TGT_OBJCOPY) -Oihex $< $@
 
-%.hex: %.elf
-	@#printf "  OBJCOPY $(*).hex\n"
-	$(Q)$(OBJCOPY) -Oihex $(*).elf $(*).hex
+$(TGT_BUILDDIR)/%.srec: $(TGT_BUILDDIR)/%.elf
+	@printf "  OBJCOPY $(*).srec\n"
+	$(Q)$(TGT_OBJCOPY) -Osrec $@ $<
 
-%.srec: %.elf
-	@#printf "  OBJCOPY $(*).srec\n"
-	$(Q)$(OBJCOPY) -Osrec $(*).elf $(*).srec
+$(TGT_BUILDDIR)/%.list: %(TGT_BUILDDIR)/%.elf
+	@printf "  OBJDUMP $(*).list\n"
+	$(Q)$(TGT_OBJDUMP) -S $< > $@.list
 
-%.list: %.elf
-	@#printf "  OBJDUMP $(*).list\n"
-	$(Q)$(OBJDUMP) -S $(*).elf > $(*).list
+$(TGT_BUILDDIR)/%.elf %(TGT_BUILDDIR)/%.map: $(TGT_OBJS) $(LDSCRIPT)
+	@printf "  LD      $(*).elf\n"
+	$(Q)$(TGT_LD) $(LDFLAGS) $(TGT_LDFLAGS) $(TGT_OBJS) $(LDLIBS) $(TGT_LDLIBS) -o $@
 
-%.elf %.map: $(OBJS) $(LDSCRIPT)
-	@#printf "  LD      $(*).elf\n"
-	$(Q)$(LD) $(TGT_LDFLAGS) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $(*).elf
+$(TGT_BUILDDIR)/%.o: %.c
+	@mkdir -p $(dir $@)
+	@printf "  CC      $(*).c\n"
+	$(Q)$(TGT_CC) $(TGT_CFLAGS) $(CFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
 
-%.o: %.c
-	@#printf "  CC      $(*).c\n"
-	$(Q)$(CC) $(TGT_CFLAGS) $(CFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $(*).o -c $(*).c
+$(TGT_BUILDDIR)/%.o: %.cxx
+	@mkdir -p $(dir $@)
+	@printf "  CXX     $(*).cxx\n"
+	$(Q)$(TGT_CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
 
-%.o: %.cxx
-	@#printf "  CXX     $(*).cxx\n"
-	$(Q)$(CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $(*).o -c $(*).cxx
-
-%.o: %.cpp
-	@#printf "  CXX     $(*).cpp\n"
-	$(Q)$(CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $(*).o -c $(*).cpp
-
-clean:
-	@#printf "  CLEAN\n"
-	$(Q)$(RM) $(GENERATED_BINARIES) generated.* $(OBJS) $(OBJS:%.o=%.d)
+$(TGT_BUILDDIR)%.o: %.cpp
+	@mkdir -p $(dir $@)
+	@printf "  CXX     $(*).cpp\n"
+	$(Q)$(TGT_CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
 
 stylecheck: $(STYLECHECKFILES:=.stylecheck)
 styleclean: $(STYLECHECKFILES:=.styleclean)
@@ -228,37 +167,6 @@ styleclean: $(STYLECHECKFILES:=.styleclean)
 %.styleclean:
 	$(Q)rm -f $*.stylecheck;
 
+.PHONY: images stylecheck styleclean elf bin hex srec list
 
-%.stlink-flash: %.bin
-	@printf "  FLASH  $<\n"
-	$(STFLASH) write $(*).bin 0x8000000
-
-ifeq ($(BMP_PORT),)
-ifeq ($(OOCD_FILE),)
-%.flash: %.elf
-	@printf "  FLASH   $<\n"
-	(echo "halt; program $(realpath $(*).elf) verify reset" | nc -4 localhost 4444 2>/dev/null) || \
-		$(OOCD) -f interface/$(OOCD_INTERFACE).cfg \
-		-f target/$(OOCD_TARGET).cfg \
-		-c "program $(*).elf verify reset exit" \
-		$(NULL)
-else
-%.flash: %.elf
-	@printf "  FLASH   $<\n"
-	(echo "halt; program $(realpath $(*).elf) verify reset" | nc -4 localhost 4444 2>/dev/null) || \
-		$(OOCD) -f $(OOCD_FILE) \
-		-c "program $(*).elf verify reset exit" \
-		$(NULL)
-endif
-else
-%.flash: %.elf
-	@printf "  GDB   $(*).elf (flash)\n"
-	$(GDB) --batch \
-		   -ex 'target extended-remote $(BMP_PORT)' \
-		   -x $(EXAMPLES_SCRIPT_DIR)/black_magic_probe_flash.scr \
-		   $(*).elf
-endif
-
-.PHONY: images clean stylecheck styleclean elf bin hex srec list
-
--include $(OBJS:.o=.d)
+-include $(TGT_OBJS:.o=.d)

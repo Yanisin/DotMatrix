@@ -23,8 +23,10 @@
 /* Define memory regions. */
 MEMORY
 {
-	rom (rx) : ORIGIN = 0x08000000, LENGTH = 128K
-	ram (rwx) : ORIGIN = 0x20000000, LENGTH = 16K
+	/* First 8K is reserved for DDFU */
+	rom (rx) : ORIGIN = 0x08002000, LENGTH = 128K - 8K -8K
+	/* And we reserve 0x100 for interrupt vector table */
+	ram (rwx) : ORIGIN = 0x20000100, LENGTH = 16K - 0x100
 }
 
 /* Include the common ld script. */
@@ -37,6 +39,10 @@ SECTIONS
 		__applet_array_start = .;
 		KEEP(*(.applet.*));
 		__applet_array_end = .;
+
+		__worker_array_start = .;
+		KEEP(*(.worker.*));
+		__worker_array_end = .;
 	} > rom
 }
 
