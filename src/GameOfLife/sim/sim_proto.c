@@ -8,7 +8,7 @@
 #include "proto_defs.h"
 #include "../cell_id.h"
 #include <arpa/inet.h>
-#include <memory.h>
+#include <string.h>
 #include "../usart_buffered.h"
 #include <pthread.h>
 

@@ -6,7 +6,7 @@
 #include <libopencm3/stm32/flash.h>
 #include <libopencm3/usb/dfu.h>
 #include <stddef.h>
-#include <memory.h>
+#include <string.h>
 #include "main.h"
 
 // https://git.drak.xyz/flabbergast/opencm3-ex/src/commit/6f1916fc2a5b3acd9b26a191eeb7ef4dc5697553/usb_dfu/usbdfu.c

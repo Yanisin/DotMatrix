@@ -1,5 +1,5 @@
 #include "../disp.h"
-#include <memory.h>
+#include <string.h>
 #include "sim_proto.h"
 #include "proto_defs.h"
 #include "../vector.h"

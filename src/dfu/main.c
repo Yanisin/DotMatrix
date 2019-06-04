@@ -9,7 +9,7 @@
 #include "usart_buffered.h"
 #include "usb.h"
 #include "main.h"
-#include <memory.h>
+#include <string.h>
 
 #define DFU_TIMEOUT 1000
 
