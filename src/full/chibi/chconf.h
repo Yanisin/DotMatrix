@@ -17,7 +17,7 @@
 #define CH_CFG_NO_IDLE_THREAD               FALSE
 #define CH_CFG_OPTIMIZE_SPEED               TRUE
 #define CH_CFG_USE_TM                       FALSE
-#define CH_CFG_USE_REGISTRY                 FALSE
+#define CH_CFG_USE_REGISTRY                 TRUE
 #define CH_CFG_USE_WAITEXIT                 TRUE
 #define CH_CFG_USE_SEMAPHORES               TRUE
 #define CH_CFG_USE_SEMAPHORES_PRIORITY      FALSE

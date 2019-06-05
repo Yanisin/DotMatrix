@@ -6,21 +6,21 @@
 #include "applet.h"
 //#include "life.h"
 #include "disp.h"
-#include "ticker.h"
 #include "rand.h"
 #include "usart_buffered.h"
 #include "console.h"
 #include "led.h"
 #include "common_gpio.h"
 #include "icons.h"
+#include <ch.h>
 
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8
 
-#define LIFE_TICK 20
-static int life_tick_interv;
+#define LIFE_TICK TIME_MS2I(20)
+static sysinterval_t life_tick_interv;
 static unsigned int life_tick_mult;
-static unsigned int life_tick_next;
+static systime_t life_tick_next;
 static int seeding;
 static int life_generation;
 static int scheduled_cleanup;
@@ -373,13 +373,13 @@ static void life_start(void)
 {
 	life_tick_mult = 8;
 	life_tick_interv = life_tick_mult * LIFE_TICK;
-	life_tick_next = ticker_get_ticks() + life_tick_interv;
+	life_tick_next = chVTGetSystemTime() + life_tick_interv;
 	worker_state = WAIT_TICK;
 }
 
 static void life_worker(void)
 {
-	unsigned int tick = ticker_get_ticks();
+	systime_t tick = chVTGetSystemTime();
 	uint32_t c;
 
 	if (worker_state == WAIT_TICK) {
@@ -397,7 +397,7 @@ static void life_worker(void)
 		while (common_gpio_get() == false)
 			;
 		/* wait a bit to make sure everybody got it */
-		ticker_msleep(2);
+		chThdSleep(TIME_MS2I(2));
 		/* set idle signal again */
 		common_gpio_set(false);
 
@@ -408,7 +408,7 @@ static void life_worker(void)
 
 		worker_state = WORKER_BUSY;
 
-		life_tick_next = ticker_get_ticks() + life_tick_interv;
+		life_tick_next = chVTGetSystemTime() + life_tick_interv;
 	}
 
 	if (worker_state == WORKER_BUSY) {

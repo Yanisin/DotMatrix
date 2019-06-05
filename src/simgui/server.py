@@ -50,7 +50,8 @@ class ClientHandler(socketserver.BaseRequestHandler):
                 raise CommException('Unknown message ID {} received'.format(msg.msgid))
 
         if self.cell is not None:
-            self.cell.client_disconnected()
+            with self.field.lock:
+                self.cell.client_disconnected()
         print('Disconnected')
 
     def send(self, msgid, data: bytes):

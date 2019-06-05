@@ -1,12 +1,11 @@
 #include <string.h>
 #include "topo.h"
 #include "cell_id.h"
-#include "ticker.h"
 #include "mgmt_msg.h"
 #include "console.h"
 #include "usart_buffered.h"
-#include "int.h"
 #include "applet.h"
+#include <ch.h>
 
 
 #define MAX_CELL_COUNT 64
@@ -101,8 +100,8 @@ static edge_info edges[DIR_COUNT];
 static cell_info sort_cells[MAX_CELL_COUNT];
 static uint8_t first_cell_id;
 
-static unsigned int topo_start_tick;
-static unsigned int topo_next_announce;
+static systime_t topo_start_tick;
+static systime_t topo_next_announce;
 static enum topo_state state;
 
 static cell_id_t master_cell_id;
@@ -121,15 +120,15 @@ void topo_run(void)
 	usart_buf_clear(1);
 	usart_buf_clear(2);
 	usart_buf_clear(3);
-	ticker_msleep(200);
+	chThdSleep(TIME_MS2I(200));
 
-	topo_start_tick = ticker_get_ticks();
+	topo_start_tick = chVTGetSystemTime();
 #ifdef TRACE
 	enum topo_state prev = DONE;
 #endif
 
 	while (state != DONE) {
-		unsigned int now = ticker_get_ticks();
+		unsigned int now = chVTGetSystemTime();
 #ifdef TRACE
 		if (prev != state) {
 			console_printf("state %d, now = %u\n", state, now);
@@ -149,7 +148,7 @@ void topo_run(void)
 			continue;
 		}
 		worker_run_all();
-		cpu_relax();
+		port_wait_for_interrupt();
 	}
 
 	topo_my_id = first_cell_id + (topo_cell_count++);

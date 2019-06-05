@@ -58,10 +58,8 @@ ALLXASMSRC :=
 endif
 
 ifeq ($(SIM),1)
-include $(CHIBIOS)/os/common/ports/SIMIA32/compilers/GCC/port.mk
-include $(CHIBIOS)/os/hal/boards/simulator/board.mk
-include $(CHIBIOS)/os/hal/osal/rt-nil/osal.mk
-include $(CHIBIOS)/os/hal/hal.mk
+# Currentl we have our port in-tree, but the Makefile mechanism is left here
+# just in case
 CHIBI_SIM_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
 CHIBI_SIM_CPPFLAGS := $(addprefix -I, $(ALLINC))
 SIM_MODS += $(CHIBI_SIM_MODS)
@@ -158,7 +156,8 @@ prg_usb: $(TGT_RESULT).bin
 endif
 
 gdb:  $(TGT_RESULT).elf
-		$(TGT_GDB) -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg -c "gdb_port pipe; log_output openocd.log"' \
+		$(TGT_GDB) -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg \
+			-c "stm32f0x.cpu configure -rtos auto; gdb_port pipe; log_output openocd.log"' \
 			-ex 'monitor reset halt' \
 			-ex 'b main' -ex 'c' \
 			$(TGT_RESULT).elf

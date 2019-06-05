@@ -1,16 +1,19 @@
+#define _GNU_SOURCE
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <endian.h>
-#include "sim_proto.h"
+#include "sim.h"
 #include "proto_defs.h"
 #include "../cell_id.h"
 #include <arpa/inet.h>
 #include <string.h>
 #include "../usart_buffered.h"
-#include <pthread.h>
+#include <signal.h>
+#include <poll.h>
+
 
 #define MAX_MSG_SIZE 256
 
@@ -19,9 +22,6 @@ uint8_t sim_recvbuf[MAX_MSG_SIZE];
 bool sim_common_gpio = true;
 bool sim_button_state[2];
 
-static pthread_mutex_t sim_lock;
-static bool int_happened = true;
-static pthread_cond_t int_happened_cond = PTHREAD_COND_INITIALIZER;
 
 struct msg_hdr {
 	uint16_t len;
@@ -32,11 +32,6 @@ bool sim_connect(const char *server, const char *port)
 {
 	struct addrinfo* ai;
 	struct addrinfo hints;
-
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init(&attr);
-	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&sim_lock, &attr);
 
 	memset (&hints, 0, sizeof (hints));
 	/* Python's soccketserver does not seem to support ipv6 yet */
@@ -70,49 +65,11 @@ bool sim_connect(const char *server, const char *port)
 	return true;
 }
 
+
 static void perror_fail(const char *msg)
 {
 	perror(msg);
 	abort();
-}
-
-void sim_irq_start(void)
-{
-	pthread_mutex_lock(&sim_lock);
-}
-
-void sim_irq_end(void)
-{
-	int_happened = true;
-	pthread_cond_broadcast(&int_happened_cond);
-	pthread_mutex_unlock(&sim_lock);
-}
-
-void sim_int_disable()
-{
-	pthread_mutex_lock(&sim_lock);
-}
-
-void sim_int_restore()
-{
-	pthread_mutex_unlock(&sim_lock);
-}
-
-void sim_irq_wait(void)
-{
-	struct timespec ts;
-	clock_gettime(CLOCK_REALTIME, &ts);
-	/* Wait until next ticker tick */
-	ts.tv_nsec += 1000*1000;
-	ts.tv_nsec /= 1000*1000;
-	ts.tv_nsec *= 1000*1000;
-	pthread_mutex_lock(&sim_lock);
-	/* The lack of while loop is intentional here */
-	if (!int_happened) {
-		pthread_cond_timedwait(&int_happened_cond, &sim_lock, &ts);
-	}
-	int_happened = false;
-	pthread_mutex_unlock(&sim_lock);
 }
 
 void sim_send(uint16_t msgid, uint16_t len, const void *data)
@@ -122,7 +79,7 @@ void sim_send(uint16_t msgid, uint16_t len, const void *data)
 		.len = htobe16(len),
 		.msgid = htobe16(msgid),
 	};
-	sim_int_disable();
+
 	r = send(server_socket, &hdr, sizeof(hdr), 0);
 	if (r != sizeof(hdr))
 		perror_fail("send");
@@ -130,14 +87,12 @@ void sim_send(uint16_t msgid, uint16_t len, const void *data)
 	r = send(server_socket, data, len, 0);
 	if (r != len)
 		perror_fail("send");
-	sim_int_restore();
 }
 
-static void sim_recv(uint16_t *msgid, uint16_t *len)
+static void sim_recv(uint16_t *len, uint16_t *msgid)
 {
 	struct msg_hdr hdr;
 	ssize_t r;
-
 	r = recv(server_socket, &hdr, sizeof(hdr), MSG_WAITALL);
 	if (r != sizeof(hdr))
 		perror_fail("recv");
@@ -152,7 +107,7 @@ static void sim_recv(uint16_t *msgid, uint16_t *len)
 		perror_fail("recv");
 }
 
-static void sim_dispatch(uint16_t msgid, uint16_t len)
+static void sim_dispatch(uint16_t len, uint16_t msgid)
 {
 	switch (msgid) {
 	case MSGID_GPIO_INPUT_STATE:
@@ -170,11 +125,42 @@ static void sim_dispatch(uint16_t msgid, uint16_t len)
 	}
 }
 
-void sim_recv_loop(void)
-{
-	for(;;) {
-		uint16_t msg, len;
-		sim_recv(&msg, &len);
-		sim_dispatch(msg, len);
+void sim_irq_wait(const struct timespec *next_tick, bool *event) {
+	struct timespec now;
+	struct pollfd pfd;
+	int rv;
+	struct timespec tout;
+	uint16_t len, msgid;
+
+	if (next_tick) {
+		tout = *next_tick;
+		clock_gettime(CLOCK_MONOTONIC, &now);
+		if (tout.tv_nsec < now.tv_nsec) {
+			tout.tv_nsec += 1000*1000*1000;
+			tout.tv_sec--;
+		}
+		if (tout.tv_sec < now.tv_sec) {
+			return;
+		}
+		tout.tv_sec -= now.tv_sec;
+		tout.tv_nsec -= now.tv_nsec;
+	} else {
+		tout.tv_sec = 0;
+		tout.tv_nsec = 0;
 	}
+
+
+	pfd.fd = server_socket;
+	pfd.events = POLLIN;
+	rv = ppoll(&pfd, 1, &tout, NULL);
+	if (rv == 0)
+		return;
+	if (rv < 0) {
+		perror("poll");
+		abort();
+	}
+
+	sim_recv(&len, &msgid);
+	sim_dispatch(len, msgid);
+	*event = true;
 }

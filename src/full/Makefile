@@ -8,29 +8,28 @@ SIM ?= 1
 USE_CHIBI_OS ?= 1
 
 TGT_MODS = \
+	chibi/hal_st \
+	chibi/reset \
+	chibi/init \
 	led \
 	disp disp_spi \
-	ticker \
 	cdcacm \
 	console \
 	common_gpio \
 	spi_dma \
-	int \
 	cell_id \
 	buttons_hw \
 	board
 
 SIM_MODS = \
+	sim/chibi/chcore \
 	sim/board \
-	sim/chibi/hal_lld \
 	sim/main \
-	sim/sim_proto \
+	sim/sim \
 	sim/led \
-	sim/ticker \
 	sim/disp \
 	sim/console \
 	sim/common_gpio \
-	sim/int \
 	sim/buttons_hw
 
 MODS += \

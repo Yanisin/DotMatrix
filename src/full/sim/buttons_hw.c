@@ -1,6 +1,6 @@
 #include "../buttons.h"
 #include <string.h>
-#include "sim_proto.h"
+#include "sim.h"
 
 bool button_is_pressed(enum button btn)
 {

@@ -7,7 +7,7 @@
 #include <pthread.h>
 #include "main.h"
 
-#include "sim_proto.h"
+#include "sim.h"
 #include "../cell_id.h"
 
 cell_id_t cell_id;
@@ -49,12 +49,6 @@ const cell_id_t *get_cell_id(void) {
 	return &cell_id;
 }
 
-static void *run(void *arg)
-{
-	(void)arg;
-	sim_recv_loop();
-	return NULL;
-}
 
 int sim_main(int argc, char *argv[]) {
 	int c;
@@ -113,9 +107,5 @@ int sim_main(int argc, char *argv[]) {
 	if (!sim_connect(opt_server, opt_port))
 		return 2;
 
-	if (pthread_create(&worker_thread, NULL, run, NULL) != 0) {
-		perror("pthread_create");
-		return 2;
-	}
 	return 0;
 }

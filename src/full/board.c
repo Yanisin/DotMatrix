@@ -12,4 +12,5 @@ void board_init(void)
 	/* Set GPIO0 (in GPIO port F) to 'output push-pull'. */
 	/* Using API functions: */
 	gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
+	stInit();
 }

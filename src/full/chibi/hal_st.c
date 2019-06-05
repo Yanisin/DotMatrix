@@ -21,7 +21,7 @@ void sys_tick_handler(void)
 
 void stInit(void)
 {
-	systick_set_reload(rcc_ahb_frequency / 8 / CH_CFG_ST_FREQUENCY);
+	systick_set_frequency(CH_CFG_ST_FREQUENCY, rcc_ahb_frequency);
 	systick_interrupt_enable();
 	systick_counter_enable();
 	STK_CVR = 0;

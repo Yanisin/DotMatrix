@@ -1,6 +1,6 @@
 #include "../led.h"
 #include <stdbool.h>
-#include "sim_proto.h"
+#include "sim.h"
 #include "proto_defs.h"
 
 static bool led_state;

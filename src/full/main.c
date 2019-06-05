@@ -4,7 +4,6 @@
 
 #include "applet.h"
 #include "disp.h"
-#include "ticker.h"
 #include "dots.h"
 #include "rand.h"
 #include "usart_buffered.h"
@@ -12,7 +11,6 @@
 #include "led.h"
 #include "console.h"
 #include "common_gpio.h"
-#include "int.h"
 #include "topo.h"
 #include "mgmt_msg.h"
 
@@ -89,7 +87,6 @@ static void main_task(void)
 {
 	usart_init();
 	led_init();
-	ticker_init();
 	disp_init();
 	rand_init();
 	common_gpio_init();
@@ -101,7 +98,7 @@ static void main_task(void)
 	topo_run();
 
 	if (topo_is_master)
-		ticker_msleep(150);
+		chThdSleep(TIME_MS2I(100));
 
 	applet_select_local(&chooser_applet);
 
@@ -112,6 +109,6 @@ static void main_task(void)
 		}
 		usart_recv_dispatch(dispatch_usart);
 		worker_run_all();
-		cpu_relax();
+		port_wait_for_interrupt();
 	}
 }

@@ -21,4 +21,4 @@ msr CONTROL, r0
 isb
 
 bl crt_init
-b main
+bl main

@@ -1,6 +1,6 @@
 #include "../disp.h"
 #include <string.h>
-#include "sim_proto.h"
+#include "sim.h"
 #include "proto_defs.h"
 #include "../vector.h"
 #include "../console.h"

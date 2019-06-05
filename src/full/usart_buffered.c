@@ -24,22 +24,22 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
 #else
-#include "sim/sim_proto.h"
+#include "sim/sim.h"
 #include "sim/proto_defs.h"
 #endif
 #include <assert.h>
-
+#include <ch.h>
 #include "hw_defs.h"
 #include "usart_buffered.h"
-#include "int.h"
 #include "applet.h"
 #include "console.h"
+#include "pollint.h"
 
 /* ---------------- Macro Definition --------------- */
 
 #ifdef SIM
 /* Work-around for lack of rate limiting */
-#define BUF_SIZE 512
+#define BUF_SIZE 256
 #else
 #define BUF_SIZE 32
 #endif
@@ -325,6 +325,7 @@ void usart_recv_dispatch(usart_msg_dispatcher dispatch)
 			if (!recognized) {
 				usart_skip(u);
 			}
+			poll_int();
 		}
 	}
 }
@@ -332,12 +333,11 @@ void usart_recv_dispatch(usart_msg_dispatcher dispatch)
 void usart_buf_clear(int u)
 {
 	struct usart *usart = &usarts[u];
-	int_state ints;
 	usart->header_received = false;
-	int_disable(&ints);
+	chSysLock();
 	usart->rxbuf.rp = usart->rxbuf.wp = 0;
 	usart->txbuf.rp = usart->txbuf.wp = 0;
-	int_restore(&ints);
+	chSysUnlock();
 }
 
 void usart_init(void)
