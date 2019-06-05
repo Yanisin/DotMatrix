@@ -40,8 +40,6 @@ STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
 TGT_OPT		?= -Os
 
-
-
 ###############################################################################
 # Source files
 
@@ -58,7 +56,7 @@ endif
 
 # Old style, assume LDSCRIPT exists
 TGT_DEFS		+= -I$(OPENCM3_DIR)/include
-TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib
+TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib -L..
 # https://www.tablix.org/~avian/blog/archives/2012/11/gnu_linker_and_elf_program_header/
 TGT_LDFLAGS += -z max-page-size=2048
 TGT_LDLIBS		+= -l$(LIBNAME)
@@ -146,6 +144,11 @@ $(TGT_BUILDDIR)/%.o: %.cxx
 	@mkdir -p $(dir $@)
 	@printf "  CXX     $(*).cxx\n"
 	$(Q)$(TGT_CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
+
+$(TGT_BUILDDIR)/%.o: %.S
+	@mkdir -p $(dir $@)
+	@printf "  AS      $(*).S\n"
+	$(Q)$(TGT_CC) $(TGT_CPPFLAGS) $(CPPFLAGS) -DASSEMBLER -o $@ -c $<
 
 $(TGT_BUILDDIR)%.o: %.cpp
 	@mkdir -p $(dir $@)

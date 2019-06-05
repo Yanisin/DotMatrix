@@ -5,7 +5,7 @@
 #include <libopencm3/stm32/usart.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
-#include "../GameOfLife/hw_defs.h"
+#include "hw_defs.h"
 #include "../GameOfLife/mgmt_msg.h"
 #include "usart_buffered.h"
 

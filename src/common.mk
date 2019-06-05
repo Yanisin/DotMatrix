@@ -2,7 +2,9 @@ ifeq ($(wildcard ../settings.mk),)
 $(error Please create settings.mk. Use settings.mk.example as a guide)
 endif
 
-include ../settings.mk
+ROOT=$(PWD)/..
+
+include $(ROOT)/settings.mk
 
 ALL = build/$(BINARY).elf
 
@@ -13,6 +15,8 @@ FP_FLAGS ?= -msoft-float
 ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 TGT_BUILDDIR = build
 SIM_BUILDDIR = build-sim
+SIM ?= 0
+TGT ?= 1
 
 ###############################################################################
 # Common C Flags
@@ -28,15 +32,54 @@ CXXFLAGS += -fno-common -ffunction-sections -fdata-sections
 CPPFLAGS += -MD
 CPPFLAGS += -Wall -Wundef
 CPPFLAGS += $(DEFS)
+CPPFLAGS += -I ../hwdefs
 
 LDFLAGS += -Wl,--gc-sections
 
 ###############################################################################
-# Build sim & target
+# ChibiOS
 #
 
-SIM ?= 0
-TGT ?= 1
+ifeq ($(USE_CHIBI_OS),1)
+ALLKERNSRC :=
+ALLINC :=
+ALLXASMSRC :=
+
+ifeq ($(TGT),1)
+include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
+CHIBI_TGT_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CHIBI_TGT_CPPFLAGS := $(addprefix -I, $(ALLINC))
+TGT_MODS += $(CHIBI_TGT_MODS)
+TGT_CPPFLAGS += $(CHIBI_TGT_CPPFLAGS)
+ALLCSRC :=
+ALLINC :=
+ALLXASMSRC :=
+endif
+
+ifeq ($(SIM),1)
+include $(CHIBIOS)/os/common/ports/SIMIA32/compilers/GCC/port.mk
+CHIBI_SIM_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CHIBI_SIM_CPPFLAGS := $(addprefix -I, $(ALLINC))
+SIM_MODS += $(CHIBI_SIM_MODS)
+SIM_CPPFLAGS += $(CHIBI_SIM_CPPFLAGS)
+ALLCSRC :=
+ALLINC :=
+ALLXASMSRC :=
+endif
+
+include $(CHIBIOS)/os/rt/rt.mk
+include $(CHIBIOS)/os/license/license.mk
+
+# We remove the CHIBIOS prefix and use VPATH instead
+VPATH := $(CHIBIOS)
+MODS += $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CPPFLAGS += $(addprefix -I, $(ALLINC)) -Ichibi
+DEFS += -DPORT_IGNORE_GCC_VERSION_CHECK
+endif
+
+###############################################################################
+# Build sim & target
+#
 
 ifneq ($(V),1)
 Q := @
@@ -49,9 +92,11 @@ else
 LDSCRIPT = ../stm32f070.ld
 endif
 
+TGT_RESULT = $(TGT_BUILDDIR)/$(BINARY)
+
 ALL :=
 ifeq ($(TGT), 1)
-ALL += $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).bin
+ALL += $(TGT_RESULT).elf $(TGT_RESULT).bin
 endif
 ifeq ($(SIM), 1)
 ALL += $(SIM_BUILDDIR)/$(BINARY)
@@ -60,25 +105,30 @@ endif
 .PHONY: all clean prg prg_usb prg_bl gdb
 .SUFFIXES:
 
+ifeq ($(TGT), 1)
 all: $(ALL)
+	size $(TGT_RESULT).elf
+else
+all: $(ALL)
+endif
 
 clean:
 	rm -rf $(SIM_BUILDDIR)
 	rm -rf $(TGT_BUILDDIR)
 
 ifeq ($(SIM), 1)
-include ../rules.sim.mk
+include $(ROOT)/rules.sim.mk
 endif
 
+$(info $(CPPFLAGS) $(TGT_CPPFLAGS))
 ifeq ($(TGT), 1)
-include ../rules.mk
+include $(ROOT)/rules.mk
 endif
 
 ###############################################################################
 # Programming & debugging
 #
 
-TGT_RESULT = $(TGT_BUILDDIR)/$(BINARY)
 
 prg: $(TGT_RESULT).elf
 	@echo programming...
