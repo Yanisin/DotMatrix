@@ -1,56 +1,117 @@
 #include <ch.h>
-#include <libopencm3/stm32/rcc.h>
-#include <libopencm3/stm32/gpio.h>
-#include <libopencm3/cm3/vector.h>
-#include "hw_defs.h"
-#include "chibi/hal_st.h"
+#include "board.h"
+#include "led.h"
 
-typedef void (*funcp_t) (void);
-extern funcp_t __preinit_array_start, __preinit_array_end;
-extern funcp_t __init_array_start, __init_array_end;
-extern funcp_t __fini_array_start, __fini_array_end;
+#include "applet.h"
+#include "disp.h"
+#include "ticker.h"
+#include "dots.h"
+#include "rand.h"
+#include "usart_buffered.h"
+#include "cdcacm.h"
+#include "led.h"
+#include "console.h"
+#include "common_gpio.h"
+#include "int.h"
+#include "topo.h"
+#include "mgmt_msg.h"
 
-void pre_init(void)
+#ifdef SIM
+#include "sim/main.h"
+#endif
+
+static void main_task(void);
+
+#ifdef SIM
+int main(int argc, char* argv[])
 {
-	volatile unsigned *src, *dest;
-	funcp_t *fp;
-	SCB_CCR |= SCB_CCR_STKALIGN;
+	int ret = sim_main(argc, argv);
+	if (ret != 0)
+		return ret;
+	chSysInit();
+	main_task();
+	return 0;
+}
+#else
+int main(void)
+{
+	board_init();
+	chSysInit();
+	main_task();
+	return 0;
+}
+#endif
 
-	for (src = &_data_loadaddr, dest = &_data;
-		dest < &_edata;
-		src++, dest++) {
-		*dest = *src;
-	}
+extern const struct applet chooser_applet;
 
-	while (dest < &_ebss) {
-		*dest++ = 0;
-	}
+static const uint8_t smileys [1][8][8] = {
+	{{ 0, 0, 1, 1, 1, 1, 0, 0},
+	 { 0, 1, 0, 0, 0, 0, 1, 0},
+	 { 1, 0, 1, 0, 0, 1, 0, 1},
+	 { 1, 0, 1, 0,0,  1, 0, 1},
+	 { 1, 1, 0, 0, 0, 0, 1, 1},
+	 { 1, 0, 1, 1, 1, 1, 0, 1},
+	 { 0, 1, 0, 0, 0, 0, 1, 0},
+	 { 0, 0, 1, 1, 1, 1, 0, 0}
+	 }};
 
-	/* Constructors. */
-	for (fp = &__preinit_array_start; fp < &__preinit_array_end; fp++) {
-		(*fp)();
+static bool dispatch_usart(const usart_header* hdr)
+{
+	if (hdr->id & MSG_ID_FLAG_MGMT) {
+		if(hdr->id == MGMT_CHANGE_APPLET) {
+			struct mgmt_change_applet msg;
+			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+				applet_select(msg.applet);
+			}
+		}
+	} else {
+		const struct applet * a = applet_current();
+		if (a && a->check_usart) {
+			return a->check_usart(hdr);
+		}
 	}
-	for (fp = &__init_array_start; fp < &__init_array_end; fp++) {
-		(*fp)();
+	return false;
+}
+
+static void print_smile(void)
+{
+	int i,j;
+
+	for (i=0;i<8;i++) {
+		for (j=0;j<8;j++) {
+			disp_set(j,i, 31*smileys[0][i][j]);
+		}
 	}
 }
 
-int main(void)
+
+static void main_task(void)
 {
-	rcc_clock_setup_in_hsi_out_48mhz();
-	rcc_periph_clock_enable(RCC_GPIOC);
+	usart_init();
+	led_init();
+	ticker_init();
+	disp_init();
+	rand_init();
+	common_gpio_init();
+	led_on();
+	print_smile();
 
-	/* Set GPIO0 (in GPIO port F) to 'output push-pull'. */
-	/* Using API functions: */
-	gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
+	worker_init_all();
+	console_puts("Starting...\n");
+	topo_run();
 
-	stInit();
-	chSysInit();
+	if (topo_is_master)
+		ticker_msleep(150);
 
-	while (true) {
-		gpio_clear(LED_PORT, LED_PIN);
-		chThdSleepMilliseconds(500);
-		gpio_set(LED_PORT, LED_PIN);
-		chThdSleepMilliseconds(500);
+	applet_select_local(&chooser_applet);
+
+	while (1) {
+		if (applet_current()) {
+			if (applet_current()->worker)
+				applet_current()->worker();
+		}
+		usart_recv_dispatch(dispatch_usart);
+		worker_run_all();
+		cpu_relax();
 	}
 }

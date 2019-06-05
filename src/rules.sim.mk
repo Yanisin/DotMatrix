@@ -9,9 +9,9 @@ SIM_OBJS = $(addsuffix .o, $(addprefix $(SIM_BUILDDIR)/, $(SIM_MODS) $(MODS)))
 .PHONY: clean proto
 
 SIM_CFLAGS += -DSIM -std=gnu11
-SIM_CFLAGS += -Og
-SIM_CPPFLAGS =
-SIM_LDFLAGS += -lpthread -lrt -T ../sim.ld
+SIM_CFLAGS += -Og -m32
+SIM_CPPFLAGS +=
+SIM_LDFLAGS += -lpthread -lrt -T ../sim.ld -m32
 
 $(SIM_BUILDDIR)/$(BINARY): $(SIM_OBJS)
 	@mkdir -p $(dir $@)

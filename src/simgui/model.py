@@ -114,7 +114,7 @@ class Cell(QObject):
             self._target.terminate()
             self._target = None
 
-        self._target = subprocess.Popen(['../GameOfLife/build-sim/main', '-i', self.id])
+        self._target = subprocess.Popen(['../full/build-sim/full', '-i', self.id])
         self.changed.emit()
 
     @Slot()

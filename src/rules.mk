@@ -44,6 +44,7 @@ TGT_OPT		?= -Os
 # Source files
 
 TGT_OBJS = $(addsuffix .o, $(addprefix $(TGT_BUILDDIR)/, $(TGT_MODS) $(MODS)))
+$(info $(TGT_MODS))
 
 ifeq ($(strip $(OPENCM3_DIR)),)
 $(warning Cannot find libopencm3 library in the standard search paths.)

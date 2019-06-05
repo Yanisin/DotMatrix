@@ -2,7 +2,7 @@ ifeq ($(wildcard ../settings.mk),)
 $(error Please create settings.mk. Use settings.mk.example as a guide)
 endif
 
-ROOT=$(PWD)/..
+ROOT=$(CURDIR)/..
 
 include $(ROOT)/settings.mk
 
@@ -40,6 +40,7 @@ LDFLAGS += -Wl,--gc-sections
 # ChibiOS
 #
 
+# Suck out list of files to build from chibi Makefiles
 ifeq ($(USE_CHIBI_OS),1)
 ALLKERNSRC :=
 ALLINC :=
@@ -58,6 +59,9 @@ endif
 
 ifeq ($(SIM),1)
 include $(CHIBIOS)/os/common/ports/SIMIA32/compilers/GCC/port.mk
+include $(CHIBIOS)/os/hal/boards/simulator/board.mk
+include $(CHIBIOS)/os/hal/osal/rt-nil/osal.mk
+include $(CHIBIOS)/os/hal/hal.mk
 CHIBI_SIM_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
 CHIBI_SIM_CPPFLAGS := $(addprefix -I, $(ALLINC))
 SIM_MODS += $(CHIBI_SIM_MODS)
@@ -73,7 +77,7 @@ include $(CHIBIOS)/os/license/license.mk
 # We remove the CHIBIOS prefix and use VPATH instead
 VPATH := $(CHIBIOS)
 MODS += $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
-CPPFLAGS += $(addprefix -I, $(ALLINC)) -Ichibi
+CPPFLAGS += $(addprefix -I, $(ALLINC))
 DEFS += -DPORT_IGNORE_GCC_VERSION_CHECK
 endif
 
@@ -120,7 +124,6 @@ ifeq ($(SIM), 1)
 include $(ROOT)/rules.sim.mk
 endif
 
-$(info $(CPPFLAGS) $(TGT_CPPFLAGS))
 ifeq ($(TGT), 1)
 include $(ROOT)/rules.mk
 endif
