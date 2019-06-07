@@ -10,11 +10,10 @@ SECTIONS
 		KEEP(*(.worker.*));
 		__worker_array_end = .;
 	}
-    
-    . = ALIGN(0x10);
-    __heap_base__ = .;
-    . = . + 0x10000;
-    __heap_end__ = .;
 }
 
+__heap_base__ = static_heap;
+__heap_end__ = __heap_base__ + 0x10000;
+
 INSERT AFTER .rodata;
+

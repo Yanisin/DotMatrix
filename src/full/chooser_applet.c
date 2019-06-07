@@ -18,17 +18,12 @@ struct msg_show_applet {
 
 static size_t page;
 static size_t selected;
+static bool activity;
 
 static void chooser_show(struct msg_show_applet *msg);
-static void chooser_update(void);
+static void chooser_master_update(void);
 
-static void chooser_init(void) {
-	if (!topo_is_master)
-		return;
-	chooser_update();
-}
-
-static void chooser_update(void) {
+static void chooser_master_update(void) {
 	page = selected / topo_cell_count;
 	for(size_t i = 0; i < topo_cell_count; i++) {
 		struct msg_show_applet msg;
@@ -37,9 +32,10 @@ static void chooser_update(void) {
 		msg.selected = msg.applet == selected;
 		if (topo_cell_count == 1)
 			msg.selected = false;
-		if (topo_send_to(msg.cell_id, MSG_SHOW_APPLET, sizeof(msg), &msg)) {
+		if (i == topo_my_id)
 			chooser_show(&msg);
-		}
+		else
+			send_routed_msg(false, MSG_SHOW_APPLET, MSG_ROUTE_UNICAST, sizeof(msg), &msg);
 	}
 }
 
@@ -52,7 +48,7 @@ static void chooser_cycle(void)
 {
 	selected += 1;
 	selected %= applet_count();
-	chooser_update();
+	chooser_master_update();
 }
 
 static void chooser_show(struct msg_show_applet *msg)
@@ -67,53 +63,56 @@ static void chooser_show(struct msg_show_applet *msg)
 	draw_icon(a->icon, msg->selected);
 }
 
-static bool chooser_usart(const usart_header *hdr)
+static void read_messages(void)
 {
-	if (hdr->id == MSG_SHOW_APPLET) {
-		struct msg_show_applet msg;
-		if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
-			if (topo_send_to(msg.cell_id, MSG_SHOW_APPLET, sizeof(msg), &msg)) {
-				chooser_show(&msg);
-			}
-		}
-		return true;
-	} else if (hdr->id == MSG_SELECT) {
-		if(usart_recv_msg(hdr->usart, 0, NULL)) {
-			if(topo_send_up(MSG_SELECT, 0, NULL)) {
-				chooser_select();
-			}
-		}
-	} else if (hdr->id == MSG_CYCLE) {
-		if(usart_recv_msg(hdr->usart, 0, NULL)) {
-			if(topo_send_up(MSG_CYCLE, 0, NULL)) {
-				chooser_cycle();
-			}
-		}
-	}
-	return false;
-}
+	msg_header hdr;
+	buf_ptr data;
 
-static void chooser_worker(void)
-{
-	switch(button_get_event(BTN_ANY)) {
-	case BTN_EV_UP:
-		if(topo_send_up(MSG_CYCLE, 0, NULL)) {
+	while (msg_rx_queue_get(usart_default_queue, &hdr, &data, TIME_IMMEDIATE)) {
+		if (hdr.id == MSG_SHOW_APPLET) {
+			struct msg_show_applet msg;
+			buf_ptr_read(&data, 0, sizeof(msg), &msg);
+			chooser_show(&msg);
+		} else if (hdr.id == MSG_SELECT) {
+			activity = true;
+			chooser_select();
+		} else if (hdr.id == MSG_CYCLE) {
+			activity = true;
 			chooser_cycle();
 		}
-		break;
-	case BTN_EV_HOLD:
-		if(topo_send_up(MSG_SELECT, 0, NULL)) {
-			chooser_select();
-		}
-		break;
-	default:
-		;
+		msg_rx_queue_ack(usart_default_queue);
 	}
+}
+
+static void chooser_run(void)
+{
+	event_listener_t usart_events;
+	chEvtRegister(&usart_default_queue->event, &usart_events, 0);
+	event_listener_t applet_end;
+	chEvtRegister(&applet_should_end_event, &applet_end, 1);
+	eventmask_t wait = EVENT_MASK(0) | EVENT_MASK(1);
+	eventmask_t evt = wait;
+	activity = false;
+
+	if (topo_is_master)
+		chooser_master_update();
+
+	while (!applet_should_end) {
+		if (evt == 0 && topo_is_master) {
+			/* Nothing was pressed before a timeout */
+			applet_select(applet_topmost());
+		}
+		if (evt & EVENT_MASK(0)) {
+			read_messages();
+		}
+		evt = chEvtWaitAnyTimeout(wait, activity ? TIME_INFINITE : TIME_S2I(5));
+	}
+
+	chEvtUnregister(&usart_default_queue->event, &usart_events);
+	chEvtUnregister(&applet_should_end_event, &applet_end);
 }
 
 const struct applet chooser_applet = {
-	.init = chooser_init,
-	.worker = chooser_worker,
-	.check_usart = chooser_usart
+	.run = chooser_run
 };
 

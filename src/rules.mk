@@ -38,13 +38,21 @@ STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
-TGT_OPT		?= -Os
+
+FP_FLAGS ?= -msoft-float
+ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
+ifdef ($(DEBUG),1)
+TGT_OPT ?= -Og
+TGT_DEFS += -DDEBUG
+else
+TGT_OPT ?= -Os
+TGT_DEFS += -DNDEBUG
+endif
 
 ###############################################################################
 # Source files
 
 TGT_OBJS = $(addsuffix .o, $(addprefix $(TGT_BUILDDIR)/, $(TGT_MODS) $(MODS)))
-$(info $(TGT_MODS))
 
 ifeq ($(strip $(OPENCM3_DIR)),)
 $(warning Cannot find libopencm3 library in the standard search paths.)
@@ -87,7 +95,7 @@ TGT_CPPFLAGS	+= $(TGT_DEFS)
 
 TGT_LDFLAGS		+= --static -nostartfiles
 TGT_LDFLAGS		+= -T$(LDSCRIPT)
-TGT_LDFLAGS		+= $(ARCH_FLAGS) $(DEBUG)
+TGT_LDFLAGS		+= $(ARCH_FLAGS)
 TGT_LDFLAGS		+= -Wl,-Map=$(TGT_BUILDDIR)/$(*).map -Wl,--cref
 ifeq ($(V),99)
 TGT_LDFLAGS		+= -Wl,--print-gc-sections

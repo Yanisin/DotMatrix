@@ -22,3 +22,11 @@ bool common_gpio_get()
 {
 	return gpio_get(GPIOB, GPIO8|GPIO9) != 0;
 }
+
+bool common_gpio_wait_for(bool state, sysinterval_t timeout)
+{
+	/* TODO: fix */
+	while(common_gpio_get() != state)
+		port_wait_for_interrupt();
+	return true;
+}

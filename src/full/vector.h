@@ -50,7 +50,5 @@ static inline vector2 vector_rotate(vector2 v, int cw) {
 vector2 direction_to_vector(enum direction d);
 enum direction reverse_direction(enum direction d);
 enum direction rotate_direction(enum direction d, int cw);
-enum direction usart_to_direction(uint8_t usart);
-uint8_t direction_to_usart(uint8_t usart);
 
 #endif // VECTOR_H

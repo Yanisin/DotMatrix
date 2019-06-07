@@ -32,8 +32,6 @@
 /* Module local definitions.                                                 */
 /*===========================================================================*/
 
-static struct timespec next_tick;
-
 /*===========================================================================*/
 /* Module exported variables.                                                */
 /*===========================================================================*/
@@ -53,22 +51,6 @@ syssts_t port_irq_sts;
 /* Module local functions.                                                   */
 /*===========================================================================*/
 
-#define NS (1000*1000*1000)
-static void advance_tick(void)
-{
-	next_tick.tv_nsec += NS/CH_CFG_ST_FREQUENCY;
-	while (next_tick.tv_nsec >= NS) {
-		next_tick.tv_nsec -= NS;
-		next_tick.tv_sec += 1;
-	}
-}
-
-static bool is_before(const struct timespec *a, const struct timespec *b)
-{
-	return (a->tv_sec < b->tv_sec) ||
-		((a->tv_sec == b->tv_sec) && (a->tv_nsec < b->tv_nsec));
-}
-
 /*===========================================================================*/
 /* Module exported functions.                                                */
 /*===========================================================================*/
@@ -77,30 +59,18 @@ void port_init(void)
 {
 	port_irq_sts = (syssts_t)0;
 	port_isr_context_flag = false;
-	clock_gettime(CLOCK_MONOTONIC, &next_tick);
-	advance_tick();
 }
 
 void port_wait_for_interrupt(void)
 {
-	bool resched = false;
 	CH_IRQ_PROLOGUE();
-	chSysLockFromISR();
-
-	struct timespec now;
-	sim_irq_wait(&next_tick, &resched);
-
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	if (is_before(&next_tick, &now)) {
-		resched = true;
-		advance_tick();
-		chSysTimerHandlerI();
-	}
-	chSysUnlockFromISR();
+	sim_irq_wait(true);
 	CH_IRQ_EPILOGUE();
+
+	chSysLock();
 	if (chSchIsPreemptionRequired())
 		chSchDoReschedule();
-
+	chSysUnlock();
 }
 
 /**

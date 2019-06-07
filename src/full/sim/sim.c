@@ -22,6 +22,8 @@ uint8_t sim_recvbuf[MAX_MSG_SIZE];
 bool sim_common_gpio = true;
 bool sim_button_state[2];
 
+static struct timespec next_tick;
+
 
 struct msg_hdr {
 	uint16_t len;
@@ -125,15 +127,44 @@ static void sim_dispatch(uint16_t len, uint16_t msgid)
 	}
 }
 
-void sim_irq_wait(const struct timespec *next_tick, bool *event) {
+#define NS (1000*1000*1000)
+static void advance_tick(void)
+{
+	next_tick.tv_nsec += NS/CH_CFG_ST_FREQUENCY;
+	while (next_tick.tv_nsec >= NS) {
+		next_tick.tv_nsec -= NS;
+		next_tick.tv_sec += 1;
+	}
+}
+
+static bool is_before(const struct timespec *a, const struct timespec *b)
+{
+	return (a->tv_sec < b->tv_sec) ||
+		((a->tv_sec == b->tv_sec) && (a->tv_nsec < b->tv_nsec));
+}
+
+void sim_irq_wait(bool wait) {
 	struct timespec now;
 	struct pollfd pfd;
 	int rv;
 	struct timespec tout;
 	uint16_t len, msgid;
 
-	if (next_tick) {
-		tout = *next_tick;
+	if (next_tick.tv_sec == 0) {
+		clock_gettime(CLOCK_MONOTONIC, &next_tick);
+		advance_tick();
+	}
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	if (is_before(&next_tick, &now)) {
+		chSysLockFromISR();
+		chSysTimerHandlerI();
+		chSysUnlockFromISR();
+		advance_tick();
+	}
+
+
+	if (wait) {
+		tout = next_tick;
 		clock_gettime(CLOCK_MONOTONIC, &now);
 		if (tout.tv_nsec < now.tv_nsec) {
 			tout.tv_nsec += 1000*1000*1000;
@@ -162,5 +193,4 @@ void sim_irq_wait(const struct timespec *next_tick, bool *event) {
 
 	sim_recv(&len, &msgid);
 	sim_dispatch(len, msgid);
-	*event = true;
 }

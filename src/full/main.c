@@ -12,7 +12,9 @@
 #include "console.h"
 #include "common_gpio.h"
 #include "topo.h"
-#include "mgmt_msg.h"
+#include "message_queue.h"
+#include "mgmt_proto.h"
+#include "icons.h"
 
 #ifdef SIM
 #include "sim/main.h"
@@ -41,74 +43,77 @@ int main(void)
 #endif
 
 extern const struct applet chooser_applet;
+static THD_WORKING_AREA(mgmt_thread_area, 128);
 
-static const uint8_t smileys [1][8][8] = {
-	{{ 0, 0, 1, 1, 1, 1, 0, 0},
-	 { 0, 1, 0, 0, 0, 0, 1, 0},
-	 { 1, 0, 1, 0, 0, 1, 0, 1},
-	 { 1, 0, 1, 0,0,  1, 0, 1},
-	 { 1, 1, 0, 0, 0, 0, 1, 1},
-	 { 1, 0, 1, 1, 1, 1, 0, 1},
-	 { 0, 1, 0, 0, 0, 0, 1, 0},
-	 { 0, 0, 1, 1, 1, 1, 0, 0}
-	 }};
-
-static bool dispatch_usart(const usart_header* hdr)
+static void handle_bl_start(void)
 {
-	if (hdr->id & MSG_ID_FLAG_MGMT) {
-		if(hdr->id == MGMT_CHANGE_APPLET) {
-			struct mgmt_change_applet msg;
-			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
-				applet_select(msg.applet);
+#ifndef SIM
+	scb_reset_system();
+#endif
+}
+
+static void handle_mgmt_interrupt(void)
+{
+	// nothing yet
+}
+
+static void handle_change_applet(const buf_ptr *data)
+{
+	struct mgmt_change_applet msg;
+	buf_ptr_read(data, 0, sizeof(msg), &msg);
+	// console_printf("Change applet %d\n", msg.applet);
+	applet_select_local(applet_get(msg.applet));
+}
+
+static void mgmt_task(void *p)
+{
+	(void)p;
+	while (1) {
+		msg_header hdr;
+		buf_ptr data;
+		if (msg_rx_queue_get(usart_mgmt_queue, &hdr, &data, TIME_INFINITE)) {
+			switch (hdr.id) {
+				case MGMT_BL_START:
+					handle_bl_start();
+					break;
+				case MGMT_INTERRTUP:
+					handle_mgmt_interrupt();
+					break;
+				case MGMT_CHANGE_APPLET:
+					route_message(false, &hdr, &data);
+					handle_change_applet(&data);
+					break;
 			}
-		}
-	} else {
-		const struct applet * a = applet_current();
-		if (a && a->check_usart) {
-			return a->check_usart(hdr);
-		}
-	}
-	return false;
-}
-
-static void print_smile(void)
-{
-	int i,j;
-
-	for (i=0;i<8;i++) {
-		for (j=0;j<8;j++) {
-			disp_set(j,i, 31*smileys[0][i][j]);
+			msg_rx_queue_ack(usart_mgmt_queue);
 		}
 	}
 }
-
 
 static void main_task(void)
 {
-	usart_init();
 	led_init();
 	disp_init();
 	rand_init();
 	common_gpio_init();
 	led_on();
-	print_smile();
 
+	draw_icon(smiley, false);
 	worker_init_all();
+	chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
+
 	console_puts("Starting...\n");
 	topo_run();
 
 	if (topo_is_master)
-		chThdSleep(TIME_MS2I(100));
+		chThdSleep(TIME_MS2I(50));
 
 	applet_select_local(&chooser_applet);
 
 	while (1) {
-		if (applet_current()) {
-			if (applet_current()->worker)
-				applet_current()->worker();
+		applet_should_end = false;
+		applet_current()->run();
+		if (!applet_should_end) {
+			chSysHalt("Applet ended unexpectedly");
 		}
-		usart_recv_dispatch(dispatch_usart);
-		worker_run_all();
-		port_wait_for_interrupt();
 	}
 }

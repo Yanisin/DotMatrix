@@ -17,3 +17,11 @@ bool common_gpio_get()
 {
 	return sim_common_gpio;
 }
+
+bool common_gpio_wait_for(bool state, sysinterval_t timeout)
+{
+	/* TODO: fix */
+	while(common_gpio_get() != state)
+		port_wait_for_interrupt();
+	return true;
+}

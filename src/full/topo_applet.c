@@ -3,7 +3,7 @@
 #include "disp.h"
 #include "icons.h"
 
-static void topo_init(void)
+static void topo_applet_run(void)
 {
 	disp_set_rotation(topo_master_direction);
 	disp_clean();
@@ -12,15 +12,12 @@ static void topo_init(void)
 	} else {
 		draw_icon(icon_arrow, false);
 	}
-}
 
-static void topo_worker(void)
-{
+	applet_wait_for_end(TIME_INFINITE);
 }
 
 const struct applet topo_applet = {
-	.init = topo_init,
-	.worker = topo_worker,
+	.run = topo_applet_run,
 	.icon = {
 		ICON_ROW(0, 1, 1, 0, 0, 0, 0, 0),
 		ICON_ROW(0, 1, 1, 0, 0, 0, 0, 0),

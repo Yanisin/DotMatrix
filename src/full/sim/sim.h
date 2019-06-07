@@ -35,6 +35,6 @@ void sim_send(uint16_t msgid, uint16_t len, const void *data);
  * The function can either be triggered by a simulated "ticker" (next tick)
  * or by an event from the simgui.
  */
-void sim_irq_wait(const struct timespec *next_tick, bool *event);
+void sim_irq_wait(bool wait);
 
 #endif

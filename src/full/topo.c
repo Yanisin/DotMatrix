@@ -1,17 +1,17 @@
 #include <string.h>
+#include <ch.h>
 #include "topo.h"
 #include "cell_id.h"
-#include "mgmt_msg.h"
 #include "console.h"
 #include "usart_buffered.h"
-#include "applet.h"
-#include <ch.h>
-
+#include "util.h"
+#include "topo_proto.h"
 
 #define MAX_CELL_COUNT 64
-#define FIND_SS_TIMEOUT 1000
-#define REANNOUNCE 100
-// #define TRACE
+#define FIND_SS_TIMEOUT TIME_MS2I(500)
+#define TOPO_TOTAL_TIMEOUT TIME_MS2I(2000)
+#define REANNOUNCE TIME_MS2I(100)
+//#define TRACE
 
 enum topo_state {
 	/* In this phase, the spanning tree is established by. Each cell broadcasts in how many
@@ -79,8 +79,7 @@ typedef struct edge_info_str {
 
 static void announce_route(void);
 static void announce_not_a_child(void);
-static bool topo_dispatch(const usart_header *hdr);
-/* Transition to the announce children phase */
+static void topo_dispatch(const msg_header *hdr, const buf_ptr *data);
 static void transition_announce_children(void);
 static void send_ids(void);
 
@@ -89,6 +88,7 @@ static bool check_announcements_end(void);
 /* Make sure the cells are consecutive w.r.t. direction in the cells array */
 static void sort_children(void);
 static void announce_children(void);
+static void route_thread_run(void *p);
 
 uint8_t topo_my_id;
 bool topo_is_master;
@@ -99,56 +99,72 @@ enum direction topo_master_direction;
 static edge_info edges[DIR_COUNT];
 static cell_info sort_cells[MAX_CELL_COUNT];
 static uint8_t first_cell_id;
-
-static systime_t topo_start_tick;
-static systime_t topo_next_announce;
 static enum topo_state state;
 
 static cell_id_t master_cell_id;
 static uint8_t master_usart;
 static uint8_t master_distance;
 
+static THD_WORKING_AREA(route_thread_area, 256);
+
 void topo_run(void)
 {
+	msg_header msg;
+	buf_ptr data;
+	systime_t topo_start_tick;
+	systime_t next_announce;
+	systime_t next_end;
+	systime_t next_ss_end;
+
 	topo_is_master = true;
 	master_cell_id = *get_cell_id();
 	master_distance = 0;
-	topo_next_announce = 0;
 	state = FIND_SS;
 
-	usart_buf_clear(0);
-	usart_buf_clear(1);
-	usart_buf_clear(2);
-	usart_buf_clear(3);
 	chThdSleep(TIME_MS2I(200));
 
 	topo_start_tick = chVTGetSystemTime();
+	next_announce = 0;
+	next_end = topo_start_tick + TOPO_TOTAL_TIMEOUT;
+	next_ss_end = topo_start_tick + FIND_SS_TIMEOUT;
 #ifdef TRACE
 	enum topo_state prev = DONE;
 #endif
 
 	while (state != DONE) {
-		unsigned int now = chVTGetSystemTime();
+		systime_t now = chVTGetSystemTime();
+		systime_t next_event = MIN(next_ss_end, MIN(next_announce, next_end));
+		sysinterval_t timeout;
 #ifdef TRACE
 		if (prev != state) {
 			console_printf("state %d, now = %u\n", state, now);
 			prev = state;
 		}
 #endif
-		if (state == FIND_SS && topo_next_announce <= now) {
+		if (state == FIND_SS && next_announce <= now) {
 			announce_route();
-			topo_next_announce = now + REANNOUNCE;
+			next_announce = now + REANNOUNCE;
 		}
 
-		if (state == FIND_SS && topo_start_tick + FIND_SS_TIMEOUT <= now) {
+		if (state == FIND_SS && next_ss_end <= now) {
 			transition_announce_children();
+			next_ss_end = TIME_INFINITE;
+			next_announce = TIME_INFINITE;
 		}
-		usart_recv_dispatch(topo_dispatch);
+
+		if (next_end <= now) {
+			chSysHalt("Failed complete topology detection");
+		}
+
+		timeout = (next_event < now) ? TIME_IMMEDIATE : (next_event - now);
+		if(msg_rx_queue_get(usart_default_queue, &msg, &data, timeout)) {
+			topo_dispatch(&msg, &data);
+			msg_rx_queue_ack(usart_default_queue);
+		}
+
 		if (state == ANNOUNCE_CHILDREN && check_announcements_end()) {
 			continue;
 		}
-		worker_run_all();
-		port_wait_for_interrupt();
 	}
 
 	topo_my_id = first_cell_id + (topo_cell_count++);
@@ -168,6 +184,7 @@ void topo_run(void)
 		}
 	}
 #endif
+	chThdCreateStatic(&route_thread_area, sizeof(route_thread_area), NORMALPRIO, route_thread_run, NULL);
 }
 
 static void transition_announce_children(void)
@@ -248,10 +265,11 @@ static void send_ids(void)
 			struct mgmt_alloc_ids msg;
 			msg.first_id = e->first_cell + first_cell_id;
 			msg.id_count = e->children_count;
+
 #ifdef TRACE
 			console_printf("--> %d - %d, dir = %d\n", msg.first_id, msg.first_id + msg.id_count, d);
 #endif
-			usart_send_msg(direction_to_usart(d), MGMT_ALLOC_IDS, sizeof(msg), &msg);
+			usart_send_msg(d, TOPO_ALLOC_IDS, 0, sizeof(msg), &msg);
 		}
 	}
 }
@@ -262,7 +280,7 @@ static void announce_not_a_child(void)
 		struct mgmt_not_a_child msg;
 		edge_info *e = &edges[d];
 		if (e->type != EDGE_MASTER && e->type != EDGE_DEAD) {
-			usart_send_msg(direction_to_usart(d), MGMT_NOT_A_CHILD, sizeof(msg), &msg);
+			usart_send_msg(d, TOPO_NOT_A_CHILD, 0, sizeof(msg), &msg);
 		}
 	}
 }
@@ -280,90 +298,79 @@ static void announce_children(void)
 		msg.x = pos.x;
 		msg.y = pos.y;
 		msg.final = false;
-		usart_send_msg(master_usart, MGMT_CHILD_ANNOUNCE, sizeof(msg), &msg);
+		usart_send_msg(master_usart, TOPO_CHILD_ANNOUNCE, 0, sizeof(msg), &msg);
 	}
 	msg.final = true;
 	msg.x = 0;
 	msg.y = 0;
-	usart_send_msg(master_usart, MGMT_CHILD_ANNOUNCE, sizeof(msg), &msg);
+	usart_send_msg(master_usart, TOPO_CHILD_ANNOUNCE, 0, sizeof(msg), &msg);
 }
 
-static bool topo_dispatch(const usart_header *hdr)
+static void topo_dispatch(const msg_header *hdr, const buf_ptr *data)
 {
-	enum direction dir = usart_to_direction(hdr->usart);
+	enum direction dir = hdr->source;
 	edge_info *e = &edges[dir];
 	if (e->type == EDGE_DEAD)
 		e->type = EDGE_LIVE_UNKNOWN;
 
 	switch(hdr->id) {
-		case MGMT_ROUTE_ANNOUNCE: {
+		case TOPO_ROUTE_ANNOUNCE: {
 			struct mgmt_route_announce msg;
 			if (state != FIND_SS)
 				break;
-			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
-				int cmp = memcmp(&msg.id.bytes, &master_cell_id.bytes, CELL_ID_LEN);
-				if (cmp < 0 || (cmp == 0 && msg.distance < master_distance)) {
-					topo_is_master = false;
-					master_cell_id = msg.id;
-					topo_master_direction = dir;
-					master_usart = direction_to_usart(dir);
-					master_distance = msg.distance;
-					announce_route();
-				}
+			buf_ptr_read(data, 0, sizeof(msg), &msg);
+			int cmp = memcmp(&msg.id.bytes, &master_cell_id.bytes, CELL_ID_LEN);
+			if (cmp < 0 || (cmp == 0 && msg.distance < master_distance)) {
+				topo_is_master = false;
+				master_cell_id = msg.id;
+				topo_master_direction = dir;
+				master_usart = dir;
+				master_distance = msg.distance;
+				announce_route();
 			}
-			return true;
-		}
-		case MGMT_NOT_A_CHILD: {
-			struct mgmt_not_a_child msg;
+		}; break;
+		case TOPO_NOT_A_CHILD: {
 			transition_announce_children();
 			if (state != ANNOUNCE_CHILDREN)
 				break;
 			if (e->type == EDGE_LIVE_UNKNOWN)
 				e->type = EDGE_NORMAL;
-			usart_recv_msg(hdr->usart, sizeof(msg), &msg);
-
-			return true;
-		};
-		case MGMT_CHILD_ANNOUNCE: {
+		}; break;
+		case TOPO_CHILD_ANNOUNCE: {
 			struct mgmt_child_announce msg;
 			transition_announce_children();
 			if (state != ANNOUNCE_CHILDREN)
 				break;
-			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
-				if (topo_cell_count < MAX_CELL_COUNT) {
-					cell_info *c = &topo_cells[topo_cell_count++];
-					c->pos.x = msg.x;
-					c->pos.y = msg.y;
-					c->pos = pos_rx(c->pos, dir);
-					c->dir = dir;
-					e->children_count++;
-				}
-				e->type = EDGE_CHILD;
-				if (msg.final) {
-#ifdef TRACE
-					console_printf("Got final announcement from dir=%d\n", dir);
-#endif
-					e->announcements_end = true;
-				}
+			buf_ptr_read(data, 0, sizeof(msg), &msg);
+			if (topo_cell_count < MAX_CELL_COUNT) {
+				cell_info *c = &topo_cells[topo_cell_count++];
+				c->pos.x = msg.x;
+				c->pos.y = msg.y;
+				c->pos = pos_rx(c->pos, dir);
+				c->dir = dir;
+				e->children_count++;
 			}
-			return true;
-		}
-		case MGMT_ALLOC_IDS: {
+			e->type = EDGE_CHILD;
+			if (msg.final) {
+#ifdef TRACE
+				console_printf("Got final announcement from dir=%d\n", dir);
+#endif
+				e->announcements_end = true;
+			}
+		}; break;
+		case TOPO_ALLOC_IDS: {
 			struct mgmt_alloc_ids msg;
 			if (state != ALLOCATE_IDS)
 				break;
-			if (usart_recv_msg(hdr->usart, sizeof(msg), &msg)) {
+			buf_ptr_read(data, 0, sizeof(msg), &msg);
 #ifdef TRACE
-				console_printf("Allocated ids %d - %d\n", msg.first_id, msg.first_id + msg.id_count - 1);
+			console_printf("Allocated ids %d - %d\n", msg.first_id, msg.first_id + msg.id_count - 1);
 #endif
-				first_cell_id = msg.first_id;
-				send_ids();
-				state = DONE;
-			}
-			return true;
-		}
+			first_cell_id = msg.first_id;
+			send_ids();
+			state = DONE;
+		}; break;
 	}
-	return false;
 }
 
 static void announce_route(void)
@@ -372,40 +379,8 @@ static void announce_route(void)
 		struct mgmt_route_announce msg;
 		msg.id = master_cell_id;
 		msg.distance = master_distance + 1;
-		usart_send_msg(direction_to_usart(d), MGMT_ROUTE_ANNOUNCE, sizeof(msg), &msg);
+		usart_send_msg(d, TOPO_ROUTE_ANNOUNCE, MSG_DEFAULT, sizeof(msg), &msg);
 	}
-}
-
-bool topo_send_up(uint8_t msgid, uint8_t len, const void *data)
-{
-	if (topo_is_master)
-		return true;
-	usart_send_msg(master_usart, msgid, len, data);
-	return false;
-}
-
-void topo_send_down(uint8_t msgid, uint8_t len, const void *data)
-{
-	for(enum direction d = 0; d < DIR_COUNT; d++) {
-		if (edges[d].type == EDGE_CHILD)
-			usart_send_msg(direction_to_usart(d), msgid, len, data);
-	}
-}
-
-bool topo_send_to(uint8_t recipient, uint8_t msgid, uint8_t len, const void *data)
-{
-	if (recipient == topo_my_id)
-		return true;
-	if (recipient < first_cell_id || recipient >= first_cell_id + topo_cell_count) {
-		console_printf(
-			"topo_send_to: %d is not mine, I serve %d - %d\n",
-			recipient, first_cell_id, first_cell_id + topo_cell_count);
-		return false;
-	}
-	const cell_info *c = &topo_cells[recipient - first_cell_id];
-	// console_printf("topo_send_to: id %d -> %d\n", recipient, c->dir);
-	usart_send_msg(direction_to_usart(c->dir), msgid, len, data);
-	return false;
 }
 
 vector2 pos_tx(vector2 v, enum direction d) {
@@ -422,3 +397,85 @@ vector2 pos_rx(vector2 v, enum direction d) {
 }
 
 
+/************************************ ROUTING *****************************************************/
+void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)
+{
+	uint8_t route = (hdr->flags & MSG_ROUTE_MASK);
+	uint8_t dir_mask = 0;
+	bool local = false;
+	if (route == MSG_ROUTE_MASTER) {
+		if (topo_is_master) {
+			local = true;
+		} else {
+			dir_mask = 1 << topo_master_direction;
+		}
+	} else if (route == MSG_ROUTE_UNICAST) {
+		uint8_t recipient = *buf_ptr_index(buf, 0);
+		if (recipient == topo_my_id) {
+			local = true;
+		} else if (recipient < first_cell_id || recipient >= first_cell_id + topo_cell_count) {
+			console_printf(
+				"topo_send_to: %d is not mine, I serve %d - %d\n",
+				recipient, first_cell_id, first_cell_id + topo_cell_count);
+		} else {
+			const cell_info *c = &topo_cells[recipient - first_cell_id];
+			dir_mask = 1 << c->dir;
+		}
+	} else if (route == MSG_ROUTE_BROADCAST) {
+		for (enum direction d = 0; d < DIR_COUNT; d++) {
+			if (edges[d].type == EDGE_CHILD)
+				dir_mask |= (1 << d);
+		}
+		local = true;
+	} else {
+		return;
+	}
+
+	// console_printf("Routing mask 0x%x\n", dir_mask);
+	for (enum direction d = 0; d < DIR_COUNT; d++) {
+		if (((1 << d) & dir_mask) == 0)
+			continue;
+		usart_send_msg_buf(d, hdr->id, hdr->flags, hdr->length, buf);
+	}
+
+	if (local && send_local) {
+		chSysLock();
+		buf_ptr buf2;
+		hdr->flags &= ~MSG_ROUTE_MASK;
+		/* TODO: dispatch to correct queue */
+		if(msg_rx_queue_reserveI(usart_default_queue, hdr, &buf2)) {
+			buf_ptr_copy(&buf2, 0, buf, 0, hdr->length);
+			msg_rx_queue_commitI(usart_default_queue, &buf2);
+		}
+		chSchRescheduleS();
+		chSysUnlock();
+	}
+}
+
+void send_routed_msg(bool send_local, uint8_t id, uint8_t flags, uint8_t len, void *data)
+{
+	msg_header hdr;
+	hdr.id = id;
+	hdr.flags = flags;
+	hdr.length = len;
+	hdr.source = 0xFF;
+	/* Fake a buffer with our non-circular one */
+	buf_ptr buf;
+	buf.ptr = 0;
+	buf.buffer = data;
+	buf.size_bits = sizeof(qsize_t) * 8 - 1;
+	route_message(send_local, &hdr, &buf);
+}
+
+static void route_thread_run(void *p)
+{
+	(void)p;
+	while (1) {
+		msg_header hdr;
+		buf_ptr buf;
+		if(msg_rx_queue_get(usart_route_queue, &hdr, &buf, TIME_INFINITE)) {
+			route_message(true, &hdr, &buf);
+			msg_rx_queue_ack(usart_route_queue);
+		}
+	}
+}

@@ -14,5 +14,7 @@ void draw_icon(icon_data icon, bool invert);
 
 extern icon_data icon_arrow;
 extern icon_data icon_square;
+extern icon_data smiley;
+extern icon_data smiley_sad;
 
 #endif // ICONS_H

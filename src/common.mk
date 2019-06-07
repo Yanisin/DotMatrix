@@ -11,12 +11,11 @@ ALL = build/$(BINARY).elf
 LIBNAME = opencm3_stm32f0
 DEFS += -DSTM32F0 -D$(HW_VERSION)
 
-FP_FLAGS ?= -msoft-float
-ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 TGT_BUILDDIR = build
 SIM_BUILDDIR = build-sim
 SIM ?= 0
 TGT ?= 1
+DEBUG ?= 0
 
 ###############################################################################
 # Common C Flags
@@ -71,11 +70,13 @@ endif
 
 include $(CHIBIOS)/os/rt/rt.mk
 include $(CHIBIOS)/os/license/license.mk
+include $(CHIBIOS)/os/hal/osal/rt/osal.mk
 
 # We remove the CHIBIOS prefix and use VPATH instead
 VPATH := $(CHIBIOS)
 MODS += $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
 CPPFLAGS += $(addprefix -I, $(ALLINC))
+# And build just queue from hal
 DEFS += -DPORT_IGNORE_GCC_VERSION_CHECK
 endif
 

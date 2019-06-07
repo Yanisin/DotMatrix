@@ -31,78 +31,153 @@
 #include <ch.h>
 #include "hw_defs.h"
 #include "usart_buffered.h"
+#include "console.h"
+#include "byte_queue.h"
 #include "applet.h"
 #include "console.h"
-#include "pollint.h"
 
 /* ---------------- Macro Definition --------------- */
-
-#ifdef SIM
-/* Work-around for lack of rate limiting */
-#define BUF_SIZE 256
-#else
-#define BUF_SIZE 32
-#endif
 #define USART_COUNT 4
+#define TX_BUF_SIZE 16
+#define USART_ROUTE_SHIFT 6
+#define USART_ROUTE_MASK (0x3 << USART_ROUTE_SHIFT)
 
-struct usart_buffer {
-	uint8_t buf[BUF_SIZE];
-	volatile uint32_t wp;
-	volatile uint32_t rp;
-};
+typedef struct usart_msg {
+	uint8_t len;
+	uint8_t id_flags;
+} usart_msg;
 
 /* ---------------- Local Variables --------------- */
 
 static struct usart {
 	uint32_t reg_base;
-	struct usart_buffer rxbuf;
-	struct usart_buffer txbuf;
-	bool header_received;
-	usart_header hdr;
+	/* using the usart directions */
+	uint8_t num;
+
+	buf_ptr rx_buf;
+	msg_rx_queue *rx_queue;
+	bool skip_message;
+	msg_header parsed_msg;
+	union {
+		uint8_t rx_header_buf[sizeof(usart_msg)];
+		usart_msg rx_msg;
+	};
+	uint32_t crc_state;
+	uint8_t rx_bytes;
+
+	mutex_t tx_mutex;
+	output_queue_t tx_queue;
+	uint8_t tx_buf[TX_BUF_SIZE];
 } usarts[USART_COUNT];
+
+/* ---------------- Global Variables --------------- */
+msg_rx_queue *usart_default_queue;
+msg_rx_queue *usart_mgmt_queue;
+msg_rx_queue *usart_route_queue;
 
 /* ---------------- Local Functions --------------- */
 
-static int usart_buf_empty(struct usart_buffer *buf)
-{
-	return (buf->wp - buf->rp) == 0;
-}
+static msg_rx_queue* usart_msg_dispatcher(const msg_header *msg);
 
-static int usart_buf_full(struct usart_buffer *buf)
+/* Should be smbus crc8 from U-boot */
+static void crc8(uint32_t *crc, uint8_t value)
 {
-	return (buf->wp - buf->rp) >= BUF_SIZE-1;
-}
-
-static int usart_buf_available(struct usart_buffer *buf)
-{
-	return buf->wp - buf->rp;
-}
-
-static void usart_buf_put(struct usart_buffer *buf, uint8_t val)
-{
-	if (!usart_buf_full(buf)) {
-		buf->buf[buf->wp % BUF_SIZE] = val;
-		++buf->wp;
+	*crc ^= (value << 8);
+	for (int i = 8; i; i--) {
+		if (*crc & 0x8000)
+			*crc ^= (0x1070 << 3);
+		*crc <<= 1;
 	}
 }
 
-static uint32_t usart_buf_get(struct usart_buffer *buf)
+static uint8_t crc8_get(const uint32_t* crc)
 {
-	uint32_t val = -1;
-	if (!usart_buf_empty(buf)) {
-		val = buf->buf[buf->rp % BUF_SIZE];
-		++buf->rp;
-	}
-	return val;
+	return (*crc >> 8) & 0xff;
 }
 
-static void usart_setup(uint8_t usart)
+static void usart_header_buffered(struct usart *usart)
 {
-	usarts[usart].rxbuf.wp = 0;
-	usarts[usart].rxbuf.rp = 0;
-	usarts[usart].txbuf.wp = 0;
-	usarts[usart].txbuf.rp = 0;
-	usarts[usart].hdr.usart = usart;
+	usart->parsed_msg.source = usart->num;
+	usart->parsed_msg.flags = (usart->rx_msg.id_flags & USART_ROUTE_MASK) >> USART_ROUTE_SHIFT;
+	usart->parsed_msg.length = usart->rx_msg.len;
+	usart->parsed_msg.id = usart->rx_msg.id_flags & MSG_FULL_ID_MASK;
+	usart->rx_queue = usart_msg_dispatcher(&usart->parsed_msg);
+	if (usart->rx_queue) {
+		bool reserved;
+		chSysLockFromISR();
+		reserved = msg_rx_queue_reserveI(usart->rx_queue, &usart->parsed_msg, &usart->rx_buf);
+		chSysUnlockFromISR();
+		if (reserved) {
+			usart->skip_message = false;
+		} else {
+#ifdef DEBUG
+			chSysHalt("uart overrun\n");
+#endif
+			console_printf("Message skipped -- no space\n");
+			usart->skip_message = true;
+		}
+	} else {
+		usart->skip_message = true;
+	}
+}
+
+static void usart_start_new_msg(struct usart *usart)
+{
+	usart->crc_state = 0;
+	usart->rx_bytes = 0;
+}
+
+/* Main state machine parsing the messages */
+static void usart_handle_char(struct usart *usart, uint8_t c)
+{
+	usart->rx_bytes++;
+	if (usart->rx_bytes <= sizeof(usart_msg)) {
+		crc8(&usart->crc_state, c);
+		usart->rx_header_buf[usart->rx_bytes - 1] = c;
+		if (usart->rx_bytes == sizeof(usart_msg)) {
+			usart_header_buffered(usart);
+		}
+	} else if (usart->rx_bytes <= sizeof(usart_msg) + usart->parsed_msg.length) {
+		if (usart->skip_message)
+			return;
+		crc8(&usart->crc_state, c);
+		*buf_ptr_index(&usart->rx_buf, usart->rx_bytes - 1 - sizeof(usart_msg)) = c;
+	} else if (usart->rx_bytes == sizeof (usart_msg) + usart->parsed_msg.length + 1) {
+		bool crc_ok = crc8_get(&usart->crc_state) == c;
+		if (usart->skip_message) {
+			usart_start_new_msg(usart);
+			return;
+		}
+		chSysLockFromISR();
+		if (crc_ok) {
+			msg_rx_queue_commitI(usart->rx_queue, &usart->rx_buf);
+		} else {
+			msg_rx_queue_rejectI(usart->rx_queue, &usart->rx_buf);
+		}
+		chSysUnlockFromISR();
+		usart_start_new_msg(usart);
+	}
+}
+
+static void usart_kick_sendI(io_queue_t *iq)
+{
+	struct usart *usart = iq->q_link;
+#ifndef SIM
+	usart_enable_tx_interrupt(usart->reg_base);
+#else
+	uint8_t buf[2] = {usart->num, oqGetI(&usart->tx_queue)};
+	sim_send(MSGID_UART_TX, 2, &buf);
+#endif
+}
+
+static void usart_setup(uint8_t u)
+{
+	struct usart *usart = &usarts[u];
+	usart->rx_bytes = 0;
+	usart->crc_state = 0;
+	usart->num = u;
+	chMtxObjectInit(&usart->tx_mutex);
+	oqObjectInit(&usart->tx_queue, usart->tx_buf, sizeof(usart->tx_buf), usart_kick_sendI, usart);
 }
 
 #ifndef SIM
@@ -153,202 +228,149 @@ static void usart_setup_hw(
 static void usart_isr_common(int usart_idx)
 {
 	struct usart *usart = &usarts[usart_idx];
-	uint8_t c;
 
-	if (((USART_CR1(usart->reg_base) & USART_CR1_RXNEIE) != 0) &&
-			((USART_ISR(usart->reg_base) & USART_ISR_RXNE) != 0)) {
-
+	if (USART_ISR(usart->reg_base) & USART_ISR_RXNE) {
 		/* Read one byte from the receive data register */
-		c = usart_recv(usart->reg_base);
-		/* try putting it into the rx buffer, drop if buffer full */
-		usart_buf_put(&usart->rxbuf, c);
+		usart_handle_char(usart, usart_recv(usart->reg_base));
+
 	}
 
-	if (((USART_CR1(usart->reg_base) & USART_CR1_TXEIE) != 0) &&
-			((USART_ISR(usart->reg_base) & USART_ISR_TXE) != 0)) {
-
-		/*check if there is something in the queue to transmit */
-		if (!usart_buf_empty(&usart->txbuf)) {
-			c = usart_buf_get(&usart->txbuf);
-			/* Write one byte to the transmit data register */
-			usart_send(usart->reg_base, c);
-		} else {
+	if (USART_ISR(usart->reg_base) & USART_ISR_TXE) {
+		msg_t qchar;
+		chSysLockFromISR();
+		qchar = oqGetI(&usart->tx_queue);
+		chSysUnlockFromISR();
+		if (qchar == MSG_TIMEOUT) {
 			/* queue empty */
 			/* Disable the USARTy Transmit interrupt */
 			USART_CR1(usart->reg_base) &= ~USART_CR1_TXEIE;
+		} else {
+			usart_send(usart->reg_base, qchar);
 		}
 	}
 }
 
 void usart1_isr(void)
 {
+	CH_IRQ_PROLOGUE();
 	usart_isr_common(0);
+	CH_IRQ_EPILOGUE();
 }
 
 
 void usart2_isr(void)
 {
+	CH_IRQ_PROLOGUE();
 	usart_isr_common(1);
+	CH_IRQ_EPILOGUE();
 }
 
 void usart3_4_isr(void)
 {
+	CH_IRQ_PROLOGUE();
 	usart_isr_common(2);
 	usart_isr_common(3);
+	CH_IRQ_EPILOGUE();
 }
 #endif
 
-/* ---------------- Global Functions --------------- */
-
-void usart_send_msg(uint8_t usart, uint8_t id, uint8_t len, const void *data)
+static msg_rx_queue* usart_msg_dispatcher(const msg_header *hdr)
 {
-	usart_send_char(usart, len);
-	usart_send_char(usart, id);
-	for(uint8_t i = 0; i < len; i++) {
-		uint8_t c = ((const uint8_t*)data)[i];
-		usart_send_char(usart, c);
+	if (hdr->id & MSG_ID_FLAG_MGMT) {
+		return usart_mgmt_queue;
+	} else if ((hdr->flags & MSG_ROUTE_MASK) != MSG_ROUTE_NEIGHBOR) {
+		return usart_route_queue;
+	} else {
+		return usart_default_queue;
 	}
 }
 
-void usart_send_char(uint8_t u, uint8_t c)
-{
-#ifndef SIM
-	struct usart *usart = &usarts[u];
-	while (usart_buf_full(&usart->txbuf))
-		;
+/* ---------------- Global Functions --------------- */
 
-	usart_buf_put(&usart->txbuf, c);
-	USART_CR1(usart->reg_base) |= USART_CR1_TXEIE;
-#else
-	uint8_t buf[2] = {u, c};
-	sim_send(MSGID_UART_TX, 2, &buf);
-#endif
+static void usart_send_msg_header(struct usart *usart, uint8_t id, uint8_t flags, uint8_t length, uint32_t *crc)
+{
+	assert((id & MSG_FULL_ID_MASK) == id);
+	uint8_t route = (flags & MSG_ROUTE_MASK) >> MSG_ROUTE_SHIFT;
+	uint8_t id_flags = (id & MSG_FULL_ID_MASK) | (route << USART_ROUTE_SHIFT);
+	oqPut(&usart->tx_queue, length);
+	crc8(crc, length);
+	oqPut(&usart->tx_queue, id_flags);
+	crc8(crc, id_flags);
+}
+
+void usart_send_msg(uint8_t u, uint8_t id, uint8_t flags, uint8_t length, const void *data)
+{
+	struct usart *usart = &usarts[u];
+	uint32_t crc = 0;
+	chMtxLock(&usart->tx_mutex);
+	usart_send_msg_header(usart, id, flags, length, &crc);
+	for (uint8_t i = 0; i < length; i++)
+	{
+		uint8_t c = ((const uint8_t*)data)[i];
+		oqPut(&usart->tx_queue, c);
+		crc8(&crc, c);
+	}
+	oqPut(&usart->tx_queue, crc8_get(&crc));
+	chMtxUnlock(&usart->tx_mutex);
+}
+
+void usart_send_msg_buf(uint8_t u, uint8_t id, uint8_t flags, uint8_t length, const buf_ptr *src)
+{
+	struct usart *usart = &usarts[u];
+	uint32_t crc = 0;
+	chMtxLock(&usart->tx_mutex);
+	usart_send_msg_header(usart, id, flags, length, &crc);
+	for (uint8_t i = 0; i < length; i++)
+	{
+		uint8_t c = *buf_ptr_index(src, i);
+		oqPut(&usart->tx_queue, c);
+		crc8(&crc, c);
+	}
+	oqPut(&usart->tx_queue, crc8_get(&crc));
+	chMtxUnlock(&usart->tx_mutex);
 }
 
 #ifdef SIM
-#include <stdio.h>
-#include <stdlib.h>
 void usart_sim_recv(uint8_t u, const uint8_t *data, size_t len)
 {
 	struct usart *usart = &usarts[u];
 	for(size_t i = 0; i < len; i++) {
-		if (usart_buf_full(&usart->rxbuf)) {
-			printf("USART buffer overrun\n");
-			abort();
-		}
-		usart_buf_put(&usart->rxbuf, data[i]);
+		usart_handle_char(usart, data[i]);
 	}
 }
 #endif
 
-const usart_header* usart_peek(uint8_t u)
+#ifndef SIM
+static enum direction usart_to_direction(uint8_t usart)
 {
-	// TODO: add some self-synchronization to the protocol,
-	// like with the old game of life protocol
-	struct usart *usart = &usarts[u];
-	usart_header *hdr = &usart->hdr;
-	if (!usart->header_received && usart_buf_available(&usart->rxbuf) >= 2) {
-		usart->header_received = true;
-		hdr->length = usart_buf_get(&usart->rxbuf);
-		hdr->id = usart_buf_get(&usart->rxbuf);
-		hdr->remaining = hdr->length;
-	}
-
-	if (usart->header_received) {
-		/* Update the number of available bytes */
-		int avail = usart_buf_available(&usart->rxbuf);
-		if (avail > hdr->length) {
-			avail = hdr->length;
-		}
-		hdr->available = avail;
-		return &usart->hdr;
-	} else {
-		return NULL;
+	switch (usart) {
+	case USART_DIR_UP:
+		return DIR_UP;
+	case USART_DIR_DOWN:
+		return DIR_DOWN;
+	case USART_DIR_LEFT:
+		return DIR_LEFT;
+	case USART_DIR_RIGHT:
+		return DIR_RIGHT;
+	default:
+		return DIR_COUNT;
 	}
 }
+#endif
 
-uint8_t usart_recv_partial(uint8_t u, size_t size,  void *buf)
+static void usart_init(void)
 {
-	struct usart *usart = &usarts[u];
-	uint8_t recv = usart->hdr.available;
-	if (size < recv) {
-		recv = size;
-	}
+	usart_route_queue = msg_rx_queue_alloc(NULL, 6);
+	usart_default_queue = msg_rx_queue_alloc(NULL, 6);
+	usart_mgmt_queue = msg_rx_queue_alloc(NULL, 5);
 
-	for(uint8_t i = 0; i < recv; i++) {
-		((uint8_t*)buf)[i] = usart_buf_get(&usart->rxbuf);
-	}
-	usart->hdr.available = 0;
-	usart->hdr.remaining -= recv;
-	if (usart->hdr.remaining == 0) {
-		usart->header_received = false;
-	}
-	return recv;
-}
-
-bool usart_recv_msg(uint8_t u, size_t size, void *buf)
-{
-	struct usart *usart = &usarts[u];
-	uint8_t recv;
-	if (!usart_is_complete(&usart->hdr)) {
-		return false;
-	}
-	if (usart->hdr.length > size) {
-		usart_skip(u);
-		return false;
-	}
-	recv = usart_recv_partial(u, size, buf);
-	assert(recv == usart->hdr.length);
-	return true;
-
-}
-
-void usart_skip(uint8_t u)
-{
-	struct usart *usart = &usarts[u];
-	while(usart->hdr.available) {
-		usart_buf_get(&usart->rxbuf);
-		usart->hdr.available --;
-		usart->hdr.remaining--;
-	}
-	if (usart->hdr.remaining == 0) {
-		usart->header_received = false;
-	}
-}
-
-void usart_recv_dispatch(usart_msg_dispatcher dispatch)
-{
-	for(int u = 0; u < USART_COUNT; u++) {
-		const usart_header *hdr;
-		while((hdr = usart_peek(u)) != NULL) {
-			bool recognized = dispatch(hdr);
-			if (!recognized) {
-				usart_skip(u);
-			}
-			poll_int();
-		}
-	}
-}
-
-void usart_buf_clear(int u)
-{
-	struct usart *usart = &usarts[u];
-	usart->header_received = false;
-	chSysLock();
-	usart->rxbuf.rp = usart->rxbuf.wp = 0;
-	usart->txbuf.rp = usart->txbuf.wp = 0;
-	chSysUnlock();
-}
-
-void usart_init(void)
-{
 	usart_setup(0);
 	usart_setup(1);
 	usart_setup(2);
 	usart_setup(3);
 
 #ifndef SIM
-	usart_setup_hw(0,
+	usart_setup_hw(usart_to_direction(0),
 			USART_A_REG,
 			USART_A_RCC,
 			USART_A_IRQ,
@@ -361,7 +383,7 @@ void usart_init(void)
 			USART_A_TX_PIN,
 			USART_A_TX_AF_NUM);
 
-	usart_setup_hw(1,
+	usart_setup_hw(usart_to_direction(1),
 			USART_B_REG,
 			USART_B_RCC,
 			USART_B_IRQ,
@@ -374,7 +396,7 @@ void usart_init(void)
 			USART_B_TX_PIN,
 			USART_B_TX_AF_NUM);
 
-	usart_setup_hw(2,
+	usart_setup_hw(usart_to_direction(2),
 			USART_C_REG,
 			USART_C_RCC,
 			USART_C_IRQ,
@@ -387,7 +409,7 @@ void usart_init(void)
 			USART_C_TX_PIN,
 			USART_C_TX_AF_NUM);
 
-	usart_setup_hw(3,
+	usart_setup_hw(usart_to_direction(3),
 			USART_D_REG,
 			USART_D_RCC,
 			USART_D_IRQ,
@@ -401,3 +423,9 @@ void usart_init(void)
 			USART_D_TX_AF_NUM);
 #endif
 }
+
+struct worker usart_worker = {
+	.init = usart_init,
+};
+
+worker_add(usart);

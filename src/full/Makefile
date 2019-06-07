@@ -36,13 +36,15 @@ MODS += \
 	rand \
 	main \
 	applet \
-	life \
 	usart_buffered \
 	topo \
 	vector \
 	icons \
 	chooser_applet \
 	topo_applet \
-	buttons
+	message_queue \
+	byte_queue \
+	buttons \
+	life
 
 include ../common.mk
