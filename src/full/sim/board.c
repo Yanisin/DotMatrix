@@ -26,7 +26,7 @@ void board_halt(const char*msg)
 	char buf[50];
 	/* Try to avalid complex libc as much as possible, we are in a signal handler */
 	sprintf(buf, "syshalt pid %d: %s\n", getpid(), msg);
-	write(3, buf, strlen(buf) + 1);
+	write(2, buf, strlen(buf) + 1);
 	while(1)
 		sleep(1);
 }

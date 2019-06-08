@@ -29,8 +29,7 @@ SIM_MODS = \
 	sim/led \
 	sim/disp \
 	sim/console \
-	sim/common_gpio \
-	sim/buttons_hw
+	sim/common_gpio
 
 MODS += \
 	rand \

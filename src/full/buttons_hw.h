@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 enum button {
-	BTN_1, BTN_2, BTN_ANY
+	BTN_0, BTN_1, BTN_ANY, BTN_COUNT
 };
 
 bool button_is_pressed(enum button btn);

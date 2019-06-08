@@ -6,9 +6,9 @@ SECTIONS
 		KEEP(*(.applet.*));
 		__applet_array_end = .;
 
-		__worker_array_start = .;
-		KEEP(*(.worker.*));
-		__worker_array_end = .;
+		__dminit_array_start = .;
+		KEEP(*(.dminit.*));
+		__dminit_array_end = .;
 	}
 }
 

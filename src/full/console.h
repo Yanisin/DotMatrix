@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#ifdef CONSOLE_PRINTF
+#if defined(CONSOLE_PRINTF) || defined(SIM)
 extern void console_printf(const char *format, ...);
 #else
 static inline void console_printf(const char *format, ...)

@@ -350,15 +350,10 @@ static void cdcacm_init(void)
 	usbd_register_set_config_callback(cdcacm_usbd_dev, cdcacm_set_config);
 	nvic_enable_irq(NVIC_USB_IRQ);
 }
+init_add(cdcacm_init);
 
 static void cdcacm_worker_run(void)
 {
+	// TODO: fix
 	cdcacm_data_tx(cdcacm_usbd_dev);
 }
-
-static const struct worker cdcacm_worker = {
-		.init = cdcacm_init,
-		.run = cdcacm_worker_run
-};
-
-worker_add(cdcacm);

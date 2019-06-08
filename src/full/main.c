@@ -98,7 +98,7 @@ static void main_task(void)
 	led_on();
 
 	draw_icon(smiley, false);
-	worker_init_all();
+	run_all_initializers();
 	thread_t *thr = chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
 	thr->name = "mgmt";
 

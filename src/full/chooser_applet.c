@@ -90,8 +90,12 @@ static void chooser_run(void)
 	chEvtRegister(&usart_default_queue->event, &usart_events, 0);
 	event_listener_t applet_end;
 	chEvtRegister(&applet_should_end_event, &applet_end, 1);
-	eventmask_t wait = EVENT_MASK(0) | EVENT_MASK(1);
+	event_listener_t buttons;
+	chEvtRegister(&button_events_ready, &buttons, 2);
+
+	eventmask_t wait = EVENT_MASK(0) | EVENT_MASK(1) | EVENT_MASK(2);
 	eventmask_t evt = wait;
+	uint8_t button_event_mask;
 	activity = false;
 
 	if (topo_is_master)
@@ -99,17 +103,26 @@ static void chooser_run(void)
 
 	while (!applet_should_end) {
 		if (evt == 0 && topo_is_master) {
-			/* Nothing was pressed before a timeout */
+			/* Nothing happened pressed before a timeout */
 			applet_select(applet_topmost());
 		}
 		if (evt & EVENT_MASK(0)) {
 			read_messages();
+		}
+		if ((evt & EVENT_MASK(2)) && button_get_any_events(&button_event_mask, TIME_IMMEDIATE)) {
+			if (button_event_mask & BTN_EV_UP) {
+				send_routed_msg(true, MSG_CYCLE, MSG_ROUTE_MASTER, 0, NULL);
+			}
+			if (button_event_mask & BTN_EV_HOLD) {
+				send_routed_msg(true, MSG_SELECT, MSG_ROUTE_MASTER, 0, NULL);
+			}
 		}
 		evt = chEvtWaitAnyTimeout(wait, activity ? TIME_INFINITE : TIME_S2I(5));
 	}
 
 	chEvtUnregister(&usart_default_queue->event, &usart_events);
 	chEvtUnregister(&applet_should_end_event, &applet_end);
+	chEvtUnregister(&button_events_ready, &buttons);
 }
 
 const struct applet chooser_applet = {

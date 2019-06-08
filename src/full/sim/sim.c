@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include "../usart_buffered.h"
+#include "../buttons.h"
 #include <signal.h>
 #include <poll.h>
 
@@ -119,10 +120,10 @@ static void sim_dispatch(uint16_t len, uint16_t msgid)
 		usart_sim_recv(sim_recvbuf[0], sim_recvbuf + 1, len -1);
 		break;
 	case MSGID_BUTTON_UP:
-		sim_button_state[sim_recvbuf[0]] = 0;
+		button_isr(sim_recvbuf[0], false);
 		break;
 	case MSGID_BUTTON_DOWN:
-		sim_button_state[sim_recvbuf[0]] = 1;
+		button_isr(sim_recvbuf[0], true);
 		break;
 	}
 }

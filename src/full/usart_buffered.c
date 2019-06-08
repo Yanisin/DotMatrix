@@ -424,9 +424,4 @@ static void usart_init(void)
 			USART_D_TX_AF_NUM);
 #endif
 }
-
-struct worker usart_worker = {
-	.init = usart_init,
-};
-
-worker_add(usart);
+init_add(usart_init);

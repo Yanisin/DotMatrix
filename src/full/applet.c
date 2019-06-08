@@ -7,8 +7,8 @@
 extern const struct applet *__applet_array_start;
 extern const struct applet *__applet_array_end;
 
-extern const struct worker *__worker_array_start;
-extern const struct worker *__worker_array_end;
+extern const initializer_cb __dminit_array_start;
+extern const initializer_cb __dminit_array_end;
 
 static const struct applet* current;
 
@@ -71,18 +71,9 @@ void applet_wait_for_end(sysinterval_t timeout)
 	chEvtUnregister(&applet_should_end_event, &end_listener);
 }
 
-void worker_init_all(void)
+void run_all_initializers(void)
 {
-	for (const struct worker **w = &__worker_array_start; w != &__worker_array_end; w++) {
-		if ((*w)->init)
-			(*w)->init();
-	}
-}
-
-void worker_run_all(void)
-{
-	for (const struct worker **w = &__worker_array_start; w != &__worker_array_end; w++) {
-		if ((*w)->run)
-			(*w)->run();
+	for (const initializer_cb *i = &__dminit_array_start; i != &__dminit_array_end; i++) {
+		(*i)();
 	}
 }

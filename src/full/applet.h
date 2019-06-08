@@ -6,29 +6,24 @@
 #include <stdint.h>
 #include <ch.h>
 
-struct usart_header_str;
-
 struct applet {
 	void (*run)(void);
 	const uint8_t icon[8];
 	int priority;
 };
 
+typedef void (*initializer_cb)(void);
+
 #define applet_add(name) \
 	const struct applet *applet_ ## name \
 	__attribute__((section (".applet."#name))) = &name ## _applet
 
-struct worker {
-	void (*init)(void);
-	void (*run)(void);
-};
 
-#define worker_add(name) \
-	const struct worker *worker_ ## name \
-	__attribute__((section (".worker."#name))) = &name ## _worker
+#define init_add(name) \
+	const initializer_cb reg_ ## name \
+	__attribute__((section (".dminit."#name))) = &name
 
-void worker_init_all(void);
-void worker_run_all(void);
+void run_all_initializers(void);
 
 extern event_source_t applet_should_end_event;
 extern bool applet_should_end;

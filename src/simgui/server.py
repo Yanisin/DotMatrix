@@ -1,6 +1,9 @@
 import socketserver
 import socket
 import struct
+from builtins import IOError
+from typing import IO
+
 import proto_defs
 import binascii
 
@@ -56,8 +59,11 @@ class ClientHandler(socketserver.BaseRequestHandler):
 
     def send(self, msgid, data: bytes):
         msg = struct.pack('!HH', len(data), msgid) + data
-        # print(binascii.b2a_hex(msg)
-        self.request.send(msg, 0)
+        try:
+            # print(binascii.b2a_hex(msg)
+            self.request.send(msg, 0)
+        except IOError:
+            pass
 
     def msg_hello(self, msg: Message):
         assert self.cell_id is None
