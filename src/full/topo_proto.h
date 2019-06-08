@@ -25,6 +25,12 @@ struct mgmt_not_a_child {
 
 #define TOPO_ALLOC_IDS MSG_USER_ID(4)
 struct mgmt_alloc_ids {
+	/* Range of IDs allocated to this cell and its children */
 	uint8_t first_id;
 	uint8_t id_count;
+	/* Position of the master */
+	int8_t x;
+	int8_t y;
+	/* Rotation of the master */
+	uint8_t master_dir;
 };

@@ -101,9 +101,9 @@ static cell_info sort_cells[MAX_CELL_COUNT];
 static uint8_t first_cell_id;
 static enum topo_state state;
 
-static cell_id_t master_cell_id;
 static uint8_t master_usart;
 static uint8_t master_distance;
+static cell_id_t master_cell_id;
 
 static THD_WORKING_AREA(route_thread_area, 256);
 
@@ -120,6 +120,10 @@ void topo_run(void)
 	master_cell_id = *get_cell_id();
 	master_distance = 0;
 	state = FIND_SS;
+
+	cell_info *me = &topo_cells[topo_cell_count++];
+	me->dir = DIR_COUNT;
+	me->pos = mk_vector2(0, 0);
 
 	chThdSleep(TIME_MS2I(200));
 
@@ -165,14 +169,6 @@ void topo_run(void)
 		if (state == ANNOUNCE_CHILDREN && check_announcements_end()) {
 			continue;
 		}
-	}
-
-	topo_my_id = first_cell_id + (topo_cell_count++);
-	cell_info *me = &topo_cells[topo_my_id];
-	me->dir = DIR_COUNT;
-	me->pos = mk_vector2(0, 0);
-	for (size_t i = 0; i < topo_cell_count; i++) {
-		topo_cells[i].id = first_cell_id + i;
 	}
 
 #ifdef TRACE
@@ -226,9 +222,11 @@ static bool check_announcements_end(void)
 		console_printf("Got all announcements\n");
 #endif
 		sort_children();
+		console_printf("x1\n");
 
 		if (!topo_is_master) {
 			announce_children();
+			console_printf("x2\n");
 		}
 		state = ALLOCATE_IDS;
 		if (topo_is_master) {
@@ -242,14 +240,16 @@ static bool check_announcements_end(void)
 static void sort_children(void)
 {
 	/* First find out where each direction would start */
-	size_t start = 0;
+	/* First slot is reserved for us */
+	size_t start = 1;
 	size_t wptr[DIR_COUNT];
 	for(size_t d = 0; d < DIR_COUNT; d++) {
 		wptr[d] = edges[d].first_cell = start;
 		start += edges[d].children_count;
 	}
 
-	for(size_t i = 0; i < topo_cell_count; i++) {
+	sort_cells[0] = topo_cells[0];
+	for(size_t i = 1; i < topo_cell_count; i++) {
 		enum direction d = topo_cells[i].dir;
 		sort_cells[wptr[d]] = topo_cells[i];
 		wptr[d]++;
@@ -260,13 +260,16 @@ static void sort_children(void)
 
 static void send_ids(void)
 {
+	/* Make sure that the cells have right numbering */
+	for (size_t i = 0; i < topo_cell_count; i++) {
+		topo_cells[i].id = first_cell_id + i;
+	}
 	for(size_t d = 0; d < DIR_COUNT; d++) {
 		edge_info *e = &edges[d];
 		if (e->type == EDGE_CHILD) {
 			struct mgmt_alloc_ids msg;
 			msg.first_id = e->first_cell + first_cell_id;
 			msg.id_count = e->children_count;
-
 #ifdef TRACE
 			console_printf("--> %d - %d, dir = %d\n", msg.first_id, msg.first_id + msg.id_count, d);
 #endif
@@ -368,6 +371,7 @@ static void topo_dispatch(const msg_header *hdr, const buf_ptr *data)
 			console_printf("Allocated ids %d - %d\n", msg.first_id, msg.first_id + msg.id_count - 1);
 #endif
 			first_cell_id = msg.first_id;
+			topo_my_id = msg.first_id;
 			send_ids();
 			state = DONE;
 		}; break;
@@ -414,7 +418,7 @@ void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)
 		uint8_t recipient = *buf_ptr_index(buf, 0);
 		if (recipient == topo_my_id) {
 			local = true;
-		} else if (recipient < first_cell_id || recipient >= first_cell_id + topo_cell_count) {
+		} else if (recipient < first_cell_id  + 1 || recipient > first_cell_id + topo_cell_count) {
 			console_printf(
 				"topo_send_to: %d is not mine, I serve %d - %d\n",
 				recipient, first_cell_id, first_cell_id + topo_cell_count);

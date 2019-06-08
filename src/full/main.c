@@ -28,6 +28,7 @@ int main(int argc, char* argv[])
 	int ret = sim_main(argc, argv);
 	if (ret != 0)
 		return ret;
+	board_init();
 	chSysInit();
 	main_task();
 	return 0;

@@ -362,7 +362,11 @@ static enum direction usart_to_direction(uint8_t usart)
 static void usart_init(void)
 {
 	usart_route_queue = msg_rx_queue_alloc(NULL, 6);
+#ifdef SIM
+	usart_default_queue = msg_rx_queue_alloc(NULL, 10);
+#else
 	usart_default_queue = msg_rx_queue_alloc(NULL, 6);
+#endif
 	usart_mgmt_queue = msg_rx_queue_alloc(NULL, 5);
 
 	usart_setup(0);

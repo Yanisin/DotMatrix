@@ -37,24 +37,25 @@ class ClientHandler(socketserver.BaseRequestHandler):
             proto_defs.MSGID_UPDATE_DISP: self.msg_disp,
             proto_defs.MSGID_GPIO_STATE: self.msg_gpio_state,
         }
-        while True:
-            header = self.request.recv(4, socket.MSG_WAITALL)
-            if len(header) != 4:
-                break
-            (msglen, msgid) = struct.unpack('!HH', header)
-            data = self.request.recv(msglen, socket.MSG_WAITALL)
-            if len(data) != msglen:
-                break
-            msg = Message(msglen, msgid, data)
-            if msg.msgid in router:
+        try:
+            while True:
+                header = self.request.recv(4, socket.MSG_WAITALL)
+                if len(header) != 4:
+                    break
+                (msglen, msgid) = struct.unpack('!HH', header)
+                data = self.request.recv(msglen, socket.MSG_WAITALL)
+                if len(data) != msglen:
+                    break
+                msg = Message(msglen, msgid, data)
+                if msg.msgid in router:
+                    with self.field.lock:
+                        router[msg.msgid](msg)
+                else:
+                    raise CommException('Unknown message ID {} received'.format(msg.msgid))
+        finally:
+            if self.cell is not None:
                 with self.field.lock:
-                    router[msg.msgid](msg)
-            else:
-                raise CommException('Unknown message ID {} received'.format(msg.msgid))
-
-        if self.cell is not None:
-            with self.field.lock:
-                self.cell.client_disconnected()
+                    self.cell.client_disconnected()
         print('Disconnected')
 
     def send(self, msgid, data: bytes):

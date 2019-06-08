@@ -12,6 +12,8 @@ typedef struct cell_info_str {
 	enum direction dir;
 } cell_info;
 
+#define MASTER_CELL_ID 0
+
 extern uint8_t topo_my_id;
 extern bool topo_is_master;
 extern cell_info topo_cells[];
