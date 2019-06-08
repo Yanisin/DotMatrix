@@ -23,25 +23,20 @@
 #include <libopencm3/stm32/gpio.h>
 #include "hw_defs.h"
 
-#define PORT_LED GPIOC
-#define PIN_LED GPIO15
-
-
-
 static void gpio_setup(void)
 {
 	/* Enable GPIOC clock. */
 	/* Manually: */
 	//RCC_AHBENR |= RCC_AHBENR_GPIOCEN;
 	/* Using API functions: */
-	rcc_periph_clock_enable(RCC_GPIOC);
+	rcc_periph_clock_enable(LED_RCC);
 	rcc_periph_clock_enable(RCC_GPIOA);
 	rcc_periph_clock_enable(RCC_GPIOB);
 
 
 	/* Set GPIO8 (in GPIO port C) to 'output push-pull'. */
 	/* Using API functions: */
-	gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED);
+	gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
 	gpio_mode_setup(DISP_nOE_ROW_GPIO  , GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,DISP_nOE_ROW_GPIO_PIN);
 	gpio_mode_setup(DISP_nOE_COL_GPIO  , GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,DISP_nOE_COL_GPIO_PIN  );
 	gpio_mode_setup(DISP_COLS_CLK_GPIO  , GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_COLS_CLK_GPIO_PIN  );
@@ -58,7 +53,7 @@ bitbang(uint8_t col, uint8_t row)
 {
 	int i;
 	int k;
-		gpio_clear(PORT_LED, PIN_LED);	/* LED on/off */
+		gpio_clear(LED_PORT, LED_PIN);	/* LED on/off */
 
 		for (k=0;k<8;k++) {
 			if(col & (1<<k)) {
@@ -92,7 +87,7 @@ bitbang(uint8_t col, uint8_t row)
 		gpio_clear(DISP_COLS_STROBE_GPIO, DISP_COLS_STROBE_GPIO_PIN);
 		__asm__("nop");
 	
-		gpio_set(PORT_LED, PIN_LED);	/* LED on/off */
+		gpio_set(LED_PORT, LED_PIN);	/* LED on/off */
 		__asm__("nop");
 
 
@@ -112,18 +107,18 @@ int main(void)
 	/* Blink the LED (PC8) on the board. */
 	while (1) {
 		/* Manually: */
-		// GPIOC_BSRR = PIN_LED;		/* LED off */
+		// GPIOC_BSRR = LED_PIN;		/* LED off */
 		// for (i = 0; i < 1000000; i++)	/* Wait a bit. */
 		//	__asm__("nop");
-		// GPIOC_BRR = PIN_LED;			/* LED on */
+		// GPIOC_BRR = LED_PIN;			/* LED on */
 		// for (i = 0; i < 1000000; i++)	/* Wait a bit. */
 		//	__asm__("nop");
 
 		/* Using API functions gpio_set()/gpio_clear(): */
-		// gpio_set(PORT_LED, PIN_LED);		/* LED off */
+		// gpio_set(LED_PORT, LED_PIN);		/* LED off */
 		// for (i = 0; i < 1000000; i++)	/* Wait a bit. */
 		//	__asm__("nop");
-		// gpio_clear(PORT_LED, PIN_LED);	/* LED on */
+		// gpio_clear(LED_PORT, LED_PIN);	/* LED on */
 		// for (i = 0; i < 1000000; i++)	/* Wait a bit. */
 		//	__asm__("nop");
 
