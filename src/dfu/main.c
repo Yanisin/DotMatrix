@@ -17,6 +17,11 @@
 #define LED_RCC RCC_GPIOC
 #define LED_PORT GPIOC
 #define LED_PIN GPIO13
+#define DISP_nOE_ROW_GPIO GPIOB
+#define DISP_nOE_COL_GPIO GPIOB
+#define DISP_nOE_ROW_GPIO_PIN GPIO2
+#define DISP_nOE_COL_GPIO_PIN GPIO4
+
 
 static uint32_t tick_count;
 static bool dfu_entered;
@@ -102,9 +107,29 @@ void continue_boot(void)
 	    :: [sp] "r" (stack), [pc] "r" (reset));
 }
 
+static void disable_disp(void)
+{
+	
+	rcc_periph_clock_enable(RCC_GPIOB);
+	/*
+	 * setup the GPIOs for the Output-Enable pins of the
+	 * display drivers
+	 */
+	gpio_mode_setup(DISP_nOE_ROW_GPIO,
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_nOE_ROW_GPIO_PIN);
+	gpio_mode_setup(DISP_nOE_COL_GPIO,
+		GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, DISP_nOE_COL_GPIO_PIN);
+
+	/* disable the drivers output */
+	gpio_set(DISP_nOE_ROW_GPIO, DISP_nOE_ROW_GPIO_PIN);
+	gpio_set(DISP_nOE_COL_GPIO, DISP_nOE_COL_GPIO_PIN);
+
+}
+
 int main(void) {
 	rcc_clock_setup_in_hsi_out_48mhz();
 	
+	disable_disp();
 	/* turn on LED to indicate that we have power */
 	rcc_periph_clock_enable(LED_RCC);
 	gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
