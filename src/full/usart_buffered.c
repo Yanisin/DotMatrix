@@ -78,6 +78,7 @@ msg_rx_queue *usart_route_queue;
 /* ---------------- Local Functions --------------- */
 
 static msg_rx_queue* usart_msg_dispatcher(const msg_header *msg);
+static enum direction usart_to_direction(uint8_t usart);
 
 /* Should be smbus crc8 from U-boot */
 static void crc8(uint32_t *crc, uint8_t value)
@@ -242,7 +243,7 @@ static void usart_isr_common(int usart_idx)
 		chSysUnlockFromISR();
 		if (qchar == MSG_TIMEOUT) {
 			/* queue empty */
-			/* Disable the USARTy Transmit interrupt */
+			/* Disable the USART Transmit interrupt */
 			USART_CR1(usart->reg_base) &= ~USART_CR1_TXEIE;
 		} else {
 			usart_send(usart->reg_base, qchar);
@@ -253,7 +254,7 @@ static void usart_isr_common(int usart_idx)
 void usart1_isr(void)
 {
 	CH_IRQ_PROLOGUE();
-	usart_isr_common(0);
+	usart_isr_common(usart_to_direction(0));
 	CH_IRQ_EPILOGUE();
 }
 
@@ -261,15 +262,15 @@ void usart1_isr(void)
 void usart2_isr(void)
 {
 	CH_IRQ_PROLOGUE();
-	usart_isr_common(1);
+	usart_isr_common(usart_to_direction(1));
 	CH_IRQ_EPILOGUE();
 }
 
 void usart3_4_isr(void)
 {
 	CH_IRQ_PROLOGUE();
-	usart_isr_common(2);
-	usart_isr_common(3);
+	usart_isr_common(usart_to_direction(2));
+	usart_isr_common(usart_to_direction(3));
 	CH_IRQ_EPILOGUE();
 }
 #endif

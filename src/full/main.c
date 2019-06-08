@@ -99,7 +99,8 @@ static void main_task(void)
 
 	draw_icon(smiley, false);
 	worker_init_all();
-	chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
+	thread_t *thr = chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
+	thr->name = "mgmt";
 
 	console_puts("Starting...\n");
 	topo_run();

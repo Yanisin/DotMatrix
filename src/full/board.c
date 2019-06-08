@@ -1,6 +1,8 @@
 #include "board.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/cortex.h>
+#include <libopencm3/cm3/nvic.h>
 #include "hw_defs.h"
 #include "chibi/hal_st.h"
 #include "console.h"
@@ -22,5 +24,30 @@ void board_halt(const char*msg)
 {
 	console_printf("halt: %s\n", msg);
 	draw_icon(smiley_sad, false);
+	__asm volatile("bkpt #0\n");
 	chThdSleep(TIME_INFINITE);
+}
+
+void hard_fault_handler()
+{
+	/* https://www.element14.com/community/thread/54959/l/gdb-assisted-debugging-of-hard-faults?displayFullThread=true */
+	/* In short, GDB can not yet unwind alternate stack faults. Let's fake the stack */
+	uint32_t lr, psp, msp, sp;
+	__asm__ volatile (
+		"mrs %0, psp\n"
+		"mrs %1, msp\n"
+		"mov %2, lr\n"
+		:"=r" (psp), "=r" (msp), "=r" (lr));
+	if ((lr & 0xF) == 0xD)
+		sp = psp;
+	else
+		sp = msp;
+
+	__asm volatile
+	(
+		"mov sp, %0\n"
+		"bkpt #0\n"
+		: :"r" (sp));
+	while(1)
+		;
 }

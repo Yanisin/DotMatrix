@@ -14,7 +14,9 @@ SECTIONS
 	} > rom
 
 	/* Heap ends before the stack */
-	_psp_stack = ORIGIN(ram) + LENGTH(ram) - 256;
-	__heap_end__ = ORIGIN(ram) + LENGTH(ram) - 512;
+	_psp_stack = ORIGIN(ram) + LENGTH(ram) - 512;
+	_psp_base = ORIGIN(ram) + LENGTH(ram) - 2048;
+	__main_thread_stack_base__ = _psp_base;
+	__heap_end__ = _psp_base;
 	__heap_base__ = _ebss;
 }

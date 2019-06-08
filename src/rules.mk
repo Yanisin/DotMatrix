@@ -41,7 +41,7 @@ STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
 
 FP_FLAGS ?= -msoft-float
 ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
-ifdef ($(DEBUG),1)
+ifeq ($(DEBUG),1)
 TGT_OPT ?= -Og
 TGT_DEFS += -DDEBUG
 else

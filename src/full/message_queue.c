@@ -22,7 +22,7 @@ void msg_rx_queue_init(msg_rx_queue *queue, uint8_t size_bits, void *buffer)
 
 msg_rx_queue* msg_rx_queue_alloc(memory_heap_t *heap, uint8_t size_bits)
 {
-	msg_rx_queue *q = chHeapAlloc(heap, sizeof(memory_heap_t));
+	msg_rx_queue *q = chHeapAlloc(heap, sizeof(msg_rx_queue));
 	if (q == NULL)
 		return q;
 	void *buf = chHeapAlloc(heap, 1 << size_bits);

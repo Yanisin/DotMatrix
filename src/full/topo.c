@@ -184,7 +184,8 @@ void topo_run(void)
 		}
 	}
 #endif
-	chThdCreateStatic(&route_thread_area, sizeof(route_thread_area), NORMALPRIO, route_thread_run, NULL);
+	thread_t *thr = chThdCreateStatic(&route_thread_area, sizeof(route_thread_area), NORMALPRIO, route_thread_run, NULL);
+	thr->name = "route";
 }
 
 static void transition_announce_children(void)
