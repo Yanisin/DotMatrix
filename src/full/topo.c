@@ -104,6 +104,8 @@ static enum topo_state state;
 static uint8_t master_usart;
 static uint8_t master_distance;
 static cell_id_t master_cell_id;
+enum direction topo_master_orientation;
+vector2 topo_master_position;
 
 static THD_WORKING_AREA(route_thread_area, 256);
 
@@ -222,11 +224,9 @@ static bool check_announcements_end(void)
 		console_printf("Got all announcements\n");
 #endif
 		sort_children();
-		console_printf("x1\n");
 
 		if (!topo_is_master) {
 			announce_children();
-			console_printf("x2\n");
 		}
 		state = ALLOCATE_IDS;
 		if (topo_is_master) {
@@ -268,8 +268,12 @@ static void send_ids(void)
 		edge_info *e = &edges[d];
 		if (e->type == EDGE_CHILD) {
 			struct mgmt_alloc_ids msg;
+			vector2 pos = pos_tx(topo_master_position, d);
 			msg.first_id = e->first_cell + first_cell_id;
 			msg.id_count = e->children_count;
+			msg.master_x = pos.x;
+			msg.master_y = pos.y;
+			msg.master_dir = dir_tx(topo_master_orientation, d);
 #ifdef TRACE
 			console_printf("--> %d - %d, dir = %d\n", msg.first_id, msg.first_id + msg.id_count, d);
 #endif
@@ -367,11 +371,16 @@ static void topo_dispatch(const msg_header *hdr, const buf_ptr *data)
 			if (state != ALLOCATE_IDS)
 				break;
 			buf_ptr_read(data, 0, sizeof(msg), &msg);
-#ifdef TRACE
-			console_printf("Allocated ids %d - %d\n", msg.first_id, msg.first_id + msg.id_count - 1);
-#endif
 			first_cell_id = msg.first_id;
 			topo_my_id = msg.first_id;
+			topo_master_orientation = dir_rx(msg.master_dir, dir);
+			topo_master_position = pos_rx(mk_vector2(msg.master_x, msg.master_y), dir);
+#ifdef TRACE
+			console_printf(
+				"Allocated ids %d - %d. Master is at %d:%d.\n",
+				first_cell_id, first_cell_id + msg.id_count - 1,
+				topo_master.position.x, topo_master.position.y);
+#endif
 			send_ids();
 			state = DONE;
 		}; break;
@@ -401,6 +410,15 @@ vector2 pos_rx(vector2 v, enum direction d) {
 	return vector_rotate(v, rot);
 }
 
+enum direction dir_tx(enum direction value, enum direction d)
+{
+	return rotate_direction(value, -(int)d);
+}
+
+enum direction dir_rx(enum direction value, enum direction d)
+{
+	return rotate_direction(value, reverse_direction(d));
+}
 
 /************************************ ROUTING *****************************************************/
 void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)

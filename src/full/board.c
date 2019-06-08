@@ -23,7 +23,7 @@ void board_init(void)
 void board_halt(const char*msg)
 {
 	console_printf("halt: %s\n", msg);
-	draw_icon(smiley_sad, false);
+	draw_icon(smiley_sad, BLIT_SET);
 	__asm volatile("bkpt #0\n");
 	chThdSleep(TIME_INFINITE);
 }

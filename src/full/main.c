@@ -98,7 +98,7 @@ static void main_task(void)
 	common_gpio_init();
 	led_on();
 
-	draw_icon(smiley, false);
+	draw_icon(smiley, BLIT_SET);
 	run_all_initializers();
 	thread_t *thr = chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
 	thr->name = "mgmt";

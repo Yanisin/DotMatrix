@@ -60,7 +60,7 @@ static void chooser_show(struct msg_show_applet *msg)
 		return;
 	}
 	a = applet_get(msg->applet);
-	draw_icon(a->icon, msg->selected);
+	draw_icon(a->icon, msg->selected ? BLIT_NOT : BLIT_SET);
 }
 
 static void read_messages(void)

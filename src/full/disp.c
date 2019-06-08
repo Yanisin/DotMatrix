@@ -160,15 +160,15 @@ void disp_set(int col, int row, uint8_t val)
 {
 	vector2 pos = rot(col, row);
 	disp_state[pos.y][pos.x] = val;
-	disp_row_update(row);
+	disp_row_update(pos.y);
 }
 
 uint8_t disp_get(int col, int row)
 {
 	vector2 pos = rot(col, row);
-	if (col < 0 || col >= DISP_COLS_NUM)
+	if (pos.x < 0 || pos.x >= DISP_COLS_NUM)
 		return 0;
-	if (row < 0 || row >= DISP_ROWS_NUM)
+	if (pos.y < 0 || pos.y >= DISP_ROWS_NUM)
 		return 0;
 
 	return disp_state[pos.y][pos.x];

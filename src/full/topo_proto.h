@@ -29,8 +29,8 @@ struct mgmt_alloc_ids {
 	uint8_t first_id;
 	uint8_t id_count;
 	/* Position of the master */
-	int8_t x;
-	int8_t y;
+	int8_t master_x;
+	int8_t master_y;
 	/* Rotation of the master */
 	uint8_t master_dir;
 };

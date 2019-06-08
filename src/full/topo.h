@@ -19,6 +19,8 @@ extern bool topo_is_master;
 extern cell_info topo_cells[];
 extern size_t topo_cell_count;
 extern enum direction topo_master_direction;
+extern enum direction topo_master_orientation;
+extern vector2 topo_master_position;
 
 void topo_run(void);
 void route_message(bool send_local, msg_header *hdr, buf_ptr *buf);
@@ -38,5 +40,8 @@ vector2 pos_tx(vector2 v, enum direction d);
  * This functions rotates and translates the vector appropriately.
  */
 vector2 pos_rx(vector2 v, enum direction d);
+
+enum direction dir_tx(enum direction value, enum direction d);
+enum direction dir_rx(enum direction value, enum direction d);
 
 #endif // TOPO_H
