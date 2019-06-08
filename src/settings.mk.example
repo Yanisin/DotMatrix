@@ -1,4 +1,5 @@
 OPENCM3_DIR ?= /home/roman/build/libopencm3
+#ARM_NONE_EABI_DIR ?= /home/badger/prj/arm-none-eabi/gcc-arm-none-eabi-8-2018-q4-major/bin
 
 #HW_VERSION = "HW_38x38_rev_0_1"
 #HW_VERSION = "HW_60x60_rev_0_2"
