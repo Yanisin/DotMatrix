@@ -233,10 +233,16 @@ msg_rx_queue* msg_dispatcher(const msg_header *hdr)
 	}
 }
 
+#ifdef SIM
+/* We need to work-around the lack of rate limiting */
+#define BUF_MULTIPLIER 2
+#else
+#define BUF_MULTIPLIER 0
+#endif
 static void init_default_queues(void) {
-	default_queue = msg_rx_queue_alloc(NULL, 7);
-	alt_queue = msg_rx_queue_alloc(NULL, 7);
-	usart_route_queue = msg_rx_queue_alloc(NULL, 6);
-	mgmt_queue = msg_rx_queue_alloc(NULL, 5);
+	default_queue = msg_rx_queue_alloc(NULL, 7 + BUF_MULTIPLIER);
+	alt_queue = msg_rx_queue_alloc(NULL, 7 + BUF_MULTIPLIER);
+	usart_route_queue = msg_rx_queue_alloc(NULL, 6 + BUF_MULTIPLIER);
+	mgmt_queue = msg_rx_queue_alloc(NULL, 5 + BUF_MULTIPLIER);
 }
 init_add(init_default_queues);

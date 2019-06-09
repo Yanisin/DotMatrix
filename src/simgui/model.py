@@ -189,6 +189,9 @@ class Cell(QObject):
         if cell is not None:
             cell.send_msg(proto_defs.MSGID_UART_RX, struct.pack('!B', rev_dir) + data)
 
+    def i2c_tx(self, data: bytes):
+        self.send_msg(proto_defs.MSGID_I2C_RX, data)
+
 def __str__(self):
         return 'Cell[{}]'.format(self.id)
 

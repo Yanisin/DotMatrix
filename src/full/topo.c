@@ -181,6 +181,8 @@ void topo_run(void)
 			console_printf("(%02d, %02d) has id %d, dir = %d\n", c->pos.x, c->pos.y, c->id, c->dir);
 		}
 	}
+#else
+	console_printf("short id = %d\n", topo_my_id);
 #endif
 	thread_t *thr = chThdCreateStatic(&route_thread_area, sizeof(route_thread_area), NORMALPRIO, route_thread_run, NULL);
 	thr->name = "route";
@@ -379,7 +381,7 @@ static void topo_dispatch(const msg_header *hdr, const buf_ptr *data)
 			console_printf(
 				"Allocated ids %d - %d. Master is at %d:%d.\n",
 				first_cell_id, first_cell_id + msg.id_count - 1,
-				topo_master.position.x, topo_master.position.y);
+				topo_master_position.x, topo_master_position.y);
 #endif
 			send_ids();
 			state = DONE;

@@ -1,4 +1,5 @@
 #include "buttons.h"
+#include "console.h"
 #include <ch.h>
 #include <assert.h>
 #include <string.h>
@@ -80,7 +81,6 @@ static bool button_isrI(enum button btn, bool state)
 
 void button_isr(enum button btn, bool state)
 {
-
 	chSysLockFromISR();
 	if (button_isrI(btn, state)) {
 		chBSemSignalI(&event_ready);

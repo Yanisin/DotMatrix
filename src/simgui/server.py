@@ -36,6 +36,7 @@ class ClientHandler(socketserver.BaseRequestHandler):
             proto_defs.MSGID_UART_TX: self.msg_uart_tx,
             proto_defs.MSGID_UPDATE_DISP: self.msg_disp,
             proto_defs.MSGID_GPIO_STATE: self.msg_gpio_state,
+            proto_defs.MSGID_I2C_TX: self.msg_i2c_tx
         }
         try:
             while True:
@@ -87,3 +88,9 @@ class ClientHandler(socketserver.BaseRequestHandler):
         dir = msg.data[0]
         data = msg.data[1:]
         self.cell.uart_tx(dir, data)
+
+    def msg_i2c_tx(self, msg: Message):
+        for c in self.field.cells:
+            if c == self.cell:
+                continue
+            c.i2c_tx(msg.data)

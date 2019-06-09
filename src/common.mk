@@ -16,6 +16,7 @@ SIM_BUILDDIR = build-sim
 SIM ?= 0
 TGT ?= 1
 DEBUG ?= 0
+SUDO ?= sudo
 
 ###############################################################################
 # Common C Flags
@@ -141,19 +142,21 @@ prg: $(TGT_RESULT).elf
 ifeq ($(NO_BOOTLOADER), 1)
 # Program using the ST link bootloader
 prg_bl: $(TGT_RESULT).bin
-	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08000000:131072
+	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08000000:131072
 
 prg_usb:
 	$(error Program is built without bootloader support)
 
 else
 prg_bl: $(TGT_RESULT).bin
-	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08002000:131072
+	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08002000:131072
 # program using our prebooter (DDFU)
 prg_usb: $(TGT_RESULT).bin
-	@echo Waiting for the bootloader to connect, please restart the device
+	
+	@# We "arm" sudo using this command
+	@$(SUDO) echo Waiting for the bootloader to connect, please restart the device
 	@../wait_for_dfu.py
-	@sudo dfu-util -D $(TGT_RESULT).bin
+	@$(SUDO) dfu-util -D $(TGT_RESULT).bin
 endif
 
 gdb:  $(TGT_RESULT).elf

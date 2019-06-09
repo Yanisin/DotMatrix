@@ -1,4 +1,5 @@
 #include "../board.h"
+#include "../cell_id.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -35,8 +36,10 @@ void board_init(void)
 void board_halt(const char*msg)
 {
 	char buf[80];
+	const cell_id_t *cid = get_cell_id();
 	/* Try to avalid complex libc as much as possible, we are in a signal handler */
-	sprintf(buf, "syshalt pid %d: %s\n", getpid(), msg);
+	sprintf(buf, "%02x%02x: syshalt pid %d: %s\n",
+		cid->bytes[CELL_ID_LEN - 2], cid->bytes[CELL_ID_LEN - 1], getpid(), msg);
 	write(2, buf, strlen(buf));
 	while(1)
 		sleep(1);

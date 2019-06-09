@@ -5,16 +5,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <endian.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <poll.h>
 #include "sim.h"
 #include "proto_defs.h"
 #include "../cell_id.h"
-#include <arpa/inet.h>
-#include <string.h>
 #include "../usart_buffered.h"
 #include "../buttons.h"
-#include <signal.h>
-#include <poll.h>
-
+#include "../i2c.h"
 
 #define MAX_MSG_SIZE 256
 
@@ -124,6 +123,9 @@ static void sim_dispatch(uint16_t len, uint16_t msgid)
 		break;
 	case MSGID_BUTTON_DOWN:
 		button_isr(sim_recvbuf[0], true);
+		break;
+	case MSGID_I2C_RX:
+		i2c_sim_recv(len, sim_recvbuf);
 		break;
 	}
 }

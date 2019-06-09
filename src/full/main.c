@@ -105,13 +105,17 @@ static void main_task(void)
 	/* I2C needs the topology */
 	i2c_init();
 
-
 	applet_select_local(&chooser_applet);
 
 	while (1) {
 		if (topo_is_master) {
 			/* Give others some time to start the applet */
-			chThdSleep(TIME_MS2I(20));
+			/* TODO: add some "barrier" mechanism for these instances */
+#ifdef SIM
+	chThdSleep(TIME_MS2I(300));
+#else
+	chThdSleep(TIME_MS2I(100));
+#endif
 		}
 		applet_should_end = false;
 		applet_current()->run();
