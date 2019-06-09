@@ -15,8 +15,8 @@ static void gpio_setup(void)
 	rcc_periph_clock_enable(BTN1_RCC);
 
 	/*FIXME what about push up/down? */
-	gpio_mode_setup(BTN0_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BTN0_PIN);
-	gpio_mode_setup(BTN1_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BTN1_PIN);
+	gpio_mode_setup(BTN0_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, BTN0_PIN);
+	gpio_mode_setup(BTN1_PORT, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, BTN1_PIN);
 }
 
 static void btn_init(void)
