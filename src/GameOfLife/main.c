@@ -103,6 +103,34 @@ static void print_smile(void)
 		}
 	}
 }
+#define DISP_TEST_DLY 40
+static void disp_test(void)
+{
+	int i;
+	for (i=0 ;i<4;i++) {
+	disp_set(i,i, 31);
+	ticker_msleep(DISP_TEST_DLY);
+	if(i>0){
+		disp_set(i-1,i-1, 0);
+	}
+	disp_set(i,7-i, 31);
+	ticker_msleep(DISP_TEST_DLY);
+	if(i>0) {
+		disp_set(i-1,7-i+1, 0);
+	}
+	disp_set(7-i,7-i, 31);
+	ticker_msleep(DISP_TEST_DLY);
+	if (i>0) {
+		disp_set(7-i+1,7-i+1, 0);
+	}
+	disp_set(7-i,i, 31);
+	ticker_msleep(DISP_TEST_DLY);
+	if (i>0) {
+		disp_set(7-i+1,i-1, 0);
+	}
+	}
+
+}
 
 #if 0
 static void print_grey(uint8_t num)
@@ -161,8 +189,11 @@ void common_main(void)
 	disp_init();
 	rand_init();
 	common_gpio_init();
+	led_off();
+//	print_smile();
+	disp_test();
+	disp_clean();
 	led_on();
-	print_smile();
 
 
 #if 0

@@ -14,228 +14,228 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-Text Label 3950 2900 3    60   ~ 0
+Text Label 4350 2150 3    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR031
 U 1 1 5BD6FE4D
-P 3000 2000
-F 0 "#PWR031" H 3000 1850 50  0001 C CNN
-F 1 "VCC" H 3000 2150 50  0000 C CNN
-F 2 "" H 3000 2000 50  0001 C CNN
-F 3 "" H 3000 2000 50  0001 C CNN
-	1    3000 2000
+P 3400 1850
+F 0 "#PWR031" H 3400 1700 50  0001 C CNN
+F 1 "VCC" H 3400 2000 50  0000 C CNN
+F 2 "" H 3400 1850 50  0001 C CNN
+F 3 "" H 3400 1850 50  0001 C CNN
+	1    3400 1850
 	-1   0    0    -1  
 $EndComp
-Text Label 3550 2950 3    60   ~ 0
+Text Label 3950 2150 3    60   ~ 0
 I2C_SDA
-Text Label 4050 2250 3    60   ~ 0
+Text Label 4450 2100 3    60   ~ 0
 UART_RX4
-Text Label 3450 2250 3    60   ~ 0
+Text Label 3850 2100 3    60   ~ 0
 UART_TX4
 $Comp
 L bcl4v2-rescue:Conn_01x05 J1
 U 1 1 5BD6FE56
-P 3450 1900
-F 0 "J1" H 3450 2200 50  0000 C CNN
-F 1 "Conn_01x05" H 3450 1600 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 3450 1900 50  0001 C CNN
-F 3 "" H 3450 1900 50  0001 C CNN
-	1    3450 1900
+P 3850 1750
+F 0 "J1" H 3850 2050 50  0000 C CNN
+F 1 "Conn_01x05" H 3850 1450 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 3850 1750 50  0001 C CNN
+F 3 "" H 3850 1750 50  0001 C CNN
+	1    3850 1750
 	0    -1   -1   0   
 $EndComp
 $Comp
 L bcl4v2-rescue:Conn_01x05 J2
 U 1 1 5BD6FE5D
-P 4050 1900
-F 0 "J2" H 4050 2200 50  0000 C CNN
-F 1 "Conn_01x05" H 4050 1600 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 4050 1900 50  0001 C CNN
-F 3 "" H 4050 1900 50  0001 C CNN
-	1    4050 1900
+P 4450 1750
+F 0 "J2" H 4450 2050 50  0000 C CNN
+F 1 "Conn_01x05" H 4450 1450 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 4450 1750 50  0001 C CNN
+F 3 "" H 4450 1750 50  0001 C CNN
+	1    4450 1750
 	0    1    -1   0   
 $EndComp
-Text Label 3650 3000 3    60   ~ 0
+Text Label 4050 2250 3    60   ~ 0
 IN1P
-Text Label 3850 2350 3    60   ~ 0
+Text Label 4250 2200 3    60   ~ 0
 BTN0
 $Comp
 L bcl4v2-rescue:GND #PWR032
 U 1 1 5BD6FE74
-P 4250 2250
-F 0 "#PWR032" H 4250 2000 50  0001 C CNN
-F 1 "GND" H 4250 2100 50  0000 C CNN
-F 2 "" H 4250 2250 50  0001 C CNN
-F 3 "" H 4250 2250 50  0001 C CNN
-	1    4250 2250
+P 4650 2100
+F 0 "#PWR032" H 4650 1850 50  0001 C CNN
+F 1 "GND" H 4650 1950 50  0000 C CNN
+F 2 "" H 4650 2100 50  0001 C CNN
+F 3 "" H 4650 2100 50  0001 C CNN
+	1    4650 2100
 	-1   0    0    -1  
 $EndComp
-Text Label 3550 4750 1    60   ~ 0
+Text Label 3950 4250 1    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR033
 U 1 1 5BD7123B
-P 3200 4950
-F 0 "#PWR033" H 3200 4800 50  0001 C CNN
-F 1 "VCC" H 3200 5100 50  0000 C CNN
-F 2 "" H 3200 4950 50  0001 C CNN
-F 3 "" H 3200 4950 50  0001 C CNN
-	1    3200 4950
+P 3600 4200
+F 0 "#PWR033" H 3600 4050 50  0001 C CNN
+F 1 "VCC" H 3600 4350 50  0000 C CNN
+F 2 "" H 3600 4200 50  0001 C CNN
+F 3 "" H 3600 4200 50  0001 C CNN
+	1    3600 4200
 	1    0    0    -1  
 $EndComp
-Text Label 3950 4800 1    60   ~ 0
+Text Label 4350 4250 1    60   ~ 0
 I2C_SDA
-Text Label 4050 5000 1    60   ~ 0
+Text Label 4450 4250 1    60   ~ 0
 UART_TX2
-Text Label 3450 5000 1    60   ~ 0
+Text Label 3850 4250 1    60   ~ 0
 UART_RX2
 $Comp
 L bcl4v2-rescue:Conn_01x05 J5
 U 1 1 5BD71244
-P 3450 5350
-F 0 "J5" H 3450 5650 50  0000 C CNN
-F 1 "Conn_01x05" H 3450 5050 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 3450 5350 50  0001 C CNN
-F 3 "" H 3450 5350 50  0001 C CNN
-	1    3450 5350
+P 3850 4600
+F 0 "J5" H 3850 4900 50  0000 C CNN
+F 1 "Conn_01x05" H 3850 4300 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 3850 4600 50  0001 C CNN
+F 3 "" H 3850 4600 50  0001 C CNN
+	1    3850 4600
 	0    -1   1    0   
 $EndComp
 $Comp
 L bcl4v2-rescue:Conn_01x05 J4
 U 1 1 5BD7124B
-P 4050 5350
-F 0 "J4" H 4050 5650 50  0000 C CNN
-F 1 "Conn_01x05" H 4050 5050 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 4050 5350 50  0001 C CNN
-F 3 "" H 4050 5350 50  0001 C CNN
-	1    4050 5350
+P 4450 4600
+F 0 "J4" H 4450 4900 50  0000 C CNN
+F 1 "Conn_01x05" H 4450 4300 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 4450 4600 50  0001 C CNN
+F 3 "" H 4450 4600 50  0001 C CNN
+	1    4450 4600
 	0    1    1    0   
 $EndComp
-Text Label 3850 4350 1    60   ~ 0
+Text Label 4250 4250 1    60   ~ 0
 IN0P
-Text Label 3650 4900 1    60   ~ 0
+Text Label 4050 4250 1    60   ~ 0
 BTN1
 $Comp
 L bcl4v2-rescue:GND #PWR034
 U 1 1 5BD71262
-P 4550 5250
-F 0 "#PWR034" H 4550 5000 50  0001 C CNN
-F 1 "GND" H 4550 5100 50  0000 C CNN
-F 2 "" H 4550 5250 50  0001 C CNN
-F 3 "" H 4550 5250 50  0001 C CNN
-	1    4550 5250
+P 4950 4500
+F 0 "#PWR034" H 4950 4250 50  0001 C CNN
+F 1 "GND" H 4950 4350 50  0000 C CNN
+F 2 "" H 4950 4500 50  0001 C CNN
+F 3 "" H 4950 4500 50  0001 C CNN
+	1    4950 4500
 	1    0    0    -1  
 $EndComp
-Text Label 5200 3300 2    60   ~ 0
+Text Label 5250 2850 2    60   ~ 0
 UART_TX1
-Text Label 5200 3900 2    60   ~ 0
+Text Label 5250 3450 2    60   ~ 0
 UART_RX1
-Text Label 5000 3800 2    60   ~ 0
+Text Label 5200 3350 2    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR035
 U 1 1 5BD71F25
-P 5300 4200
-F 0 "#PWR035" H 5300 4050 50  0001 C CNN
-F 1 "VCC" H 5300 4350 50  0000 C CNN
-F 2 "" H 5300 4200 50  0001 C CNN
-F 3 "" H 5300 4200 50  0001 C CNN
-	1    5300 4200
+P 5300 3750
+F 0 "#PWR035" H 5300 3600 50  0001 C CNN
+F 1 "VCC" H 5300 3900 50  0000 C CNN
+F 2 "" H 5300 3750 50  0001 C CNN
+F 3 "" H 5300 3750 50  0001 C CNN
+	1    5300 3750
 	-1   0    0    1   
 $EndComp
-Text Label 5100 3400 2    60   ~ 0
+Text Label 5200 2950 2    60   ~ 0
 I2C_SDA
-Text Label 2350 3300 0    60   ~ 0
+Text Label 3100 2850 0    60   ~ 0
 UART_RX3
-Text Label 2400 3900 0    60   ~ 0
+Text Label 3150 3450 0    60   ~ 0
 UART_TX3
-Text Label 2350 3400 0    60   ~ 0
+Text Label 3100 2950 0    60   ~ 0
 I2C_SCL
 $Comp
 L bcl4v2-rescue:VCC #PWR036
 U 1 1 5BD71F2F
-P 2300 4200
-F 0 "#PWR036" H 2300 4050 50  0001 C CNN
-F 1 "VCC" H 2300 4350 50  0000 C CNN
-F 2 "" H 2300 4200 50  0001 C CNN
-F 3 "" H 2300 4200 50  0001 C CNN
-	1    2300 4200
+P 3050 3750
+F 0 "#PWR036" H 3050 3600 50  0001 C CNN
+F 1 "VCC" H 3050 3900 50  0000 C CNN
+F 2 "" H 3050 3750 50  0001 C CNN
+F 3 "" H 3050 3750 50  0001 C CNN
+	1    3050 3750
 	1    0    0    1   
 $EndComp
-Text Label 3000 3800 0    60   ~ 0
+Text Label 3150 3350 0    60   ~ 0
 I2C_SDA
 $Comp
 L bcl4v2-rescue:Conn_01x05 J9
 U 1 1 5BD71F36
-P 5600 3900
-F 0 "J9" H 5600 4200 50  0000 C CNN
-F 1 "Conn_01x05" H 5600 3600 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 5600 3900 50  0001 C CNN
-F 3 "" H 5600 3900 50  0001 C CNN
-	1    5600 3900
+P 5600 3450
+F 0 "J9" H 5600 3750 50  0000 C CNN
+F 1 "Conn_01x05" H 5600 3150 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 5600 3450 50  0001 C CNN
+F 3 "" H 5600 3450 50  0001 C CNN
+	1    5600 3450
 	1    0    0    1   
 $EndComp
 $Comp
 L bcl4v2-rescue:Conn_01x05 J8
 U 1 1 5BD71F3D
-P 5600 3300
-F 0 "J8" H 5600 3600 50  0000 C CNN
-F 1 "Conn_01x05" H 5600 3000 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 5600 3300 50  0001 C CNN
-F 3 "" H 5600 3300 50  0001 C CNN
-	1    5600 3300
+P 5600 2850
+F 0 "J8" H 5600 3150 50  0000 C CNN
+F 1 "Conn_01x05" H 5600 2550 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 5600 2850 50  0001 C CNN
+F 3 "" H 5600 2850 50  0001 C CNN
+	1    5600 2850
 	1    0    0    -1  
 $EndComp
 $Comp
 L bcl4v2-rescue:Conn_01x05 J6
 U 1 1 5BD71F44
-P 2000 3900
-F 0 "J6" H 2000 4200 50  0000 C CNN
-F 1 "Conn_01x05" H 2000 3600 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 2000 3900 50  0001 C CNN
-F 3 "" H 2000 3900 50  0001 C CNN
-	1    2000 3900
+P 2750 3450
+F 0 "J6" H 2750 3750 50  0000 C CNN
+F 1 "Conn_01x05" H 2750 3150 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 2750 3450 50  0001 C CNN
+F 3 "" H 2750 3450 50  0001 C CNN
+	1    2750 3450
 	-1   0    0    1   
 $EndComp
 $Comp
 L bcl4v2-rescue:Conn_01x05 J7
 U 1 1 5BD71F4B
-P 2000 3300
-F 0 "J7" H 2000 3600 50  0000 C CNN
-F 1 "Conn_01x05" H 2000 3000 50  0000 C CNN
-F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 2000 3300 50  0001 C CNN
-F 3 "" H 2000 3300 50  0001 C CNN
-	1    2000 3300
+P 2750 2850
+F 0 "J7" H 2750 3150 50  0000 C CNN
+F 1 "Conn_01x05" H 2750 2550 50  0000 C CNN
+F 2 "kicad_libraries_new:badger_Pin_Hdr_1x05_2.54mm_handsolder" H 2750 2850 50  0001 C CNN
+F 3 "" H 2750 2850 50  0001 C CNN
+	1    2750 2850
 	-1   0    0    -1  
 $EndComp
-Text Label 4500 3500 2    60   ~ 0
+Text Label 5050 3050 2    60   ~ 0
 IN0P
-Text Label 3000 3700 0    60   ~ 0
+Text Label 3150 3250 0    60   ~ 0
 IN1P
-Text Label 2450 3500 0    60   ~ 0
+Text Label 3200 3050 0    60   ~ 0
 IN3
-Text Label 5200 3700 2    60   ~ 0
+Text Label 5000 3250 2    60   ~ 0
 IN2
 $Comp
 L bcl4v2-rescue:GND #PWR037
 U 1 1 5BD71F73
-P 5350 3050
-F 0 "#PWR037" H 5350 2800 50  0001 C CNN
-F 1 "GND" H 5350 2900 50  0000 C CNN
-F 2 "" H 5350 3050 50  0001 C CNN
-F 3 "" H 5350 3050 50  0001 C CNN
-	1    5350 3050
+P 5350 2600
+F 0 "#PWR037" H 5350 2350 50  0001 C CNN
+F 1 "GND" H 5350 2450 50  0000 C CNN
+F 2 "" H 5350 2600 50  0001 C CNN
+F 3 "" H 5350 2600 50  0001 C CNN
+	1    5350 2600
 	-1   0    0    1   
 $EndComp
 $Comp
 L bcl4v2-rescue:GND #PWR038
 U 1 1 5BD71F79
-P 2250 3050
-F 0 "#PWR038" H 2250 2800 50  0001 C CNN
-F 1 "GND" H 2250 2900 50  0000 C CNN
-F 2 "" H 2250 3050 50  0001 C CNN
-F 3 "" H 2250 3050 50  0001 C CNN
-	1    2250 3050
+P 3000 2600
+F 0 "#PWR038" H 3000 2350 50  0001 C CNN
+F 1 "GND" H 3000 2450 50  0000 C CNN
+F 2 "" H 3000 2600 50  0001 C CNN
+F 3 "" H 3000 2600 50  0001 C CNN
+	1    3000 2600
 	1    0    0    1   
 $EndComp
 $Comp
@@ -295,24 +295,24 @@ SWCLK
 $Comp
 L bcl4v2-rescue:USB_OTG J3
 U 1 1 5BD73B46
-P 8400 1650
-F 0 "J3" H 8200 2100 50  0000 L CNN
-F 1 "USB_OTG" H 8200 2000 50  0000 L CNN
-F 2 "Connect:USB_Micro-B" H 8550 1600 50  0001 C CNN
-F 3 "" H 8550 1600 50  0001 C CNN
-	1    8400 1650
+P 9300 1900
+F 0 "J3" H 9100 2350 50  0000 L CNN
+F 1 "USB_OTG" H 9100 2250 50  0000 L CNN
+F 2 "Connect:USB_Micro-B" H 9450 1850 50  0001 C CNN
+F 3 "" H 9450 1850 50  0001 C CNN
+	1    9300 1900
 	1    0    0    -1  
 $EndComp
-NoConn ~ 8700 1850
+NoConn ~ 9600 2100
 $Comp
 L bcl4v2-rescue:+5V #PWR039
 U 1 1 5BD73B57
-P 9100 1400
-F 0 "#PWR039" H 9100 1250 50  0001 C CNN
-F 1 "+5V" H 9100 1540 50  0000 C CNN
-F 2 "" H 9100 1400 50  0001 C CNN
-F 3 "" H 9100 1400 50  0001 C CNN
-	1    9100 1400
+P 9650 1650
+F 0 "#PWR039" H 9650 1500 50  0001 C CNN
+F 1 "+5V" H 9650 1790 50  0000 C CNN
+F 2 "" H 9650 1650 50  0001 C CNN
+F 3 "" H 9650 1650 50  0001 C CNN
+	1    9650 1650
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -364,12 +364,12 @@ $EndComp
 $Comp
 L bcl4v2-rescue:GND #PWR042
 U 1 1 5BD73B89
-P 8400 2150
-F 0 "#PWR042" H 8400 1900 50  0001 C CNN
-F 1 "GND" H 8400 2000 50  0000 C CNN
-F 2 "" H 8400 2150 50  0001 C CNN
-F 3 "" H 8400 2150 50  0001 C CNN
-	1    8400 2150
+P 9300 2400
+F 0 "#PWR042" H 9300 2150 50  0001 C CNN
+F 1 "GND" H 9300 2250 50  0000 C CNN
+F 2 "" H 9300 2400 50  0001 C CNN
+F 3 "" H 9300 2400 50  0001 C CNN
+	1    9300 2400
 	1    0    0    -1  
 $EndComp
 Text HLabel 1600 6100 0    60   Input ~ 0
@@ -392,9 +392,9 @@ Text HLabel 5400 6350 0    60   Input ~ 0
 I2C_SDA
 Text HLabel 5400 6200 0    60   Input ~ 0
 I2C_SCL
-Text HLabel 10200 1750 2    60   Input ~ 0
+Text HLabel 9800 2000 2    60   Input ~ 0
 USB_D-
-Text HLabel 10200 1650 2    60   Input ~ 0
+Text HLabel 9800 1900 2    60   Input ~ 0
 USB_D+
 Text HLabel 3700 6150 0    60   Input ~ 0
 BTN0
@@ -416,52 +416,6 @@ Text HLabel 9850 4000 2    60   Input ~ 0
 SWCLK
 Text HLabel 9850 3300 2    60   Input ~ 0
 BOOT0
-$Comp
-L bcl4v2-rescue:+5V #PWR043
-U 1 1 5BDD7179
-P 5900 1750
-F 0 "#PWR043" H 5900 1600 50  0001 C CNN
-F 1 "+5V" H 5900 1890 50  0000 C CNN
-F 2 "" H 5900 1750 50  0001 C CNN
-F 3 "" H 5900 1750 50  0001 C CNN
-	1    5900 1750
-	1    0    0    -1  
-$EndComp
-$Comp
-L bcl4v2-rescue:VCC #PWR044
-U 1 1 5BDD717F
-P 5400 1750
-F 0 "#PWR044" H 5400 1600 50  0001 C CNN
-F 1 "VCC" H 5400 1900 50  0000 C CNN
-F 2 "" H 5400 1750 50  0001 C CNN
-F 3 "" H 5400 1750 50  0001 C CNN
-	1    5400 1750
-	1    0    0    -1  
-$EndComp
-$Comp
-L bcl4v2-rescue:Q_PMOS_GSD Q2
-U 1 1 5BDD7457
-P 5650 1950
-F 0 "Q2" V 5600 2100 50  0000 L CNN
-F 1 "IRLML6402" V 5550 1450 50  0000 L CNN
-F 2 "kicad_libraries_new:badger_SOT-23_handsolder" H 5850 2050 50  0001 C CNN
-F 3 "" H 5650 1950 50  0001 C CNN
-	1    5650 1950
-	0    -1   -1   0   
-$EndComp
-$Comp
-L bcl4v2-rescue:GND #PWR045
-U 1 1 5BDD7A19
-P 5650 2250
-F 0 "#PWR045" H 5650 2000 50  0001 C CNN
-F 1 "GND" H 5650 2100 50  0000 C CNN
-F 2 "" H 5650 2250 50  0001 C CNN
-F 3 "" H 5650 2250 50  0001 C CNN
-	1    5650 2250
-	1    0    0    -1  
-$EndComp
-Text Notes 4400 1400 0    60   ~ 0
-The P-MOSFET is protection against wrong polarity of input.\nBut only in case that no power is applied to the USB.\nThe P-MOSFET allows to powers the rail from the USB as well,\nbut once open by the USB power, there is no protection at all.
 Text Label 1650 6850 0    60   ~ 0
 UART_RX3
 Text Label 1650 6700 0    60   ~ 0
@@ -495,97 +449,71 @@ I2C_SCL
 Text Label 5450 6350 0    60   ~ 0
 I2C_SDA
 Wire Wire Line
-	3850 2100 3850 2650
+	4250 1950 4250 2500
 Wire Wire Line
-	4050 2100 4050 2650
+	4450 1950 4450 2500
 Wire Wire Line
-	4250 2100 4250 2150
+	4650 1950 4650 2000
 Wire Wire Line
-	3250 2100 3250 2150
-Connection ~ 4250 2150
+	3650 1950 3650 2000
+Connection ~ 4650 2000
 Wire Wire Line
-	4150 2200 4150 2100
+	4550 2050 4550 1950
 Wire Wire Line
-	3000 2200 3350 2200
+	3400 2050 3750 2050
 Wire Wire Line
-	3350 2100 3350 2200
-Connection ~ 3350 2200
+	3750 1950 3750 2050
+Connection ~ 3750 2050
 Wire Wire Line
-	3450 2100 3450 2650
+	3850 1950 3850 2500
 Wire Wire Line
-	3650 3700 3650 2100
+	4450 4400 4450 3850
 Wire Wire Line
-	3950 2100 3950 3400
+	4650 4400 4650 4350
 Wire Wire Line
-	3550 2100 3550 3800
+	3650 4350 4550 4350
 Wire Wire Line
-	3850 3500 3850 5150
+	3650 4400 3650 4350
+Connection ~ 4650 4350
 Wire Wire Line
-	4050 5150 4050 4600
+	4550 4300 4550 4350
 Wire Wire Line
-	4250 5150 4250 5100
+	3750 4400 3750 4300
+Connection ~ 3750 4300
 Wire Wire Line
-	3250 5100 4250 5100
+	3850 4400 3850 3850
 Wire Wire Line
-	3250 5150 3250 5100
-Connection ~ 4250 5100
+	4050 4400 4050 3850
 Wire Wire Line
-	4150 5050 4150 5150
+	5400 2650 5350 2650
 Wire Wire Line
-	3350 5150 3350 5050
-Connection ~ 3350 5050
+	5400 3650 5350 3650
 Wire Wire Line
-	3450 5150 3450 4600
+	5300 2750 5400 2750
 Wire Wire Line
-	3650 5150 3650 4600
+	5300 3750 5300 3550
 Wire Wire Line
-	3850 3500 5400 3500
+	5400 3550 5300 3550
 Wire Wire Line
-	4650 3300 5400 3300
+	2950 3050 3500 3050
 Wire Wire Line
-	5400 3100 5350 3100
+	2950 2850 3500 2850
 Wire Wire Line
-	5350 4100 5350 3100
+	2950 2650 3000 2650
 Wire Wire Line
-	5400 4100 5350 4100
-Connection ~ 5350 3100
+	3000 3650 3000 2650
 Wire Wire Line
-	5300 3200 5400 3200
+	2950 3650 3000 3650
+Connection ~ 3000 2650
 Wire Wire Line
-	5300 4200 5300 4000
+	3050 2750 2950 2750
 Wire Wire Line
-	5400 4000 5300 4000
-Connection ~ 5300 4000
+	3050 3750 3050 3550
 Wire Wire Line
-	4700 3900 5400 3900
+	2950 3550 3050 3550
+Connection ~ 3050 3550
 Wire Wire Line
-	4600 3700 5400 3700
-Wire Wire Line
-	2200 3500 2750 3500
-Wire Wire Line
-	2200 3300 2750 3300
-Wire Wire Line
-	2200 3100 2250 3100
-Wire Wire Line
-	2250 4100 2250 3100
-Wire Wire Line
-	2200 4100 2250 4100
-Connection ~ 2250 3100
-Wire Wire Line
-	2300 3200 2200 3200
-Wire Wire Line
-	2300 4200 2300 4000
-Wire Wire Line
-	2200 4000 2300 4000
-Connection ~ 2300 4000
-Wire Wire Line
-	2200 3900 2750 3900
-Wire Wire Line
-	2200 3700 3650 3700
-Wire Wire Line
-	2200 3800 3550 3800
-Wire Wire Line
-	2200 3400 3750 3400
+	2950 3450 3500 3450
 Wire Wire Line
 	9450 3900 9850 3900
 Wire Wire Line
@@ -597,32 +525,18 @@ Wire Wire Line
 Wire Wire Line
 	9450 3800 9850 3800
 Wire Wire Line
-	8300 2050 8300 2100
+	9200 2300 9200 2350
 Wire Wire Line
-	8300 2100 8400 2100
+	9200 2350 9300 2350
 Wire Wire Line
-	8400 2050 8400 2100
-Connection ~ 8400 2100
-Wire Wire Line
-	8700 1450 9100 1450
-Wire Wire Line
-	9100 1450 9100 1400
+	9300 2300 9300 2350
+Connection ~ 9300 2350
 Wire Wire Line
 	9500 3300 9850 3300
 Wire Wire Line
 	9500 3200 9600 3200
 Wire Wire Line
 	9600 3200 9600 3100
-Wire Wire Line
-	5650 2150 5650 2250
-Wire Wire Line
-	5900 1850 5850 1850
-Wire Wire Line
-	5400 1850 5450 1850
-Wire Wire Line
-	5900 1750 5900 1850
-Wire Wire Line
-	5400 1750 5400 1850
 Wire Wire Line
 	1600 6100 2100 6100
 Wire Wire Line
@@ -655,110 +569,157 @@ Wire Wire Line
 	5400 6200 5850 6200
 Wire Wire Line
 	5400 6350 5850 6350
-Connection ~ 3950 3400
-Connection ~ 3550 3800
 Wire Wire Line
-	3000 2000 3000 2200
+	3400 1850 3400 2050
 Wire Wire Line
-	3250 2150 4250 2150
+	3650 2000 4650 2000
 Wire Wire Line
-	3200 4950 3200 5050
+	3600 4200 3600 4300
 Wire Wire Line
-	3200 5050 3350 5050
+	3600 4300 3750 4300
 Wire Wire Line
-	4550 5100 4550 5250
+	4850 4350 4850 4500
 Wire Wire Line
-	4250 2150 4250 2250
+	4650 2000 4650 2100
 Wire Wire Line
-	3350 2200 4150 2200
+	3750 2050 4550 2050
 Wire Wire Line
-	4250 5100 4550 5100
+	4550 4350 4650 4350
 Wire Wire Line
-	3350 5050 4150 5050
+	3750 4300 4550 4300
 Wire Wire Line
-	5350 3100 5350 3050
+	5350 2650 5350 2600
 Wire Wire Line
-	5300 4000 5300 3200
+	3000 2650 3000 2600
 Wire Wire Line
-	2250 3100 2250 3050
+	3050 3550 3050 2750
 Wire Wire Line
-	2300 4000 2300 3200
-Wire Wire Line
-	8400 2100 8400 2150
-Wire Wire Line
-	5400 3400 4200 3400
-Wire Wire Line
-	4200 3400 4200 3800
-Wire Wire Line
-	4200 3800 3950 3800
-Wire Wire Line
-	3950 3400 4150 3400
-Wire Wire Line
-	4150 3400 4150 3750
-Wire Wire Line
-	4150 3750 4350 3750
-Wire Wire Line
-	4350 3750 4350 3800
-Wire Wire Line
-	4350 3800 5400 3800
-Wire Wire Line
-	3950 3800 3950 5150
-Connection ~ 3950 3800
-Wire Wire Line
-	3950 3800 3550 3800
-Wire Wire Line
-	3550 5150 3550 4050
-Wire Wire Line
-	3550 4050 3750 4050
-Wire Wire Line
-	3750 4050 3750 3400
-Connection ~ 3750 3400
-Wire Wire Line
-	3750 3400 3950 3400
+	9300 2350 9300 2400
 $Comp
 L Connector:TestPoint TP4
 U 1 1 5C7F78D4
-P 9800 1200
-F 0 "TP4" H 9858 1320 50  0000 L CNN
-F 1 "TestPoint" H 9858 1229 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 10000 1200 50  0001 C CNN
-F 3 "~" H 10000 1200 50  0001 C CNN
-	1    9800 1200
+P 8000 5300
+F 0 "TP4" H 8058 5420 50  0000 L CNN
+F 1 "TestPoint" H 8058 5329 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 8200 5300 50  0001 C CNN
+F 3 "~" H 8200 5300 50  0001 C CNN
+	1    8000 5300
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	8300 2100 7750 2100
-Wire Wire Line
-	7750 2100 7750 1950
-Connection ~ 8300 2100
-Wire Wire Line
-	9300 1400 9300 1450
-Wire Wire Line
-	9300 1450 9100 1450
-Connection ~ 9100 1450
-Wire Wire Line
-	8700 1650 10050 1650
-Wire Wire Line
-	8700 1750 9800 1750
-Wire Wire Line
-	9800 1200 9800 1750
-Connection ~ 9800 1750
-Wire Wire Line
-	9800 1750 10200 1750
-Wire Wire Line
-	10050 1450 10050 1650
-Connection ~ 10050 1650
-Wire Wire Line
-	10050 1650 10200 1650
 $Comp
 L Connector:TestPoint TP5
 U 1 1 5C7F782D
-P 10050 1450
-F 0 "TP5" H 10108 1570 50  0000 L CNN
-F 1 "TestPoint" H 10108 1479 50  0000 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 10250 1450 50  0001 C CNN
-F 3 "~" H 10250 1450 50  0001 C CNN
-	1    10050 1450
+P 8100 5500
+F 0 "TP5" H 8158 5620 50  0000 L CNN
+F 1 "TestPoint" H 8158 5529 50  0000 L CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 8300 5500 50  0001 C CNN
+F 3 "~" H 8300 5500 50  0001 C CNN
+	1    8100 5500
 	1    0    0    -1  
 $EndComp
+Text Label 9650 1900 0    60   ~ 0
+D+
+Text Label 9650 2000 0    60   ~ 0
+D-
+Text Label 8150 5650 0    60   ~ 0
+D+
+Text Label 8150 5750 0    60   ~ 0
+D-
+Wire Wire Line
+	8100 5500 8100 5650
+Wire Wire Line
+	8100 5650 8300 5650
+Wire Wire Line
+	8000 5300 8000 5750
+Wire Wire Line
+	8000 5750 8300 5750
+Wire Wire Line
+	9650 1650 9650 1700
+Wire Wire Line
+	9650 1700 9600 1700
+Wire Wire Line
+	9600 2000 9800 2000
+Wire Wire Line
+	9600 1900 9800 1900
+Wire Wire Line
+	5400 2850 4750 2850
+Wire Wire Line
+	4750 3250 5400 3250
+Connection ~ 5350 2650
+Wire Wire Line
+	5350 3650 5350 2650
+Connection ~ 5300 3550
+Wire Wire Line
+	5300 2750 5300 3550
+Wire Wire Line
+	4750 3450 5400 3450
+Wire Wire Line
+	3950 2950 4350 2950
+Wire Wire Line
+	3950 1950 3950 2950
+Wire Wire Line
+	3950 3350 3950 2950
+Wire Wire Line
+	2950 3350 3950 3350
+Connection ~ 3950 2950
+Wire Wire Line
+	4350 3350 3950 3350
+Wire Wire Line
+	4350 3350 4350 4400
+Connection ~ 3950 3350
+Wire Wire Line
+	4350 3350 4350 2950
+Connection ~ 4350 3350
+Wire Wire Line
+	3950 3400 4000 3400
+Wire Wire Line
+	4000 3400 4000 3300
+Wire Wire Line
+	3950 3400 3950 4400
+Wire Wire Line
+	4400 3350 4400 3300
+Wire Wire Line
+	4000 3300 4300 3300
+Wire Wire Line
+	4300 3300 4300 3000
+Wire Wire Line
+	4300 3000 4000 3000
+Connection ~ 4300 3300
+Wire Wire Line
+	4300 3300 4400 3300
+Wire Wire Line
+	4000 3000 4000 3300
+Connection ~ 4000 3300
+Wire Wire Line
+	4000 3000 3900 3000
+Wire Wire Line
+	3900 3000 3900 2950
+Wire Wire Line
+	2950 2950 3900 2950
+Connection ~ 4000 3000
+Wire Wire Line
+	4300 3000 4300 2900
+Wire Wire Line
+	4300 2900 4350 2900
+Wire Wire Line
+	4350 1950 4350 2900
+Connection ~ 4300 3000
+Wire Wire Line
+	4250 3050 4250 4400
+Wire Wire Line
+	4050 1950 4050 3250
+Wire Wire Line
+	2950 3250 4050 3250
+Connection ~ 4550 4350
+Wire Wire Line
+	4550 4350 4550 4400
+Wire Wire Line
+	4650 4350 4850 4350
+Wire Wire Line
+	5400 3050 4250 3050
+Wire Wire Line
+	5400 2950 4350 2950
+Connection ~ 4350 2950
+Wire Wire Line
+	4400 3350 5400 3350
 $EndSCHEMATC

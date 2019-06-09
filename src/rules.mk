@@ -24,7 +24,7 @@
 ###############################################################################
 # Executables
 
-TGT_PREFIX		?= arm-none-eabi
+TGT_PREFIX		?= $(ARM_NONE_EABI_DIR)/arm-none-eabi
 
 TGT_CC		:= $(TGT_PREFIX)-gcc
 TGT_CXX		:= $(TGT_PREFIX)-g++
