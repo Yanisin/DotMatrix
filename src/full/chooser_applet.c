@@ -5,6 +5,7 @@
 #include "topo.h"
 #include "console.h"
 #include "buttons.h"
+#include "i2c.h"
 
 #define MSG_SHOW_APPLET MSG_USER_ID(0)
 struct msg_show_applet {
@@ -32,10 +33,11 @@ static void chooser_master_update(void) {
 		msg.selected = msg.applet == selected;
 		if (topo_cell_count == 1)
 			msg.selected = false;
+
 		if (i == topo_my_id)
 			chooser_show(&msg);
 		else
-			send_routed_msg(false, MSG_SHOW_APPLET, MSG_ROUTE_UNICAST, sizeof(msg), &msg);
+			i2c_send(msg.cell_id, MSG_SHOW_APPLET, sizeof(msg), &msg);
 	}
 }
 
@@ -68,7 +70,7 @@ static void read_messages(void)
 	msg_header hdr;
 	buf_ptr data;
 
-	while (msg_rx_queue_get(usart_default_queue, &hdr, &data, TIME_IMMEDIATE)) {
+	while (msg_rx_queue_get(default_queue, &hdr, &data, TIME_IMMEDIATE)) {
 		if (hdr.id == MSG_SHOW_APPLET) {
 			struct msg_show_applet msg;
 			buf_ptr_read(&data, 0, sizeof(msg), &msg);
@@ -80,14 +82,14 @@ static void read_messages(void)
 			activity = true;
 			chooser_cycle();
 		}
-		msg_rx_queue_ack(usart_default_queue);
+		msg_rx_queue_ack(default_queue);
 	}
 }
 
 static void chooser_run(void)
 {
 	event_listener_t usart_events;
-	chEvtRegister(&usart_default_queue->event, &usart_events, 0);
+	chEvtRegister(&default_queue->event, &usart_events, 0);
 	event_listener_t applet_end;
 	chEvtRegister(&applet_should_end_event, &applet_end, 1);
 	event_listener_t buttons;
@@ -111,16 +113,22 @@ static void chooser_run(void)
 		}
 		if ((evt & EVENT_MASK(2)) && button_get_any_events(&button_event_mask, TIME_IMMEDIATE)) {
 			if (button_event_mask & BTN_EV_UP) {
-				send_routed_msg(true, MSG_CYCLE, MSG_ROUTE_MASTER, 0, NULL);
+				if (topo_is_master)
+					chooser_cycle();
+				else
+					i2c_send(MASTER_CELL_ID, MSG_CYCLE, 0, NULL);
 			}
 			if (button_event_mask & BTN_EV_HOLD) {
-				send_routed_msg(true, MSG_SELECT, MSG_ROUTE_MASTER, 0, NULL);
+				if (topo_is_master)
+					chooser_select();
+				else
+					i2c_send(MASTER_CELL_ID, MSG_SELECT, 0, NULL);
 			}
 		}
 		evt = chEvtWaitAnyTimeout(wait, activity ? TIME_INFINITE : TIME_S2I(5));
 	}
 
-	chEvtUnregister(&usart_default_queue->event, &usart_events);
+	chEvtUnregister(&default_queue->event, &usart_events);
 	chEvtUnregister(&applet_should_end_event, &applet_end);
 	chEvtUnregister(&button_events_ready, &buttons);
 }

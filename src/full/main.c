@@ -10,11 +10,11 @@
 #include "cdcacm.h"
 #include "led.h"
 #include "console.h"
-#include "common_gpio.h"
 #include "topo.h"
 #include "message_queue.h"
 #include "mgmt_proto.h"
 #include "icons.h"
+#include "i2c.h"
 
 #ifdef SIM
 #include "sim/main.h"
@@ -72,7 +72,7 @@ static void mgmt_task(void *p)
 	while (1) {
 		msg_header hdr;
 		buf_ptr data;
-		if (msg_rx_queue_get(usart_mgmt_queue, &hdr, &data, TIME_INFINITE)) {
+		if (msg_rx_queue_get(mgmt_queue, &hdr, &data, TIME_INFINITE)) {
 			switch (hdr.id) {
 				case MGMT_BL_START:
 					handle_bl_start();
@@ -85,17 +85,14 @@ static void mgmt_task(void *p)
 					handle_change_applet(&data);
 					break;
 			}
-			msg_rx_queue_ack(usart_mgmt_queue);
+			msg_rx_queue_ack(mgmt_queue);
 		}
 	}
 }
 
 static void main_task(void)
 {
-	led_init();
 	disp_init();
-	rand_init();
-	common_gpio_init();
 	led_on();
 
 	draw_icon(smiley, BLIT_SET);
@@ -105,13 +102,17 @@ static void main_task(void)
 
 	console_puts("Starting...\n");
 	topo_run();
+	/* I2C needs the topology */
+	i2c_init();
 
-	if (topo_is_master)
-		chThdSleep(TIME_MS2I(50));
 
 	applet_select_local(&chooser_applet);
 
 	while (1) {
+		if (topo_is_master) {
+			/* Give others some time to start the applet */
+			chThdSleep(TIME_MS2I(20));
+		}
 		applet_should_end = false;
 		applet_current()->run();
 		if (!applet_should_end) {

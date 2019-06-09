@@ -6,8 +6,13 @@
 #include <stdint.h>
 #include <ch.h>
 
+struct msg_header_str;
+struct msg_rx_queue_str;
+
 struct applet {
 	void (*run)(void);
+	struct msg_rx_queue_str *(*dispatch_msg)(const struct msg_header_str *h);
+
 	const uint8_t icon[8];
 	int priority;
 };

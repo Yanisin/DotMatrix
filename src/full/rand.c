@@ -5,6 +5,7 @@
 #endif
 #include "rand.h"
 #include "cell_id.h"
+#include "applet.h"
 
 static uint32_t random[1];
 
@@ -20,6 +21,7 @@ void rand_init(void)
 	random[0] = STK_CVR;
 #endif
 }
+init_add(rand_init);
 
 static uint32_t xorshift32(uint32_t state[static 1])
 {

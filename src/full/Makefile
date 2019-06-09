@@ -15,11 +15,11 @@ TGT_MODS = \
 	disp disp_spi \
 	cdcacm \
 	console \
-	common_gpio \
 	spi_dma \
 	cell_id \
 	buttons_hw \
-	board
+	board \
+	i2c
 
 SIM_MODS = \
 	sim/chibi/chcore \
@@ -29,7 +29,7 @@ SIM_MODS = \
 	sim/led \
 	sim/disp \
 	sim/console \
-	sim/common_gpio
+	sim/i2c
 
 MODS += \
 	rand \

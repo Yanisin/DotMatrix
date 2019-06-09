@@ -35,6 +35,7 @@
 #include "byte_queue.h"
 #include "applet.h"
 #include "console.h"
+#include "util.h"
 
 /* ---------------- Macro Definition --------------- */
 #define USART_COUNT 4
@@ -71,30 +72,12 @@ static struct usart {
 } usarts[USART_COUNT];
 
 /* ---------------- Global Variables --------------- */
-msg_rx_queue *usart_default_queue;
-msg_rx_queue *usart_mgmt_queue;
-msg_rx_queue *usart_route_queue;
 
 /* ---------------- Local Functions --------------- */
 
-static msg_rx_queue* usart_msg_dispatcher(const msg_header *msg);
+#ifndef SIM
 static enum direction usart_to_direction(uint8_t usart);
-
-/* Should be smbus crc8 from U-boot */
-static void crc8(uint32_t *crc, uint8_t value)
-{
-	*crc ^= (value << 8);
-	for (int i = 8; i; i--) {
-		if (*crc & 0x8000)
-			*crc ^= (0x1070 << 3);
-		*crc <<= 1;
-	}
-}
-
-static uint8_t crc8_get(const uint32_t* crc)
-{
-	return (*crc >> 8) & 0xff;
-}
+#endif
 
 static void usart_header_buffered(struct usart *usart)
 {
@@ -102,7 +85,7 @@ static void usart_header_buffered(struct usart *usart)
 	usart->parsed_msg.flags = (usart->rx_msg.id_flags & USART_ROUTE_MASK) >> USART_ROUTE_SHIFT;
 	usart->parsed_msg.length = usart->rx_msg.len;
 	usart->parsed_msg.id = usart->rx_msg.id_flags & MSG_FULL_ID_MASK;
-	usart->rx_queue = usart_msg_dispatcher(&usart->parsed_msg);
+	usart->rx_queue = msg_dispatcher(&usart->parsed_msg);
 	if (usart->rx_queue) {
 		bool reserved;
 		chSysLockFromISR();
@@ -133,17 +116,20 @@ static void usart_handle_char(struct usart *usart, uint8_t c)
 {
 	usart->rx_bytes++;
 	if (usart->rx_bytes <= sizeof(usart_msg)) {
+		/* get header */
 		crc8(&usart->crc_state, c);
 		usart->rx_header_buf[usart->rx_bytes - 1] = c;
 		if (usart->rx_bytes == sizeof(usart_msg)) {
 			usart_header_buffered(usart);
 		}
 	} else if (usart->rx_bytes <= sizeof(usart_msg) + usart->parsed_msg.length) {
+		/* get data */
 		if (usart->skip_message)
 			return;
 		crc8(&usart->crc_state, c);
 		*buf_ptr_index(&usart->rx_buf, usart->rx_bytes - 1 - sizeof(usart_msg)) = c;
 	} else if (usart->rx_bytes == sizeof (usart_msg) + usart->parsed_msg.length + 1) {
+		/* check CRC and finish */
 		bool crc_ok = crc8_get(&usart->crc_state) == c;
 		if (usart->skip_message) {
 			usart_start_new_msg(usart);
@@ -274,18 +260,6 @@ void usart3_4_isr(void)
 	CH_IRQ_EPILOGUE();
 }
 #endif
-
-static msg_rx_queue* usart_msg_dispatcher(const msg_header *hdr)
-{
-	if (hdr->id & MSG_ID_FLAG_MGMT) {
-		return usart_mgmt_queue;
-	} else if ((hdr->flags & MSG_ROUTE_MASK) != MSG_ROUTE_NEIGHBOR) {
-		return usart_route_queue;
-	} else {
-		return usart_default_queue;
-	}
-}
-
 /* ---------------- Global Functions --------------- */
 
 static void usart_send_msg_header(struct usart *usart, uint8_t id, uint8_t flags, uint8_t length, uint32_t *crc)
@@ -361,14 +335,6 @@ static enum direction usart_to_direction(uint8_t usart)
 
 static void usart_init(void)
 {
-	usart_route_queue = msg_rx_queue_alloc(NULL, 6);
-#ifdef SIM
-	usart_default_queue = msg_rx_queue_alloc(NULL, 10);
-#else
-	usart_default_queue = msg_rx_queue_alloc(NULL, 6);
-#endif
-	usart_mgmt_queue = msg_rx_queue_alloc(NULL, 5);
-
 	usart_setup(0);
 	usart_setup(1);
 	usart_setup(2);

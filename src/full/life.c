@@ -10,8 +10,9 @@
 #include "usart_buffered.h"
 #include "console.h"
 #include "led.h"
-#include "common_gpio.h"
 #include "icons.h"
+#include "topo.h"
+#include "i2c.h"
 #include <ch.h>
 
 #define BOARD_HEIGHT 8
@@ -37,6 +38,11 @@ static int life_unchanged;
  * Someone wants to update the tick rate.
  */
 #define MSG_TYPE_TICK MSG_USER_ID(1)
+
+/**
+ * Master synchronizes the tick rate
+ */
+#define MSG_TYPE_SYNC MSG_USER_ID(3)
 
 #if MONOCHROME
 #define LIFE_CELL(i, j) (31)
@@ -150,7 +156,7 @@ static bool receive_msg(void)
 	msg_header hdr;
 	buf_ptr data;
 	//console_printf("msg id=%d, len=%d from %d\n", hdr->id, hdr->length, edge);
-	if (!msg_rx_queue_get(usart_default_queue, &hdr, &data, TIME_IMMEDIATE))
+	if (!msg_rx_queue_get(default_queue, &hdr, &data, TIME_IMMEDIATE))
 		return false;
 
 	switch (hdr.id) {
@@ -167,7 +173,7 @@ static bool receive_msg(void)
 			}
 		}; break;
 	}
-	msg_rx_queue_ack(usart_default_queue);
+	msg_rx_queue_ack(default_queue);
 	return true;
 }
 
@@ -284,26 +290,21 @@ static void life_tick(void)
 static void life_worker(void)
 {
 	led_toggle();
-	/* 1) Synchronize using GPIO */
-	/* release the idle signal */
-	common_gpio_set(true);
-
-	/* if somebody else holds it down, wait */
-	if(!common_gpio_wait_for(true, TIME_S2I(5))) {
-		chSysHalt("Game of life synchronization failed");
+	/* 2) Wait for next tick */
+	if (topo_is_master) {
+		chThdSleep(life_tick_interv);
+		i2c_broadcast(MSG_TYPE_SYNC, 0, NULL);
+	} else {
+		msg_header hdr;
+		buf_ptr ptr;
+		msg_rx_queue_get(alt_queue, &hdr, &ptr, TIME_S2I(1));
+		msg_rx_queue_ack(alt_queue);
 	}
-
 	/* wait a bit to make sure everybody got it */
 	chThdSleep(TIME_MS2I(2));
-	/* set idle signal again */
-	common_gpio_set(false);
 
 
-	/* 2) Send edges and wait for next tick */
-	transmit_edges();
-	chThdSleep(life_tick_interv);
-
-	/* 3) Check everything that might have happened (messages, console) */
+	/* 2) Check everything that might have happened (messages, console) */
 	while (receive_msg())
 		;
 	int c = console_getc();
@@ -345,6 +346,10 @@ static void life_worker(void)
 		life_generation = 0;
 		board_clean();
 	}
+
+	/* 3) Send updates */
+	transmit_edges();
+
 }
 
 static void life_run(void)
@@ -355,15 +360,23 @@ static void life_run(void)
 
 	memset(board, 0, sizeof(board));
 	rand_init();
-	common_gpio_set(false);
 
 	while(!applet_should_end) {
 		life_worker();
 	}
 }
 
+static msg_rx_queue* life_msg(const msg_header *msg)
+{
+	if(msg->id == MSG_TYPE_SYNC)
+		return alt_queue;
+	else
+		return default_queue;
+}
+
 static const struct applet life_applet = {
 	.run = life_run,
+	.dispatch_msg = life_msg,
 	.priority = 100,
 	.icon = {
 		ICON_ROW(0, 0, 0, 0, 0, 1, 0, 0),

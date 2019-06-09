@@ -23,10 +23,6 @@ typedef struct usart_header_str {
 	uint8_t available;
 } usart_header;
 
-extern msg_rx_queue *usart_default_queue;
-extern msg_rx_queue *usart_mgmt_queue;
-extern msg_rx_queue *usart_route_queue;
-
 void usart_send_msg(uint8_t u, uint8_t id, uint8_t flags, uint8_t length, const void *data);
 void usart_send_msg_buf(uint8_t u, uint8_t id, uint8_t flags, uint8_t length, const buf_ptr *src);
 

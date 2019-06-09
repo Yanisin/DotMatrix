@@ -5,6 +5,7 @@
 
 #include "led.h"
 #include "hw_defs.h"
+#include "applet.h"
 
 #ifndef SIM
 void led_init(void)
@@ -16,6 +17,7 @@ void led_init(void)
 	/* Using API functions: */
 	gpio_mode_setup(LED_PORT, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, LED_PIN);
 }
+init_add(led_init);
 
 void led_on(void)
 {

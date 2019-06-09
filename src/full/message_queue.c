@@ -3,10 +3,16 @@
 #include <assert.h>
 #include "console.h"
 #include "pollint.h"
+#include "applet.h"
 
 #define FIELD_LENGTH 0
 #define FIELD_FLAGS 1
 #define GUARD_MAGIC 0x3CFE
+
+msg_rx_queue *default_queue;
+msg_rx_queue *alt_queue;
+msg_rx_queue *mgmt_queue;
+msg_rx_queue *usart_route_queue;
 
 void msg_rx_queue_init(msg_rx_queue *queue, uint8_t size_bits, void *buffer)
 {
@@ -129,11 +135,16 @@ bool msg_rx_queue_get(
 		poll_int();
 		if (!msg_rx_queue_get_raw(queue, header_out, buf_ptr_out, ctimeout))
 			return false;
-		sysinterval_t elapsed = chVTTimeElapsedSinceX(start);
-		if (elapsed >= timeout)
-			ctimeout = TIME_IMMEDIATE;
-		else
-			ctimeout = timeout - elapsed;
+
+		if (timeout == TIME_INFINITE) {
+			ctimeout = TIME_INFINITE;
+		} else {
+			sysinterval_t elapsed = chVTTimeElapsedSinceX(start);
+			if (elapsed >= timeout)
+				ctimeout = TIME_IMMEDIATE;
+			else
+				ctimeout = timeout - elapsed;
+		}
 		if (header_out->flags & MSG_INVALID)
 			msg_rx_queue_ack(queue);
 	} while(header_out->flags & MSG_INVALID);
@@ -201,3 +212,31 @@ void msg_rx_queue_rejectI(msg_rx_queue *queue, const buf_ptr *b)
 	queue->buffer[mod_bits16(queue->size_bits, header + FIELD_FLAGS)] |= MSG_INVALID;
 	msg_rx_queue_commitI(queue, b);
 }
+
+msg_rx_queue* msg_dispatcher(const msg_header *hdr)
+{
+	if (hdr->id & MSG_ID_FLAG_MGMT) {
+		return mgmt_queue;
+	} else if ((hdr->flags & MSG_ROUTE_MASK) != MSG_ROUTE_NEIGHBOR) {
+		if (hdr->source == MSG_SOURCE_I2C) {
+			console_printf("routed message over i2c");
+			return NULL;
+		} else {
+			return usart_route_queue;
+		}
+	} else {
+		const struct applet * a = applet_current();
+		if (a && a->dispatch_msg)
+			return a->dispatch_msg(hdr);
+		else
+			return default_queue;
+	}
+}
+
+static void init_default_queues(void) {
+	default_queue = msg_rx_queue_alloc(NULL, 7);
+	alt_queue = msg_rx_queue_alloc(NULL, 7);
+	usart_route_queue = msg_rx_queue_alloc(NULL, 6);
+	mgmt_queue = msg_rx_queue_alloc(NULL, 5);
+}
+init_add(init_default_queues);

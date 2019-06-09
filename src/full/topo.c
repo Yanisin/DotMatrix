@@ -163,9 +163,9 @@ void topo_run(void)
 		}
 
 		timeout = (next_event < now) ? TIME_IMMEDIATE : (next_event - now);
-		if(msg_rx_queue_get(usart_default_queue, &msg, &data, timeout)) {
+		if(msg_rx_queue_get(default_queue, &msg, &data, timeout)) {
 			topo_dispatch(&msg, &data);
-			msg_rx_queue_ack(usart_default_queue);
+			msg_rx_queue_ack(default_queue);
 		}
 
 		if (state == ANNOUNCE_CHILDREN && check_announcements_end()) {
@@ -300,7 +300,7 @@ static void announce_children(void)
 #ifdef TRACE
 	console_printf("Announcing %u children\n", topo_cell_count);
 #endif
-	for(size_t i = 0; i < topo_cell_count; i++) {
+	for(size_t i = 1; i < topo_cell_count; i++) {
 		cell_info *c = &topo_cells[i];
 		vector2 pos = pos_tx(c->pos, topo_master_direction);
 		msg.x = pos.x;
@@ -466,9 +466,9 @@ void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)
 		buf_ptr buf2;
 		hdr->flags &= ~MSG_ROUTE_MASK;
 		/* TODO: dispatch to correct queue */
-		if(msg_rx_queue_reserveI(usart_default_queue, hdr, &buf2)) {
+		if(msg_rx_queue_reserveI(default_queue, hdr, &buf2)) {
 			buf_ptr_copy(&buf2, 0, buf, 0, hdr->length);
-			msg_rx_queue_commitI(usart_default_queue, &buf2);
+			msg_rx_queue_commitI(default_queue, &buf2);
 		}
 		chSchRescheduleS();
 		chSysUnlock();

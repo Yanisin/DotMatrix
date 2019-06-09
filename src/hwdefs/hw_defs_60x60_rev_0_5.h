@@ -16,16 +16,16 @@
 /**************************************
  *	Buttons Definitions
  **************************************/
-#define BTN0_RCC RCC_GPIOA 
+#define BTN0_RCC RCC_GPIOA
 #define BTN0_PORT GPIOA
 #define BTN0_PIN GPIO6
 #define BTN0_EXTI EXTI6
-#define BTN0_IRQ NVIC_EXTI4_15_IRQ
+#define BTN_IRQ NVIC_EXTI4_15_IRQ
 
-#define BTN1_RCC RCC_GPIOA 
+#define BTN1_RCC RCC_GPIOA
 #define BTN1_PORT GPIOA
 #define BTN1_PIN GPIO7
-#define BTN1_EXTI NVIC_EXTI4_15_IRQ
+#define BTN1_EXTI EXTI7
 
 /**************************************
  *	Display Definitions

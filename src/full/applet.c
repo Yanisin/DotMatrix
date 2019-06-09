@@ -3,6 +3,7 @@
 #include "mgmt_proto.h"
 #include <assert.h>
 #include "util.h"
+#include "i2c.h"
 
 extern const struct applet *__applet_array_start;
 extern const struct applet *__applet_array_end;
@@ -37,7 +38,7 @@ void applet_select(uint8_t applet)
 	msg.applet = applet;
 
 	applet_select_local(applet_get(applet));
-	send_routed_msg(false, MGMT_CHANGE_APPLET, MSG_ROUTE_BROADCAST, sizeof(msg), &msg);
+	i2c_broadcast(MGMT_CHANGE_APPLET, sizeof(msg), &msg);
 }
 
 size_t applet_count(void)

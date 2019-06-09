@@ -110,6 +110,15 @@ typedef struct buf_ptr_str {
 	qsize_t ptr;
 } buf_ptr;
 
+
+extern msg_rx_queue *default_queue;
+/** If an applet wishes to receive messages on this queue, it must enable it manually */
+extern msg_rx_queue *alt_queue;
+
+extern msg_rx_queue *mgmt_queue;
+extern msg_rx_queue *usart_route_queue;
+msg_rx_queue* msg_dispatcher(const msg_header *hdr);
+
 static inline qsize_t mod_bits16(uint8_t bits, qsize_t x)
 {
 	qsize_t mask = (1 << bits) - 1;
