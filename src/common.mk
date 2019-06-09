@@ -149,7 +149,7 @@ prg_usb:
 
 else
 prg_bl: $(TGT_RESULT).bin
-	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08002000:131072
+	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08004000:131072
 # program using our prebooter (DDFU)
 prg_usb: $(TGT_RESULT).bin
 	

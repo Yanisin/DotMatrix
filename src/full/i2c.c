@@ -8,6 +8,7 @@
 #include "topo.h"
 #include "util.h"
 #include "console.h"
+#include "hw_defs.h"
 #include <assert.h>
 
 /* Does not need to hold the whole message */
@@ -34,21 +35,21 @@ static const struct i2c_defs buses[2] = {
 {
 	.base = I2C1,
 	.rcc_clk = RCC_I2C1,
-	.gpio_port = GPIOB,
-	.gpio_rcc_clk = RCC_GPIOB,
-	.gpio_scl = GPIO9,
-	.gpio_sda = GPIO8,
+	.gpio_port = I2C1_GPIO_PORT,
+	.gpio_rcc_clk = I2C1_GPIO_RCC,
+	.gpio_scl = I2C1_GPIO_SCL,
+	.gpio_sda = I2C1_GPIO_SDA,
 	.gpio_af = GPIO_AF1,
 	.irq = NVIC_I2C1_IRQ
 },
 {
 	.base = I2C2,
 	.rcc_clk = RCC_I2C2,
-	.gpio_port = GPIOB,
-	.gpio_rcc_clk = RCC_GPIOB,
-	.gpio_scl = GPIO13,
-	.gpio_sda = GPIO14,
-	.gpio_af = GPIO_AF5,
+	.gpio_port = I2C2_GPIO_PORT,
+	.gpio_rcc_clk = I2C2_GPIO_RCC,
+	.gpio_scl = I2C2_GPIO_SCL,
+	.gpio_sda = I2C2_GPIO_SDA,
+	.gpio_af = I2C2_GPIO_AF,
 	.irq = NVIC_I2C2_IRQ
 },
 };

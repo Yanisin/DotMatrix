@@ -102,8 +102,8 @@ int main(void)
 	gpio_setup();
 	k=1;
 
-		gpio_clear(DISP_nOE_ROW_GPIO,DISP_nOE_ROW_GPIO);
-		gpio_clear(DISP_nOE_COL_GPIO,DISP_nOE_COL_GPIO);
+		gpio_clear(DISP_nOE_ROW_GPIO, DISP_nOE_ROW_GPIO_PIN);
+		gpio_clear(DISP_nOE_COL_GPIO, DISP_nOE_COL_GPIO_PIN);
 	/* Blink the LED (PC8) on the board. */
 	while (1) {
 		/* Manually: */

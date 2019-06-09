@@ -28,6 +28,22 @@
 #define BTN1_EXTI EXTI7
 
 /**************************************
+ *	I2C Definitions
+ **************************************/
+
+#define I2C1_GPIO_PORT GPIOB
+#define I2C1_GPIO_RCC RCC_GPIOB
+#define I2C1_GPIO_SCL GPIO9
+#define I2C1_GPIO_SDA GPIO8
+#define I2C1_GPIO_AF GPIO_AF1
+
+#define I2C2_GPIO_PORT GPIOB
+#define I2C2_GPIO_RCC RCC_I2C2
+#define I2C2_GPIO_SCL GPIO13
+#define I2C2_GPIO_SDA GPIO14
+#define I2C2_GPIO_AF GPIO_AF5
+
+/**************************************
  *	Display Definitions
  **************************************/
 

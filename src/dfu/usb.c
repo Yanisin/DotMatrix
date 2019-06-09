@@ -135,7 +135,7 @@ dfu_ctrl(
 	if ((req->bmRequestType & 0x7F) != 0x21)
 			return 0; /* Only accept class request. */
 
-	enter_dfu();
+	dfu_activated = true;
 	switch (req->bRequest) {
 	case DFU_DNLOAD:
 		if ((len == NULL) || (*len == 0)) {
@@ -186,6 +186,7 @@ dfu_ctrl(
 static void dfu_set_config(usbd_device *usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
+	master = true;
 	usbd_register_control_callback(
 		usbd_dev,
 		USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
@@ -208,6 +209,5 @@ void usb_run(void) {
 
 void usb_teardown(void)
 {
-	usbd_disconnect(dfu_usbd_dev, true);
 	rcc_periph_clock_disable(RCC_USB);
 }
