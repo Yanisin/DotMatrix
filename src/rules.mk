@@ -24,16 +24,16 @@
 ###############################################################################
 # Executables
 
-TGT_PREFIX		?= $(ARM_NONE_EABI_DIR)/arm-none-eabi
+TGT_PREFIX		?= arm-none-eabi-
 
-TGT_CC		:= $(TGT_PREFIX)-gcc
-TGT_CXX		:= $(TGT_PREFIX)-g++
-TGT_LD		:= $(TGT_PREFIX)-gcc
-TGT_AR		:= $(TGT_PREFIX)-ar
-TGT_AS		:= $(TGT_PREFIX)-as
-TGT_OBJCOPY		:= $(TGT_PREFIX)-objcopy
-TGT_OBJDUMP		:= $(TGT_PREFIX)-objdump
-TGT_GDB		:= $(TGT_PREFIX)-gdb
+TGT_CC		:= $(TGT_PREFIX)gcc
+TGT_CXX		:= $(TGT_PREFIX)g++
+TGT_LD		:= $(TGT_PREFIX)gcc
+TGT_AR		:= $(TGT_PREFIX)ar
+TGT_AS		:= $(TGT_PREFIX)as
+TGT_OBJCOPY		:= $(TGT_PREFIX)objcopy
+TGT_OBJDUMP		:= $(TGT_PREFIX)objdump
+TGT_GDB		:= $(TGT_PREFIX)gdb
 STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
