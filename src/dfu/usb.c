@@ -226,8 +226,3 @@ void usb_init(void) {
 void usb_run(void) {
 	usbd_poll(dfu_usbd_dev);
 }
-
-void usb_teardown(void)
-{
-	rcc_periph_clock_disable(RCC_USB);
-}

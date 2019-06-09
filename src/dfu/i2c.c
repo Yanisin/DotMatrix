@@ -200,13 +200,3 @@ void i2c_init(bool crossover, bool master)
 	i2c_peripheral_enable(bus->base);
 	nvic_enable_irq(bus->irq);
 }
-
-void i2c_teardown(void)
-{
-	i2c_reset(I2C1);
-	i2c_reset(I2C2);
-	gpio_mode_setup(I2C1_GPIO_PORT,
-		GPIO_MODE_INPUT, GPIO_PUPD_NONE, I2C1_GPIO_SCL | I2C1_GPIO_SDA);
-	gpio_mode_setup(I2C1_GPIO_PORT,
-		GPIO_MODE_INPUT, GPIO_PUPD_NONE, I2C2_GPIO_SCL | I2C2_GPIO_SDA);
-}

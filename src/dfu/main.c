@@ -127,14 +127,34 @@ void continue_boot(void)
 	if (main_mode == MODE_MASTER)
 		i2c_send_release();
 
-	usb_teardown();
+	uint32_t wait = tick_count + 5;
+	while (wait < tick_count)
+		;
+
 	ticker_teardown();
-	i2c_teardown();
+	rcc_periph_reset_pulse(RST_USART1);
+	rcc_periph_reset_pulse(RST_USART2);
+	rcc_periph_reset_pulse(RST_USART3);
+	rcc_periph_reset_pulse(RST_USART4);
+	rcc_periph_reset_pulse(RST_USB);
+	rcc_periph_reset_pulse(RST_I2C1);
+	rcc_periph_reset_pulse(RST_I2C2);
+	rcc_periph_reset_pulse(RST_GPIOA);
+	rcc_periph_reset_pulse(RST_GPIOB);
+	rcc_periph_reset_pulse(RST_GPIOC);
+	rcc_periph_reset_pulse(RST_GPIOD);
+	rcc_periph_reset_pulse(RST_GPIOE);
+
 	rcc_periph_clock_disable(DISP_GPIOS_RCC);
 	rcc_periph_clock_disable(I2C1_GPIO_RCC);
 	rcc_periph_clock_disable(I2C2_GPIO_RCC);
+	rcc_periph_clock_disable(RCC_USB);
 	rcc_periph_clock_disable(RCC_I2C1);
 	rcc_periph_clock_disable(RCC_I2C2);
+	rcc_periph_clock_disable(RCC_USART1);
+	rcc_periph_clock_disable(RCC_USART2);
+	rcc_periph_clock_disable(RCC_USART3);
+	rcc_periph_clock_disable(RCC_USART4);
 	rcc_periph_clock_disable(LED_RCC);
 
 
@@ -184,7 +204,7 @@ int main(void) {
 		if (serviced_tick == QUIET_PHASE_END) {
 			init_i2c_line_detect();
 			if (main_mode != MODE_MASTER) {
-				usb_teardown();
+				rcc_periph_reset_pulse(RST_USB);
 				usb_enabled = false;
 			}
 		}

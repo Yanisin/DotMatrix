@@ -4,7 +4,6 @@
 #include <stdint.h>
 
 void i2c_init(bool crossover, bool master);
-void i2c_teardown(void);
 bool i2c_poll(void);
 void i2c_send_release(void);
 
