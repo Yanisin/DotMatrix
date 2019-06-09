@@ -42,6 +42,7 @@
 #define TX_BUF_SIZE 16
 #define USART_ROUTE_SHIFT 6
 #define USART_ROUTE_MASK (0x3 << USART_ROUTE_SHIFT)
+#define USART_RTOR_RESYNC TIME_MS2I(5)
 
 typedef struct usart_msg {
 	uint8_t len;
@@ -65,7 +66,9 @@ static struct usart {
 	};
 	uint32_t crc_state;
 	uint8_t rx_bytes;
+	bool rx_garbage;
 
+	virtual_timer_t tx_timeout;
 	mutex_t tx_mutex;
 	output_queue_t tx_queue;
 	uint8_t tx_buf[TX_BUF_SIZE];
@@ -78,6 +81,21 @@ static struct usart {
 #ifndef SIM
 static enum direction usart_to_direction(uint8_t usart);
 #endif
+
+static void usart_resync(void *usartg)
+{
+	struct usart *usart = usartg;
+	/* There is small race condition where USART can be reactivated during the
+	 * resync. FIXME */
+	usart->rx_garbage = false;
+}
+
+static void usart_problemI(struct usart *usart)
+{
+	usart->rx_garbage = true;
+	/* We can not use RTOR since not all the USARts have it */
+	chVTSetI(&usart->tx_timeout, USART_RTOR_RESYNC, usart_resync, usart);
+}
 
 static void usart_header_buffered(struct usart *usart)
 {
@@ -140,6 +158,7 @@ static void usart_handle_char(struct usart *usart, uint8_t c)
 			msg_rx_queue_commitI(usart->rx_queue, &usart->rx_buf);
 		} else {
 			msg_rx_queue_rejectI(usart->rx_queue, &usart->rx_buf);
+			usart_problemI(usart);
 		}
 		chSysUnlockFromISR();
 		usart_start_new_msg(usart);
@@ -215,14 +234,29 @@ static void usart_setup_hw(
 static void usart_isr_common(int usart_idx)
 {
 	struct usart *usart = &usarts[usart_idx];
+	uint32_t isr = USART_ISR(usart->reg_base);
 
-	if (USART_ISR(usart->reg_base) & USART_ISR_RXNE) {
+	if (isr & USART_ISR_ORE) {
+		chSysLockFromISR();
+		usart_problemI(usart);
+		chSysUnlockFromISR();
+		USART_ICR(usart->reg_base) |= USART_ICR_ORECF;
+	}
+
+	if (isr & USART_ISR_RXNE) {
 		/* Read one byte from the receive data register */
-		usart_handle_char(usart, usart_recv(usart->reg_base));
+		uint8_t c = usart_recv(usart->reg_base);
+		if (!usart->rx_garbage) {
+			usart_handle_char(usart, c);
+		} else {
+			chSysLockFromISR();
+			usart_problemI(usart);
+			chSysUnlockFromISR();
+		}
 
 	}
 
-	if (USART_ISR(usart->reg_base) & USART_ISR_TXE) {
+	if (isr & USART_ISR_TXE) {
 		msg_t qchar;
 		chSysLockFromISR();
 		qchar = oqGetI(&usart->tx_queue);

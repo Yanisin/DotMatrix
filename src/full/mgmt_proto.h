@@ -2,7 +2,6 @@
 #define MGMT_MSG_H
 
 #include <stdint.h>
-#ifndef DDFU
 #include "cell_id.h"
 #include "usart_buffered.h"
 
@@ -15,7 +14,6 @@ struct mgmt_bl_start {
  */
 #define MGMT_INTERRTUP MSG_MGMT_ID(1)
 struct mgmt_interrupt {};
-#endif
 /*
  * Request all cells to change the current applet
  */
