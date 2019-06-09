@@ -3,6 +3,9 @@
 
 #include "stdint.h"
 #include "vector.h"
+#include "ch.h"
+
+extern thread_t *display_test;
 
 extern void disp_init(void);
 extern void disp_clean(void);

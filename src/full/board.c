@@ -8,6 +8,7 @@
 #include "console.h"
 #include "ch.h"
 #include "icons.h"
+#include "disp.h"
 
 void board_init(void)
 {
@@ -22,9 +23,11 @@ void board_init(void)
 
 void board_halt(const char*msg)
 {
+	/* TODO: terminate display test if in progress */
 	console_printf("halt: %s\n", msg);
-	draw_icon(smiley_sad, BLIT_SET);
 	__asm volatile("bkpt #0\n");
+	draw_icon(smiley_sad, BLIT_SET);
+	chThdTerminate(display_test);
 	chThdSleep(TIME_INFINITE);
 }
 

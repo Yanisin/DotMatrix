@@ -45,6 +45,7 @@ int main(void)
 
 extern const struct applet chooser_applet;
 static THD_WORKING_AREA(mgmt_thread_area, 128);
+static THD_WORKING_AREA(disp_test_thread_area, 128);
 
 static void handle_bl_start(void)
 {
@@ -90,18 +91,56 @@ static void mgmt_task(void *p)
 	}
 }
 
+#define DISP_TEST_DLY TIME_MS2I(100)
+static void disp_test_task(void *p)
+{
+	(void)p;
+
+	disp_clean();
+	int i;
+	for (i=0 ;i<4;i++) {
+		if (chThdShouldTerminateX())
+			return;
+		disp_set(i,i, 31);
+		chThdSleep(DISP_TEST_DLY);
+		if(i>0){
+			disp_set(i-1,i-1, 0);
+		}
+
+		disp_set(i,7-i, 31);
+		chThdSleep(DISP_TEST_DLY);
+		if(i>0) {
+			disp_set(i-1,7-i+1, 0);
+		}
+
+		disp_set(7-i,7-i, 31);
+		chThdSleep(DISP_TEST_DLY);
+		if (i>0) {
+			disp_set(7-i+1,7-i+1, 0);
+		}
+
+		disp_set(7-i,i, 31);
+		chThdSleep(DISP_TEST_DLY);
+		if (i>0) {
+			disp_set(7-i+1,i-1, 0);
+		}
+	}
+}
+
 static void main_task(void)
 {
 	disp_init();
 	led_on();
 
-	draw_icon(smiley, BLIT_SET);
 	run_all_initializers();
 	thread_t *thr = chThdCreateStatic(mgmt_thread_area, sizeof(mgmt_thread_area), NORMALPRIO + 2, mgmt_task, NULL);
 	thr->name = "mgmt";
+	display_test = chThdCreateStatic(disp_test_thread_area, sizeof(disp_test_thread_area), NORMALPRIO, disp_test_task, NULL);
+	display_test->name = "disp";
 
 	console_puts("Starting...\n");
 	topo_run();
+	chThdWait(display_test);
 	/* I2C needs the topology */
 	i2c_init();
 

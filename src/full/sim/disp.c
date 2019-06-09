@@ -10,6 +10,7 @@
 
 static uint8_t disp_state[DISP_ROWS_NUM][DISP_COLS_NUM];
 static int disp_rotation;
+thread_t *display_test;
 
 static inline vector2 rot(int col, int row)
 {

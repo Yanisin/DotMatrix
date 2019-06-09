@@ -26,6 +26,7 @@ static const uint8_t gamma18_lut[COLOR_DEPTH] = {
 static uint8_t disp_state[DISP_ROWS_NUM][DISP_COLS_NUM];
 static uint16_t disp_row_dmabuf[DISP_ROWS_NUM][DMA_ROW_LEN];
 static int disp_rotation;
+thread_t *display_test;
 
 static inline vector2 rot(int col, int row)
 {
