@@ -56,9 +56,10 @@ static union {
 } rx_msg;
 uint8_t tx_buf[130];
 static size_t tx_bytes;
-static size_t tx_size;
 static bool nack;
 static volatile bool tx_running;
+/* For debugging */
+uint8_t page_mask[128];
 
 static void i2c_handle_byte(uint8_t c)
 {
@@ -123,7 +124,6 @@ bool i2c_poll(void)
 
 		I2C_ICR(b) |= I2C_ICR_STOPCF;
 		if (nack || rx_bytes == 0) {
-			__asm__ ("bkpt");
 			return false;
 		}
 
@@ -134,11 +134,11 @@ bool i2c_poll(void)
 		} else if (rx_cmd == MSG_FLASH && rx_bytes == sizeof(msg_flash)) {
 			crc_reset();
 			if (crc_calculate_block((uint32_t*)page_data, PAGE_SIZE) != rx_msg.flash.crc) {
-				__asm__ ("bkpt");
 				return false;
 			} else {
 				rx_data = page_data;
 				page_number = rx_msg.flash.page;
+				page_mask[page_number] = true;
 				handle_page();
 			}
 		}

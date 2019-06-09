@@ -57,7 +57,6 @@ static void chooser_cycle(void)
 static void chooser_show(struct msg_show_applet *msg)
 {
 	const struct applet *a;
-	activity = true;
 	console_printf("showing %d\n", msg->applet);
 	if (msg->applet >= applet_count()) {
 		disp_clean();

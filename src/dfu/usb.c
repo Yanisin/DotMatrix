@@ -17,9 +17,7 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 static uint8_t usbd_control_buffer[DFU_TRANSFER_SIZE];
-static int pending_page_number;
 static bool handle_page_called;
-static uint8_t pending_page_data[PAGE_SIZE];
 
 static const char * const usb_strings[] = {
 	"DotMatrix", // iManufacturer
@@ -93,7 +91,7 @@ static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout)
 {
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
-		if (ready_to_flash) {
+		if (ready_to_flash && handle_page_called) {
 			handle_page_called = false;
 			usbdfu_state = STATE_DFU_DNLOAD_IDLE;
 		} else {
@@ -122,8 +120,6 @@ static void usbdfu_getstatus_complete(usbd_device *usbd_dev, struct usb_setup_da
 	case STATE_DFU_DNBUSY:
 		if (ready_to_flash) {
 			if (!handle_page_called) {
-				memcpy(page_data, pending_page_data, PAGE_SIZE);
-				page_number = pending_page_number;
 				handle_page_called = true;
 				handle_page();
 			}
@@ -132,7 +128,9 @@ static void usbdfu_getstatus_complete(usbd_device *usbd_dev, struct usb_setup_da
 		}
 		return;
 	case STATE_DFU_MANIFEST:
-		continue_boot();
+		if (ready_to_flash) {
+			continue_boot();
+		}
 		return; /* Will never return. */
 	default:
 		return;
@@ -157,6 +155,8 @@ dfu_ctrl(
 	dfu_activated = true;
 	switch (req->bRequest) {
 	case DFU_DNLOAD:
+		if (usbdfu_state != STATE_DFU_IDLE && usbdfu_state != STATE_DFU_DNLOAD_IDLE)
+			return USBD_REQ_NOTSUPP;
 		if ((len == NULL) || (*len == 0)) {
 			usbdfu_state = STATE_DFU_MANIFEST_SYNC;
 			return 1;
@@ -165,8 +165,8 @@ dfu_ctrl(
 				usbdfu_state = STATE_DFU_ERROR;
 			} else {
 				/* Copy download data for use on GET_STATUS. */
-				pending_page_number = req->wValue;
-				memcpy(pending_page_data, *buf, PAGE_SIZE);
+				page_number = req->wValue;
+				memcpy(page_data, *buf, PAGE_SIZE);
 				ready_to_flash = false;
 				usbdfu_state = STATE_DFU_DNLOAD_SYNC;
 			}
