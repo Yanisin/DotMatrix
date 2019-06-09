@@ -48,6 +48,7 @@ static void chooser_select(void)
 
 static void chooser_cycle(void)
 {
+	activity = true;
 	selected += 1;
 	selected %= applet_count();
 	chooser_master_update();
@@ -56,6 +57,7 @@ static void chooser_cycle(void)
 static void chooser_show(struct msg_show_applet *msg)
 {
 	const struct applet *a;
+	activity = true;
 	console_printf("showing %d\n", msg->applet);
 	if (msg->applet >= applet_count()) {
 		disp_clean();
@@ -76,10 +78,8 @@ static void read_messages(void)
 			buf_ptr_read(&data, 0, sizeof(msg), &msg);
 			chooser_show(&msg);
 		} else if (hdr.id == MSG_SELECT) {
-			activity = true;
 			chooser_select();
 		} else if (hdr.id == MSG_CYCLE) {
-			activity = true;
 			chooser_cycle();
 		}
 		msg_rx_queue_ack(default_queue);
