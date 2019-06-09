@@ -17,6 +17,10 @@
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 static uint8_t usbd_control_buffer[DFU_TRANSFER_SIZE];
+static int pending_page_number;
+static bool handle_page_called;
+static uint8_t pending_page_data[PAGE_SIZE];
+
 static const char * const usb_strings[] = {
 	"DotMatrix", // iManufacturer
 	"Distributed DFU", // iProduct
@@ -88,9 +92,17 @@ static const struct usb_config_descriptor desc_config = {
 static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout)
 {
 	switch (usbdfu_state) {
+	case STATE_DFU_DNBUSY:
+		if (ready_to_flash) {
+			handle_page_called = false;
+			usbdfu_state = STATE_DFU_DNLOAD_IDLE;
+		} else {
+			*bwPollTimeout = 10;
+		}
+		return DFU_STATUS_OK;
 	case STATE_DFU_DNLOAD_SYNC:
 		usbdfu_state = STATE_DFU_DNBUSY;
-		*bwPollTimeout = 100;
+		*bwPollTimeout = 10;
 		return DFU_STATUS_OK;
 	case STATE_DFU_MANIFEST_SYNC:
 		/* Device will reset when read is complete. */
@@ -108,9 +120,16 @@ static void usbdfu_getstatus_complete(usbd_device *usbd_dev, struct usb_setup_da
 
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
-		handle_page();
-		/* Jump straight to dfuDNLOAD-IDLE, skipping dfuDNLOAD-SYNC. */
-		usbdfu_state = STATE_DFU_DNLOAD_IDLE;
+		if (ready_to_flash) {
+			if (!handle_page_called) {
+				memcpy(page_data, pending_page_data, PAGE_SIZE);
+				page_number = pending_page_number;
+				handle_page_called = true;
+				handle_page();
+			}
+		} else {
+			/* remain in busy state */
+		}
 		return;
 	case STATE_DFU_MANIFEST:
 		continue_boot();
@@ -146,8 +165,9 @@ dfu_ctrl(
 				usbdfu_state = STATE_DFU_ERROR;
 			} else {
 				/* Copy download data for use on GET_STATUS. */
-				page_number = req->wValue;
-				memcpy(page_data, *buf, PAGE_SIZE);
+				pending_page_number = req->wValue;
+				memcpy(pending_page_data, *buf, PAGE_SIZE);
+				ready_to_flash = false;
 				usbdfu_state = STATE_DFU_DNLOAD_SYNC;
 			}
 			return 1;
@@ -186,7 +206,7 @@ dfu_ctrl(
 static void dfu_set_config(usbd_device *usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
-	master = true;
+	main_mode = MODE_MASTER;
 	usbd_register_control_callback(
 		usbd_dev,
 		USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,

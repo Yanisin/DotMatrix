@@ -1,4 +1,4 @@
-#include <libopencm3/stm32/rcc.h>
+﻿#include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/systick.h>
 #include <libopencm3/cm3/nvic.h>
@@ -14,44 +14,26 @@
 #include "disp.h"
 #include "i2c.h"
 #include "hw_defs.h"
+#include <libopencm3/stm32/crc.h>
+#include <stdlib.h>
 
 #define DFU_DEBUG
-
-/* During the quiet phase, we request others to reboot, but we do not broadcast on the i2c lines */
-#define QUIET_PHASE_END 400
-
-/* During this phase, everyone has pullup on the SDA and SCL lines.
- * Master drives the SCL line low, which allows the others to sense the SDA/SCL lines.
- * Master is the cell that was enumerated over USB.
- */
-#define LINE_DETECT_SAMPLE 1000
-#define LINE_DETECT_PHASE_END 1600
-/* During this phase, I2C is activated on master. On slaves it is activated only if they detected
- * the SDA/SCL crossover.
- *
- * If this phase passes without the user starting a USB download, the master sends a release command
- * to everyone on the bus.
- */
-#define USB_WAIT_PHASE_END 2000
-
-#define LED_RCC RCC_GPIOC
-#define LED_PORT GPIOC
-#define LED_PIN GPIO13
-#define DISP_nOE_ROW_GPIO GPIOB
-#define DISP_nOE_COL_GPIO GPIOB
-#define DISP_nOE_ROW_GPIO_PIN GPIO2
-#define DISP_nOE_COL_GPIO_PIN GPIO4
 
 
 volatile uint32_t tick_count;
 static uint32_t serviced_tick;
 int page_number;
 uint8_t page_data[PAGE_SIZE] __attribute__ ((aligned (4)));
-static bool usb_disabled;
+static bool usb_enabled;
+static bool i2c_enabled;
 static int i2c_crossover;
-static bool standalone;
 bool dfu_activated;
-bool master;
+enum mode main_mode = MODE_STANDALONE;
+static bool flashing;
+bool ready_to_flash;
+static uint32_t next_page_time;
+static int current_i2c_packet = -1;
+
 
 struct vectors_header {
 	uint32_t stack;
@@ -86,9 +68,35 @@ static void ticker_teardown(void)
 	systick_counter_disable();
 }
 
+static void send_packet_i2c(void)
+{
+	tx_buf[0] = MSG_DATA;
+	memcpy(tx_buf + 1, page_data + current_i2c_packet * PAGE_PACKET_SIZE, PAGE_PACKET_SIZE);
+	i2c_tx_start(PAGE_PACKET_SIZE + 1);
+}
+
+static void send_flash_command(void)
+{
+	msg_flash* msg = (void*)tx_buf;
+	crc_reset();
+	msg->msgid = MSG_FLASH;
+	msg->crc = crc_calculate_block((uint32_t*)page_data, PAGE_SIZE);
+	msg->page = page_number;
+	i2c_tx_start(sizeof(*msg));
+}
+
 void handle_page(void)
 {
 	uintptr_t page = FLASH_BASE + PAGE_SIZE * (FLASH_RESERVED_PAGES + page_number);
+	/* Kick of i2c resend */
+	current_i2c_packet = 0;
+	ready_to_flash = false;
+
+	if (!flashing) {
+		flashing = true;
+		disp_show(icon_flash);
+	}
+
 	if (memcmp((void*)page, page_data, PAGE_SIZE) == 0)
 		return;
 	flash_unlock();
@@ -110,13 +118,13 @@ static void init_i2c_line_detect(void)
 		GPIO_OTYPE_OD, GPIO_OSPEED_LOW, I2C1_GPIO_SCL | I2C1_GPIO_SDA);
 	gpio_mode_setup(I2C1_GPIO_PORT,
 		GPIO_MODE_OUTPUT, GPIO_PUPD_PULLUP, I2C1_GPIO_SCL | I2C1_GPIO_SDA);
-	if (master)
+	if (main_mode == MODE_MASTER)
 		gpio_clear(I2C1_GPIO_PORT, I2C1_GPIO_SCL);
 }
 
 void continue_boot(void)
 {
-	if (master)
+	if (main_mode == MODE_MASTER)
 		i2c_send_release();
 
 	usb_teardown();
@@ -165,52 +173,85 @@ int main(void) {
 	disp_show(icon_wait);
 	usart_init();
 	usb_init();
-
 	usart_reset_neigbors();
+	ready_to_flash = false;
+	usb_enabled = true;
+	i2c_enabled = false;
 
 	/* Continue until time-out. If we are a slave or the user has started download,
 	 * there is not time-out */
-	while((tick_count < USB_WAIT_PHASE_END) || dfu_activated || !(standalone || master)) {
+	while((tick_count < USB_WAIT_PHASE_END) || dfu_activated || (main_mode == MODE_SLAVE)) {
 		if (serviced_tick == QUIET_PHASE_END) {
 			init_i2c_line_detect();
-			if (!master) {
+			if (main_mode != MODE_MASTER) {
 				usb_teardown();
-				usb_disabled = true;
+				usb_enabled = false;
 			}
 		}
 
-		if (serviced_tick == LINE_DETECT_SAMPLE && !master) {
+		if (serviced_tick == LINE_DETECT_SAMPLE && main_mode != MODE_MASTER) {
 			uint16_t lines = gpio_get(I2C1_GPIO_PORT, I2C1_GPIO_SCL | I2C1_GPIO_SDA);
 			if (lines == I2C1_GPIO_SCL) {
 				/* SDA driven low */
 				i2c_crossover = 1;
 				disp_show(icon_slave);
+				main_mode = MODE_SLAVE;
 			} else if (lines == I2C1_GPIO_SCL) {
 				/* SCL driven low */
 				i2c_crossover = 0;
 				disp_show(icon_slave);
+				main_mode = MODE_SLAVE;
 			} else {
 				/* don't know, assume everyone is dead */
-				standalone = true;
+				main_mode = MODE_STANDALONE;
 			}
 		}
 
-		if (serviced_tick == LINE_DETECT_PHASE_END) {
-			i2c_init(i2c_crossover);
+		if (serviced_tick > LINE_DETECT_SAMPLE && main_mode == MODE_SLAVE && !i2c_enabled) {
+			uint16_t lines = gpio_get(I2C1_GPIO_PORT, I2C1_GPIO_SCL | I2C1_GPIO_SDA);
+			if (lines == (I2C1_GPIO_SCL | I2C1_GPIO_SDA)) {
+				i2c_enabled = true;
+				i2c_init(i2c_crossover, false);
+			}
 		}
 
-		if (!usb_disabled)
+		if (serviced_tick == LINE_DETECT_PHASE_END && main_mode == MODE_MASTER) {
+			i2c_enabled = true;
+			i2c_init(i2c_crossover, true);
+		}
+
+		if (main_mode == MODE_MASTER && i2c_enabled && !i2c_tx_running()) {
+			if (current_i2c_packet == PAGE_SIZE/PAGE_PACKET_SIZE) {
+				current_i2c_packet = -1;
+				next_page_time = tick_count + PAGE_DELAY_TIME;
+				send_flash_command();
+			} else if (current_i2c_packet >= 0){
+				send_packet_i2c();
+				current_i2c_packet++;
+			}
+		}
+
+		/* Allow flashing if we do not have any unfinished i2c packets, are in appropriate phase,
+		 * and the next_page_time delat has note elapsed */
+		if (main_mode == MODE_MASTER
+		    && next_page_time < tick_count
+		    && current_i2c_packet == -1
+		    && serviced_tick > FLASHING_ALLOWED) {
+			ready_to_flash = true;
+		}
+
+		if (usb_enabled)
 			usb_run();
 
-		if (!(standalone || master) && serviced_tick > LINE_DETECT_PHASE_END) {
+		if (i2c_enabled) {
 			if (!i2c_poll()) {
 				disp_show(icon_flash_problem);
 			}
 		}
 
-		while (serviced_tick < tick_count) {
+		if (serviced_tick < tick_count) {
 			/* per-tick actions */
-			serviced_tick++;
+			serviced_tick = tick_count;
 			disp_tick();
 
 			/* Blink the LED */

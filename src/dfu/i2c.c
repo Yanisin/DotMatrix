@@ -2,9 +2,11 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/i2c.h>
+#include <libopencm3/stm32/crc.h>
 #include <libopencm3/cm3/nvic.h>
 #include "hw_defs.h"
 #include "main.h"
+#include "disp.h"
 #include "../full/util.h"
 
 #define ERR_MASK (I2C_ISR_ARLO | I2C_ISR_OVR | I2C_ISR_TIMEOUT | I2C_ISR_PECERR \
@@ -47,75 +49,121 @@ static const struct i2c_defs buses[2] = {
 static const struct i2c_defs *bus;
 static size_t rx_bytes;
 static uint8_t rx_cmd;
+static uint8_t *rx_data = page_data;
+static union {
+	msg_flash flash;
+	uint8_t data[10];
+} rx_msg;
+uint8_t tx_buf[130];
+static size_t tx_bytes;
+static size_t tx_size;
 static bool nack;
+static volatile bool tx_running;
+
+static void i2c_handle_byte(uint8_t c)
+{
+	if (rx_bytes == 0) {
+		rx_cmd = c;
+		if (rx_cmd != MSG_RELEASE && rx_cmd != MSG_DATA && rx_cmd != MSG_FLASH) {
+			nack = true;
+			rx_cmd = 0xFF;
+		}
+	} else {
+		if (rx_cmd == MSG_DATA && rx_data < page_data + PAGE_SIZE) {
+			*(rx_data++) = c;
+		} else if (rx_cmd == MSG_FLASH && rx_bytes < sizeof(msg_flash)) {
+			rx_msg.data[rx_bytes] = c;
+		} else {
+			nack = true;
+		}
+	}
+}
 
 bool i2c_poll(void)
 {
 	uint32_t b = bus->base;
 	uint32_t isr = I2C_ISR(b);
+	if (isr & I2C_CR1_ERRIE) {
+		return false;
+	}
+
+	if (isr & I2C_ISR_TXIS) {
+		I2C_TXDR(b) = tx_buf[tx_bytes++];
+	}
+
+	if (isr & I2C_ISR_STOPF) {
+		I2C_ICR(bus->base) |= I2C_ICR_STOPCF;
+		tx_running = false;
+	}
+
+	if(isr & I2C_ISR_NACKF) {
+		I2C_ICR(bus->base) |= I2C_ICR_NACKCF;
+		tx_running = false;
+	}
+
+	/* We can block on receive side for a long time, since our only communication
+	 * is the i2c bus */
 	if (isr & I2C_ISR_ADDR) {
 		rx_bytes = 0;
 		nack = false;
 		I2C_ICR(b) |= I2C_ICR_ADDRCF;
-	} else if (isr & I2C_ISR_RXNE) {
-		uint8_t c = I2C_RXDR(b);
-		if (rx_bytes == 0) {
-			rx_cmd = c;
-		} else {
-			nack = true;
+
+		while (1) {
+			while((I2C_ISR(b) & (I2C_ISR_RXNE | I2C_ISR_STOPF)) == 0)
+				;
+
+			if (I2C_ISR(b) & I2C_ISR_STOPF)
+				break;
+			i2c_handle_byte(I2C_RXDR(b));
+			rx_bytes++;
+			if (nack) {
+				I2C_CR2(b) |= I2C_CR2_NACK;
+			}
 		}
-	} else if (isr & I2C_ISR_STOPF) {
+
 		I2C_ICR(b) |= I2C_ICR_STOPCF;
-		if (nack)
+		if (nack || rx_bytes == 0) {
+			__asm__ ("bkpt");
 			return false;
-		if (rx_cmd == MSG_RELEASE)
+		}
+
+		if (rx_cmd == MSG_RELEASE) {
 			continue_boot();
-	} else if (isr & I2C_CR1_ERRIE) {
-		return false;
+		} else if (rx_cmd == MSG_DATA) {
+			/* everything done */
+		} else if (rx_cmd == MSG_FLASH && rx_bytes == sizeof(msg_flash)) {
+			crc_reset();
+			if (crc_calculate_block((uint32_t*)page_data, PAGE_SIZE) != rx_msg.flash.crc) {
+				__asm__ ("bkpt");
+				return false;
+			} else {
+				rx_data = page_data;
+				page_number = rx_msg.flash.page;
+				handle_page();
+			}
+		}
 	}
 	return true;
 }
 
-bool i2c_tx_wait(uint32_t tick_timeout)
+bool i2c_tx_running(void)
 {
-	while (!(I2C_ISR(bus->base) & I2C_ISR_STOPF)) {
-		if (tick_count > tick_timeout)
-			return false;
-	}
-	I2C_ICR(bus->base) |= I2C_ICR_STOPCF;
-	return true;
+	return tx_running;
 }
 
 void i2c_send_release(void)
 {
-	uint32_t timeout = tick_count + 10;
+	//uint32_t timeout = tick_count + 5;
+	tx_buf[0] = MSG_RELEASE;
 	i2c_tx_start(1);
-	i2c_tx_char(MSG_RELEASE, tick_count);
-	i2c_tx_wait(tick_count);
-	while (tick_count < timeout)
-		;
-}
-
-bool i2c_tx_char(uint8_t c, uint32_t tick_timeout)
-{
-	while (i2c_transmit_int_status(bus->base)) {
-		if (tick_count > tick_timeout)
-			return false;
-	}
-	i2c_send_data(bus->base, c);
-	return true;
-}
-
-bool i2c_tx_data(uint8_t size, const uint8_t* data,  uint32_t tick_timeout)
-{
-	for(uint8_t i = 0; i < size; i++)
-		if(!i2c_tx_char(data[i], tick_timeout))
-			return false;
-	return true;
+	while(i2c_tx_running())
+		i2c_poll();
 }
 
 void i2c_tx_start(uint8_t len)
 {
+	tx_bytes = 0;
+	tx_running = true;
 	i2c_set_7bit_address(bus->base, 0);
 	i2c_set_write_transfer_dir(bus->base);
 	i2c_set_bytes_to_transfer(bus->base, len);
@@ -123,11 +171,9 @@ void i2c_tx_start(uint8_t len)
 	i2c_send_start(bus->base);
 }
 
-void i2c_init(bool crossover)
+void i2c_init(bool crossover, bool master)
 {
 	bus = &buses[crossover];
-	rcc_periph_clock_enable(bus->rcc_clk);
-	rcc_periph_clock_enable(bus->gpio_rcc_clk);
 	rcc_set_i2c_clock_hsi(bus->base);
 	i2c_reset(bus->base);
 	uint8_t pupd = master ? GPIO_PUPD_PULLUP : GPIO_PUPD_NONE;
@@ -141,7 +187,7 @@ void i2c_init(bool crossover)
 	i2c_enable_analog_filter(bus->base);
 	i2c_set_digital_filter(bus->base, 0);
 	/* HSI is at 8Mhz */
-	i2c_set_speed(bus->base, i2c_speed_sm_100k, 8);
+	i2c_set_speed(bus->base, i2c_speed_fm_400k, 8);
 	//configure No-Stretch CR1 (only relevant in slave mode)
 	i2c_enable_stretching(bus->base);
 	// addressing mode
