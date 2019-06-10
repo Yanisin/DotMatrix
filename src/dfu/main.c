@@ -33,6 +33,7 @@ static bool flashing;
 bool ready_to_flash;
 static uint32_t next_page_time;
 static int current_i2c_packet = -1;
+static bool flash_now;
 
 
 struct vectors_header {
@@ -85,18 +86,8 @@ static void send_flash_command(void)
 	i2c_tx_start(sizeof(*msg));
 }
 
-void handle_page(void)
-{
+static void flash_page(void) {
 	uintptr_t page = FLASH_BASE + PAGE_SIZE * (FLASH_RESERVED_PAGES + page_number);
-	/* Kick of i2c resend */
-	current_i2c_packet = 0;
-	ready_to_flash = false;
-
-	if (!flashing) {
-		flashing = true;
-		disp_show(icon_flash);
-	}
-
 	if (memcmp((void*)page, page_data, PAGE_SIZE) == 0)
 		return;
 	flash_unlock();
@@ -108,6 +99,25 @@ void handle_page(void)
 	flash_lock();
 	if (*(uint32_t*) (FLASH_BASE + PAGE_SIZE * (FLASH_RESERVED_PAGES)) == 0xFFFFFFFF) {
 		panic();
+	}
+}
+
+void handle_page(void)
+{
+	ready_to_flash = false;
+	if (!flashing) {
+		flashing = true;
+		disp_show(icon_flash);
+	}
+
+	/* Kick of i2c resend */
+	if (main_mode == MODE_MASTER) {
+		current_i2c_packet = 0;
+	}
+
+	if (main_mode == MODE_STANDALONE || main_mode == MODE_SLAVE) {
+		flash_page();
+		ready_to_flash = true;
 	}
 }
 
@@ -247,7 +257,7 @@ int main(void) {
 		if (main_mode == MODE_MASTER && i2c_enabled && !i2c_tx_running()) {
 			if (current_i2c_packet == PAGE_SIZE/PAGE_PACKET_SIZE) {
 				current_i2c_packet = -1;
-				next_page_time = tick_count + PAGE_DELAY_TIME;
+				flash_now = true;
 				send_flash_command();
 			} else if (current_i2c_packet >= 0){
 				send_packet_i2c();
@@ -255,11 +265,18 @@ int main(void) {
 			}
 		}
 
+		if (flash_now && !i2c_tx_running()) {
+			next_page_time = tick_count + PAGE_FLASH_TIME;
+			flash_page();
+			flash_now = false;
+		}
+
 		/* Allow flashing if we do not have any unfinished i2c packets, are in appropriate phase,
 		 * and the next_page_time delat has note elapsed */
 		if (main_mode == MODE_MASTER
 		    && next_page_time < tick_count
 		    && current_i2c_packet == -1
+		    && flash_now == false
 		    && serviced_tick > FLASHING_ALLOWED) {
 			ready_to_flash = true;
 		}

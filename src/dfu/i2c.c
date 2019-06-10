@@ -187,8 +187,12 @@ void i2c_init(bool crossover, bool master)
 	i2c_set_digital_filter(bus->base, 0);
 	/* HSI is at 8Mhz */
 	i2c_set_speed(bus->base, i2c_speed_fm_400k, 8);
-	//configure No-Stretch CR1 (only relevant in slave mode)
-	i2c_enable_stretching(bus->base);
+	if (master) {
+		i2c_enable_stretching(bus->base);
+	} else {
+		i2c_disable_stretching(bus->base);
+	}
+
 	// addressing mode
 	i2c_set_7bit_addr_mode(bus->base);
 	// have some address, manual says it is needed to activate slave move
