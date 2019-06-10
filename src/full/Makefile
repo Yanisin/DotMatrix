@@ -44,6 +44,7 @@ MODS += \
 	message_queue \
 	byte_queue \
 	buttons \
-	life
+	life \
+	stack_usage
 
 include ../common.mk

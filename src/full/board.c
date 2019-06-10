@@ -10,8 +10,20 @@
 #include "icons.h"
 #include "disp.h"
 
+extern uint8_t _psp_base;
+
+static void fill_stack(void)
+{
+	uint8_t *sp;
+	__asm__ volatile ("mov %0, SP"  : "=r" (sp));
+	for(; sp != &_psp_base; sp--)
+		*sp = CH_DBG_STACK_FILL_VALUE;
+	*sp = CH_DBG_STACK_FILL_VALUE;
+}
+
 void board_init(void)
 {
+	fill_stack();
 	rcc_clock_setup_in_hsi_out_48mhz();
 	rcc_periph_clock_enable(RCC_GPIOC);
 

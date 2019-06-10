@@ -11,6 +11,8 @@ reset_handler:
 /* We use this reset handler to manually set the PSP stack and use it, which opencm3 does not do */
 cpsid i
 
+
+
 ldr r0, =_psp_stack
 msr PSP, r0
 

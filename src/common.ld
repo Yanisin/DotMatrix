@@ -13,6 +13,10 @@ SECTIONS
 		__dminit_array_end = .;
 	} > rom
 
+	.text : {
+		KEEP(*(.text.stat_threads));
+	}
+
 	/* Heap ends before the stack */
 	_psp_stack = ORIGIN(ram) + LENGTH(ram) - 512;
 	_psp_base = ORIGIN(ram) + LENGTH(ram) - 2048;
@@ -20,3 +24,4 @@ SECTIONS
 	__heap_end__ = _psp_base;
 	__heap_base__ = _ebss;
 }
+
