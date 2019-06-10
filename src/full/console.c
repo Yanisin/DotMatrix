@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include "simple_printf.h"
 
 #include "console.h"
 #include "cdcacm.h"
@@ -24,16 +25,18 @@ void console_puts(const char *buf)
 	}
 }
 
-#ifdef CONSOLE_PRINTF
+static void cdacm_handler(char c, void *arg)
+{
+	(void)arg;
+	cdcacm_write_char(c);
+	if (c == '\n')
+		cdcacm_write_char('\r');
+}
+
 void console_printf(const char *format, ...)
 {
-	   va_list arg;
-	   char buf[64];
-
-	   va_start(arg, format);
-	   vsnprintf(buf, sizeof(buf), format, arg);
-	   va_end(arg);
-
-	   console_puts(buf);
+	va_list arg;
+	va_start(arg, format);
+	vfctprintf(cdacm_handler, NULL, format, arg);
+	va_end(arg);
 }
-#endif

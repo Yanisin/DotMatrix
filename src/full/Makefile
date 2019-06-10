@@ -45,6 +45,7 @@ MODS += \
 	byte_queue \
 	buttons \
 	life \
-	stack_usage
+	stack_usage \
+	simple_printf
 
 include ../common.mk
