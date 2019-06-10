@@ -96,6 +96,12 @@ static inline uint8_t i2c_to_cell(uint8_t i)
 
 static void rx_complete(void)
 {
+	if (rx_bytes < sizeof(struct i2c_msg_header)) {
+		/* No queue was allocated */
+		return;
+	}
+	if (rx_bytes != 1 + sizeof(struct i2c_msg_header) + parsed_msg.length)
+		rx_skip_message = true;
 	chSysLockFromISR();
 	if (!rx_skip_message) {
 		msg_rx_queue_commitI(rx_queue, &rx_buf);

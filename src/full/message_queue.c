@@ -207,7 +207,6 @@ void msg_rx_queue_commitI(msg_rx_queue *queue, const buf_ptr *b)
 
 void msg_rx_queue_rejectI(msg_rx_queue *queue, const buf_ptr *b)
 {
-	chSysHalt("reject");
 	qsize_t header = b->ptr - sizeof(msg_header);
 	queue->buffer[mod_bits16(queue->size_bits, header + FIELD_FLAGS)] |= MSG_INVALID;
 	msg_rx_queue_commitI(queue, b);
