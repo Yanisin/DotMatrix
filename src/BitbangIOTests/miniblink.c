@@ -49,9 +49,8 @@ static void gpio_setup(void)
 			__asm__("nop");\
 		}\
 
-bitbang(uint8_t col, uint8_t row)
+static void bitbang(uint8_t col, uint8_t row)
 {
-	int i;
 	int k;
 		gpio_clear(LED_PORT, LED_PIN);	/* LED on/off */
 
