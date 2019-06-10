@@ -6,4 +6,4 @@
 - Allow changing Game of life speed by pressing buttons
 - Documentation
 - Use custom printf that is not so stack and memory hugry
-
+- Turn on all pull-ups on i2c in DDFU and full
