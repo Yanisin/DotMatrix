@@ -100,6 +100,35 @@ static void print_smile(uint8_t num)
 		}
 	}
 }
+#define DISP_TEST_DLY 80
+static void disp_test(void)
+{
+	disp_clean();
+	int i;
+	for (i=0 ;i<4;i++) {
+		disp_set(i,i, 31);
+		ticker_msleep(DISP_TEST_DLY);
+		if(i>0){
+			disp_set(i-1,i-1, 0);
+		}
+		disp_set(i,7-i, 31);
+		ticker_msleep(DISP_TEST_DLY);
+		if(i>0) {
+			disp_set(i-1,7-i+1, 0);
+		}
+		disp_set(7-i,7-i, 31);
+		ticker_msleep(DISP_TEST_DLY);
+		if (i>0) {
+			disp_set(7-i+1,7-i+1, 0);
+		}
+		disp_set(7-i,i, 31);
+		ticker_msleep(DISP_TEST_DLY);
+		if (i>0) {
+			disp_set(7-i+1,i-1, 0);
+		}
+	}
+
+}
 
 static void print_grey(uint8_t num)
 {
@@ -144,20 +173,7 @@ int main(void)
 //	usart_send(USART_DIR_RIGHT,'R');
 
 	applet_init_all();
-
-	led_on();
-	disp_set(0, 0, 31);
-	ticker_msleep(200);
-	led_off();
-	disp_set(7, 0, 31);
-	ticker_msleep(200);
-	led_on();
-	disp_set(7, 7, 31);
-	ticker_msleep(200);
-	led_off();
-	disp_set(0, 7, 31);
-	ticker_msleep(200);
-	disp_clean();
+	disp_test();
 
 	for ( i = 0; i < 18; i++) {
 		print_smile(i);
