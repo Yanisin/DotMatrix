@@ -52,7 +52,7 @@ extern bool ready_to_flash;
 #define SLAVE_GIVE_UP 3000
 
 /* Time left for the programming after the i2c "flash" command is sent */
-#define PAGE_FLASH_TIME 40
+#define PAGE_FLASH_TIME 100
 #define PACKET_TX_TIMEOUT 50
 
 #define PAGE_SIZE 2048
