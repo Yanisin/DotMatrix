@@ -112,10 +112,8 @@ static void usart_header_buffered(struct usart *usart)
 		if (reserved) {
 			usart->skip_message = false;
 		} else {
-#ifdef DEBUG
-			chSysHalt("uart overrun\n");
-#endif
-			console_printf("Message skipped -- no space\n");
+			//chSysHalt("uart overrun\n");
+			//console_printf("Message skipped -- no space\n");
 			usart->skip_message = true;
 		}
 	} else {

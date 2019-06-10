@@ -3,6 +3,9 @@
 #include "vector.h"
 #include <chmemheaps.h>
 
+#define GUARD_MAGIC 0x3CFE
+#define GUARD_DESTROYED 0x3CFE
+
 typedef uint16_t qsize_t;
 
 enum message_source {
@@ -105,6 +108,9 @@ typedef struct msg_rx_queue_str {
  * Handle for reading/writing a message stored in a circular buffer (such as rx queue).
  */
 typedef struct buf_ptr_str {
+#ifdef DEBUG
+	uint16_t guard;
+#endif
 	uint8_t *buffer;
 	uint8_t size_bits;
 	qsize_t ptr;
@@ -131,8 +137,8 @@ bool msg_rx_queue_get(
 	msg_rx_queue *queue, msg_header *header_out, buf_ptr *buf_ptr_out, sysinterval_t timeout);
 void msg_rx_queue_ack(msg_rx_queue *queue);
 bool msg_rx_queue_reserveI(msg_rx_queue *queue, const msg_header *header, buf_ptr *buf_ptr_out);
-void msg_rx_queue_commitI(msg_rx_queue *queue, const buf_ptr *buf_ptr);
-void msg_rx_queue_rejectI(msg_rx_queue *queue, const buf_ptr *buf_ptr);
+void msg_rx_queue_commitI(msg_rx_queue *queue, buf_ptr *buf_ptr);
+void msg_rx_queue_rejectI(msg_rx_queue *queue, buf_ptr *buf_ptr);
 
 static inline qsize_t msg_rx_queue_available_read(const msg_rx_queue* queue)
 {
@@ -145,8 +151,18 @@ static inline qsize_t msg_rx_queue_available_write(const msg_rx_queue* queue)
 	return mod_bits16(queue->size_bits, queue->read_ptr - queue->comit_ptr) - 1;
 }
 
+static inline void buf_ptr_check_guard(const buf_ptr *b)
+{
+#ifdef DEBUG
+	if (b->guard != GUARD_MAGIC) {
+		chSysHalt("buffer corrupted");
+	}
+#endif
+}
+
 static inline uint8_t *buf_ptr_index(const buf_ptr *b, qsize_t i)
 {
+	buf_ptr_check_guard(b);
 	return &b->buffer[mod_bits16(b->size_bits, b->ptr + i)];
 }
 

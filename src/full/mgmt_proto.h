@@ -22,5 +22,7 @@ struct mgmt_change_applet {
        uint8_t applet;
 };
 
+#define MGMT_NOP MSG_MGMT_ID(3)
+
 
 #endif // MGMT_MSG_H

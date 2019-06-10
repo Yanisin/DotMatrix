@@ -10,10 +10,12 @@
 #include "console.h"
 #include "hw_defs.h"
 #include "byte_queue.h"
+#include "mgmt_proto.h"
 #include <assert.h>
 
 /* Does not need to hold the whole message */
 #define TX_BUF_SIZE 8
+#define I2C_WATCHDOG_TIMEOUT TIME_MS2I(500)
 
 struct i2c_defs {
 	uint32_t base;
@@ -59,6 +61,7 @@ static const struct i2c_defs buses[2] = {
 static bool rx_active;
 static const struct i2c_defs *bus;
 static msg_header parsed_msg;
+static bool rx_buf_reserved;
 static buf_ptr rx_buf;
 static msg_rx_queue *rx_queue;
 static bool rx_skip_message;
@@ -68,7 +71,6 @@ union {
 } rx;
 static uint32_t crc_state;
 static uint8_t rx_bytes;
-
 
 static uint8_t tx_buf[TX_BUF_SIZE];
 /* Queue is reset if an error is detected.
@@ -83,6 +85,7 @@ BSEMAPHORE_DECL(tx_finished_sem, true);
 /* Is there anyone servicing the transfer now? If no, the ISR will try to cancel it. */
 static bool tx_active;
 static uint32_t tx_isr;
+static virtual_timer_t tx_watchdog;
 
 static inline uint8_t cell_to_i2c(uint8_t i)
 {
@@ -96,18 +99,21 @@ static inline uint8_t i2c_to_cell(uint8_t i)
 
 static void rx_complete(void)
 {
-	if (rx_bytes < sizeof(struct i2c_msg_header)) {
+	if (!rx_buf_reserved) {
 		/* No queue was allocated */
 		return;
 	}
 	if (rx_bytes != 1 + sizeof(struct i2c_msg_header) + parsed_msg.length)
 		rx_skip_message = true;
+
 	chSysLockFromISR();
 	if (!rx_skip_message) {
 		msg_rx_queue_commitI(rx_queue, &rx_buf);
 	} else {
 		msg_rx_queue_rejectI(rx_queue, &rx_buf);
 	}
+	rx_buf_reserved = false;
+	rx_active = false;
 	chSysUnlockFromISR();
 }
 
@@ -119,15 +125,13 @@ static void i2c_header_buffered(void)
 	parsed_msg.id = rx.msg.id & MSG_FULL_ID_MASK;
 	rx_queue = msg_dispatcher(&parsed_msg);
 	if (rx_queue) {
-		bool reserved;
 		chSysLockFromISR();
-		reserved = msg_rx_queue_reserveI(rx_queue, &parsed_msg, &rx_buf);
+		rx_buf_reserved = msg_rx_queue_reserveI(rx_queue, &parsed_msg, &rx_buf);
 		chSysUnlockFromISR();
-		if (!reserved) {
-#ifdef DEBUG
-			chSysHalt("i2c too long overrun\n");
+		if (!rx_buf_reserved) {
+#ifdef I2C_DEBUG
+			chSysHalt("i2c can not reserve\n");
 #endif
-			console_printf("i2c Message skipped -- no space\n");
 			rx_skip_message = true;
 		}
 	} else {
@@ -161,22 +165,25 @@ static void rx_byte(uint8_t c)
 }
 
 #define ERR_MASK (I2C_ISR_ARLO | I2C_ISR_OVR | I2C_ISR_TIMEOUT | I2C_ISR_PECERR \
-	| I2C_ISR_TIMEOUT | I2C_ISR_ALERT)
+	| I2C_ISR_TIMEOUT | I2C_ISR_ALERT | I2C_ISR_BERR)
 
 static void i2c_isr(void)
 {
 	uint32_t b = bus->base;
 	uint32_t isr = I2C_ISR(b);
 	if (isr & I2C_ISR_ADDR) {
-		assert(!rx_active);
+		if (rx_active) {
+			rx_skip_message = true;
+			rx_complete();
+		}
 		rx_bytes = 0;
 		rx_skip_message = false;
 		crc_state = 0;
 		rx_active = true;
 		I2C_ICR(b) |= I2C_ICR_ADDRCF;
-	} else if (isr & I2C_ISR_TXIS) {
+	}
+	if (isr & I2C_ISR_TXIS) {
 		/* We currently do not support i2c reads */
-		assert(!rx_active);
 		if (tx_active) {
 			msg_t qchar;
 			tx_isr |= I2C_ISR_TXIS;
@@ -188,20 +195,23 @@ static void i2c_isr(void)
 				I2C_TXDR(b) = qchar;
 			}
 			chSysUnlockFromISR();
+		} else if (rx_active) {
+			/* huh ?*/
 		} else {
 			/* Just try to end the transfer */
 			I2C_CR2(b) |= I2C_CR2_STOP;
 			I2C_TXDR(b) = 0xFF;
 		}
-	} else if (isr & I2C_ISR_RXNE) {
+	}
+	if (isr & I2C_ISR_RXNE) {
 		assert(rx_active);
 		/* Note: we do not nack messages currently, we would need to setup NBYTES and
 		 * the functionality is not yet needed by anyone. And it is not usable with global
 		 * address anyway */
 		rx_byte(I2C_RXDR(b));
-	} else if (isr & I2C_ISR_STOPF) {
+	}
+	if (isr & I2C_ISR_STOPF) {
 		if (rx_active) {
-			rx_active = false;
 			rx_complete();
 		} else if (tx_active) {
 			/* We should not get STOPF, but report it anyway */
@@ -212,7 +222,8 @@ static void i2c_isr(void)
 			chSysUnlockFromISR();
 		}
 		I2C_ICR(b) |= I2C_ICR_STOPCF;
-	} else if (isr & I2C_ISR_NACKF) {
+	}
+	if (isr & I2C_ISR_NACKF) {
 		if (tx_active) {
 			chSysLockFromISR();
 			tx_isr |= I2C_ISR_NACKF;
@@ -221,7 +232,8 @@ static void i2c_isr(void)
 			chSysUnlockFromISR();
 		}
 		I2C_ICR(b) |= I2C_ICR_NACKCF;
-	} else if (isr & ERR_MASK) {
+	}
+	if (isr & ERR_MASK) {
 		if (rx_active) {
 			rx_skip_message = true;
 		} else if (tx_active){
@@ -262,6 +274,32 @@ static void i2c_send_byte(uint8_t byte)
 	chSysUnlock();
 }
 
+static void i2c_wd_reset2(void *p)
+{
+	(void)p;
+	chSysLockFromISR();
+	chBSemSignalI(&tx_finished_sem);
+	if (rx_buf_reserved) {
+		msg_rx_queue_rejectI(rx_queue, &rx_buf);
+	}
+	rx_active = false;
+	rx_buf_reserved = false;
+	I2C_CR1(bus->base) |= I2C_CR1_PE;
+	chSysUnlockFromISR();
+}
+
+static void i2c_wd_reset(void *p)
+{
+	(void)p;
+	chSysLockFromISR();
+	I2C_CR1(bus->base) &= ~I2C_CR1_PE;
+	I2C_ICR(bus->base) |= 0xFFFFFFFF;
+	tx_isr = I2C_ISR_BERR;
+	oqResetI(&tx_queue);
+	chVTSetI(&tx_watchdog, TIME_MS2I(10), i2c_wd_reset2, NULL);
+	chSysUnlockFromISR();
+}
+
 static bool i2c_send_raw(uint8_t i2c_addr, uint8_t msgid, uint8_t len, const void *gdata)
 {
 	size_t total = sizeof(struct i2c_msg_header) + len +1;
@@ -285,7 +323,9 @@ static bool i2c_send_raw(uint8_t i2c_addr, uint8_t msgid, uint8_t len, const voi
 		i2c_enable_autoend(bus->base);
 
 		chSysLock();
+		chVTSetI(&tx_watchdog, I2C_WATCHDOG_TIMEOUT, i2c_wd_reset, NULL);
 		oqResetI(&tx_queue);
+		chBSemResetI(&tx_finished_sem, true);
 		tx_active = true;
 		tx_isr = 0;
 		i2c_send_start(bus->base);
@@ -301,6 +341,7 @@ static bool i2c_send_raw(uint8_t i2c_addr, uint8_t msgid, uint8_t len, const voi
 
 		chSysLock();
 		tx_active = false;
+		chVTResetI(&tx_watchdog);
 		if (tx_isr & I2C_ISR_ARLO) {
 			chSysUnlock();
 			continue;
@@ -334,9 +375,41 @@ bool i2c_broadcast(uint8_t msgid, uint8_t len, const void *data)
 	return r;
 }
 
+#ifdef I2C_CHECK_LED
+static virtual_timer_t i2c_busy_led_timer;
+static void i2c_busy_led_worker(void *p)
+{
+	(void)p;
+	if (I2C_ISR(bus->base) & I2C_ISR_BUSY)
+		led_on();
+	else
+		led_off();
+	chSysLockFromISR();
+	chVTSetI(&i2c_busy_led_timer, 50, i2c_busy_led_worker, NULL);
+	chSysUnlockFromISR();
+}
+#endif
+
+static THD_WORKING_AREA(i2c_ping_area, 256);
+static void i2c_ping_task(void *p)
+{
+	(void)p;
+	while (1) {
+		chThdSleep(TIME_S2I(1));
+		i2c_send(0x33, MGMT_NOP, 0, NULL);
+	}
+	/* Periodically send dummy transfers on i2c for the watchdog to kick in */
+}
+
 void i2c_init(void)
 {
 	bus = &buses[ABS(topo_master_position.x + topo_master_position.y) % 2];
+#ifdef I2C_CHECK_LED
+	chVTSet(&i2c_busy_led_timer, 50, i2c_busy_led_worker, NULL);
+#endif
+	thread_t *t = chThdCreateStatic(i2c_ping_area, sizeof(i2c_ping_area), NORMALPRIO, i2c_ping_task, NULL);
+	t->name = "i2c_wd";
+
 	oqObjectInit(&tx_queue, tx_buf, sizeof(tx_buf), i2c_notify_send, NULL);
 
 	rcc_periph_clock_enable(bus->rcc_clk);

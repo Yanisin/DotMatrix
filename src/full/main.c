@@ -44,8 +44,6 @@ int main(void)
 #endif
 
 extern const struct applet chooser_applet;
-static THD_WORKING_AREA(mgmt_thread_area, 128);
-static THD_WORKING_AREA(disp_test_thread_area, 128);
 
 static void handle_bl_start(void)
 {
@@ -67,6 +65,7 @@ static void handle_change_applet(const buf_ptr *data)
 	applet_select_local(applet_get(msg.applet));
 }
 
+static THD_WORKING_AREA(mgmt_thread_area, 128);
 static void mgmt_task(void *p)
 {
 	(void)p;
@@ -91,6 +90,7 @@ static void mgmt_task(void *p)
 	}
 }
 
+static THD_WORKING_AREA(disp_test_thread_area, 128);
 #define DISP_TEST_DLY TIME_MS2I(100)
 static void disp_test_task(void *p)
 {
@@ -140,9 +140,9 @@ static void main_task(void)
 
 	console_puts("Starting...\n");
 	topo_run();
-	chThdWait(display_test);
 	/* I2C needs the topology */
 	i2c_init();
+	chThdWait(display_test);
 
 	applet_select_local(&chooser_applet);
 

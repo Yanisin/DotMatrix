@@ -7,7 +7,6 @@
 
 #define FIELD_LENGTH 0
 #define FIELD_FLAGS 1
-#define GUARD_MAGIC 0x3CFE
 
 msg_rx_queue *default_queue;
 msg_rx_queue *alt_queue;
@@ -52,6 +51,9 @@ static void buf_ptr_init(msg_rx_queue *queue, buf_ptr *buf_ptr_out, qsize_t ptr)
 	buf_ptr_out->buffer = queue->buffer;
 	buf_ptr_out->size_bits = queue->size_bits;
 	buf_ptr_out->ptr = ptr;
+#ifdef DEBUG
+	buf_ptr_out->guard = GUARD_MAGIC;
+#endif
 }
 
 void buf_ptr_read(const buf_ptr *b, qsize_t offset, qsize_t length, void *dst)
@@ -182,9 +184,10 @@ static inline bool ready_to_commit(msg_rx_queue *queue)
 	return (*queue_index(queue, queue->comit_ptr + FIELD_FLAGS)) & MSG_READY;
 }
 
-void msg_rx_queue_commitI(msg_rx_queue *queue, const buf_ptr *b)
+void msg_rx_queue_commitI(msg_rx_queue *queue, buf_ptr *b)
 {
 	qsize_t header = b->ptr - sizeof(msg_header);
+	buf_ptr_check_guard(b);
 	bool wakeup = false;
 
 	*queue_index(queue, header + FIELD_FLAGS) |= MSG_READY;
@@ -203,10 +206,14 @@ void msg_rx_queue_commitI(msg_rx_queue *queue, const buf_ptr *b)
 		chEvtBroadcastI(&queue->event);
 		chThdDequeueNextI(&queue->readers, MSG_OK);
 	}
+#ifdef DEBUG
+	b->guard = 0xFFFF;
+#endif
 }
 
-void msg_rx_queue_rejectI(msg_rx_queue *queue, const buf_ptr *b)
+void msg_rx_queue_rejectI(msg_rx_queue *queue, buf_ptr *b)
 {
+	buf_ptr_check_guard(b);
 	qsize_t header = b->ptr - sizeof(msg_header);
 	queue->buffer[mod_bits16(queue->size_bits, header + FIELD_FLAGS)] |= MSG_INVALID;
 	msg_rx_queue_commitI(queue, b);
@@ -218,7 +225,7 @@ msg_rx_queue* msg_dispatcher(const msg_header *hdr)
 		return mgmt_queue;
 	} else if ((hdr->flags & MSG_ROUTE_MASK) != MSG_ROUTE_NEIGHBOR) {
 		if (hdr->source == MSG_SOURCE_I2C) {
-			console_printf("routed message over i2c");
+			// console_printf("routed message over i2c");
 			return NULL;
 		} else {
 			return usart_route_queue;
