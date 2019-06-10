@@ -153,6 +153,7 @@ static inline qsize_t msg_rx_queue_available_write(const msg_rx_queue* queue)
 
 static inline void buf_ptr_check_guard(const buf_ptr *b)
 {
+	(void)b;
 #ifdef DEBUG
 	if (b->guard != GUARD_MAGIC) {
 		chSysHalt("buffer corrupted");
