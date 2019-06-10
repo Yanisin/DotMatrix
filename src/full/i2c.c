@@ -9,6 +9,7 @@
 #include "util.h"
 #include "console.h"
 #include "hw_defs.h"
+#include "byte_queue.h"
 #include <assert.h>
 
 /* Does not need to hold the whole message */
@@ -54,27 +55,34 @@ static const struct i2c_defs buses[2] = {
 },
 };
 
+
+static bool rx_active;
 static const struct i2c_defs *bus;
-static bool rx_in_progress;
-msg_header parsed_msg;
-buf_ptr rx_buf;
-msg_rx_queue *rx_queue;
-bool nack;
+static msg_header parsed_msg;
+static buf_ptr rx_buf;
+static msg_rx_queue *rx_queue;
+static bool rx_skip_message;
 union {
 	uint8_t buf[sizeof(struct i2c_msg_header)];
 	struct i2c_msg_header msg;
 } rx;
-uint32_t crc_state;
-uint8_t rx_bytes;
+static uint32_t crc_state;
+static uint8_t rx_bytes;
 
-uint8_t tx_buf[TX_BUF_SIZE];
-uint8_t tx_buf_size;
-uint8_t tx_buf_pos;
+
+static uint8_t tx_buf[TX_BUF_SIZE];
+/* Queue is reset if an error is detected.
+ * These ISRs can be set:
+ *   * ARLO: arbitration lost, retry sending
+ *   * NACKF, any other error: cancel
+ */
+static output_queue_t tx_queue;
+/* Only one thread can try to send data at a time */
 MUTEX_DECL(tx_mutex);
-/* Set if buffer is empty or a ISR requiring upper-half attention is needed */
-BSEMAPHORE_DECL(tx_signal, true);
-uint32_t volatile tx_isr;
-
+BSEMAPHORE_DECL(tx_finished_sem, true);
+/* Is there anyone servicing the transfer now? If no, the ISR will try to cancel it. */
+static bool tx_active;
+static uint32_t tx_isr;
 
 static inline uint8_t cell_to_i2c(uint8_t i)
 {
@@ -89,7 +97,7 @@ static inline uint8_t i2c_to_cell(uint8_t i)
 static void rx_complete(void)
 {
 	chSysLockFromISR();
-	if (!nack) {
+	if (!rx_skip_message) {
 		msg_rx_queue_commitI(rx_queue, &rx_buf);
 	} else {
 		msg_rx_queue_rejectI(rx_queue, &rx_buf);
@@ -114,10 +122,10 @@ static void i2c_header_buffered(void)
 			chSysHalt("i2c too long overrun\n");
 #endif
 			console_printf("i2c Message skipped -- no space\n");
-			nack = true;
+			rx_skip_message = true;
 		}
 	} else {
-		nack = true;
+		rx_skip_message = true;
 	}
 }
 
@@ -133,16 +141,16 @@ static void rx_byte(uint8_t c)
 		}
 	} else if (rx_bytes <= sizeof(struct i2c_msg_header) + parsed_msg.length) {
 		/* data */
-		if (nack)
+		if (rx_skip_message)
 			return;
 		crc8(&crc_state, c);
 		*buf_ptr_index(&rx_buf, rx_bytes - 1 - sizeof(struct i2c_msg_header)) = c;
 	} else if (rx_bytes == sizeof (struct i2c_msg_header) + parsed_msg.length + 1) {
 		/* crc */
 		if (crc8_get(&crc_state) != c)
-			nack = true;
+			rx_skip_message = true;
 	} else {
-		nack = true;
+		rx_skip_message = true;
 	}
 }
 
@@ -154,48 +162,70 @@ static void i2c_isr(void)
 	uint32_t b = bus->base;
 	uint32_t isr = I2C_ISR(b);
 	if (isr & I2C_ISR_ADDR) {
+		assert(!rx_active);
 		rx_bytes = 0;
-		rx_in_progress = true;
-		nack = false;
+		rx_skip_message = false;
 		crc_state = 0;
+		rx_active = true;
 		I2C_ICR(b) |= I2C_ICR_ADDRCF;
-	} else if (isr & ERR_MASK) {
-		if (rx_in_progress) {
-			nack = false;
-		} else {
-			tx_isr = isr;
-			chSysLockFromISR();
-			chBSemSignalI(&tx_signal);
-			chSysUnlockFromISR();
-		}
-		I2C_ICR(b) |= isr & ERR_MASK;
 	} else if (isr & I2C_ISR_TXIS) {
-		assert(!rx_in_progress);
-		if (tx_buf_pos == tx_buf_size) {
-			tx_isr = isr;
-			i2c_disable_interrupt(b, I2C_CR1_TXIE);
+		/* We currently do not support i2c reads */
+		assert(!rx_active);
+		if (tx_active) {
+			msg_t qchar;
+			tx_isr |= I2C_ISR_TXIS;
 			chSysLockFromISR();
-			chBSemSignalI(&tx_signal);
+			qchar = oqGetI(&tx_queue);
+			if (qchar == MSG_TIMEOUT) {
+				i2c_disable_interrupt(b, I2C_ISR_TXIS);
+			} else {
+				I2C_TXDR(b) = qchar;
+			}
 			chSysUnlockFromISR();
 		} else {
-			I2C_TXDR(b) = tx_buf[tx_buf_pos++];
+			/* Just try to end the transfer */
+			I2C_CR2(b) |= I2C_CR2_STOP;
+			I2C_TXDR(b) = 0xFF;
 		}
 	} else if (isr & I2C_ISR_RXNE) {
-		assert(rx_in_progress);
+		assert(rx_active);
+		/* Note: we do not nack messages currently, we would need to setup NBYTES and
+		 * the functionality is not yet needed by anyone. And it is not usable with global
+		 * address anyway */
 		rx_byte(I2C_RXDR(b));
-		if (nack)
-			I2C_CR2(b) |= I2C_CR2_NACK;
 	} else if (isr & I2C_ISR_STOPF) {
-		if (rx_in_progress) {
-			rx_in_progress = false;
+		if (rx_active) {
+			rx_active = false;
 			rx_complete();
-		} else {
-			tx_isr = isr;
+		} else if (tx_active) {
+			/* We should not get STOPF, but report it anyway */
 			chSysLockFromISR();
-			chBSemSignalI(&tx_signal);
+			tx_isr |= I2C_ISR_STOPF;
+			oqResetI(&tx_queue);
+			chBSemSignalI(&tx_finished_sem);
 			chSysUnlockFromISR();
 		}
 		I2C_ICR(b) |= I2C_ICR_STOPCF;
+	} else if (isr & I2C_ISR_NACKF) {
+		if (tx_active) {
+			chSysLockFromISR();
+			tx_isr |= I2C_ISR_NACKF;
+			oqResetI(&tx_queue);
+			chBSemSignalI(&tx_finished_sem);
+			chSysUnlockFromISR();
+		}
+		I2C_ICR(b) |= I2C_ICR_NACKCF;
+	} else if (isr & ERR_MASK) {
+		if (rx_active) {
+			rx_skip_message = true;
+		} else if (tx_active){
+			chSysLockFromISR();
+			tx_isr |= isr & ERR_MASK;
+			oqResetI(&tx_queue);
+			chBSemSignalI(&tx_finished_sem);
+			chSysUnlockFromISR();
+		}
+		I2C_ICR(b) |= isr & ERR_MASK;
 	}
 }
 
@@ -211,25 +241,23 @@ void i2c2_isr(void) {
 	CH_IRQ_EPILOGUE();
 }
 
-static uint8_t get_tx_byte(uint8_t *at, const struct i2c_msg_header* hdr,const uint8_t *data, uint32_t *crc) {
-	uint8_t c;
-	if (*at == 0) {
-		c = hdr->len;
-	} else if (*at == 1) {
-		c = hdr->id;
-	} else if (*at == sizeof(*hdr) + hdr->len) {
-		c = crc8_get(crc);
-	} else {
-		c = data[*at - sizeof(*hdr)];
-	}
-	(*at)++;
-	crc8(crc, c);
-	return c;
+static void i2c_notify_send(io_queue_t *p)
+{
+	(void)p;
+	i2c_enable_interrupt(bus->base, I2C_CR1_TXIE);
+}
+
+static void i2c_send_byte(uint8_t byte)
+{
+	/* Note: the locking can maybe be eliminated if we are ok with garbage in the queue ? */
+	chSysLock();
+	if (tx_isr == 0)
+		oqPutI(&tx_queue, byte);
+	chSysUnlock();
 }
 
 static bool i2c_send_raw(uint8_t i2c_addr, uint8_t msgid, uint8_t len, const void *gdata)
 {
-
 	size_t total = sizeof(struct i2c_msg_header) + len +1;
 	assert(total < 255);
 	const uint8_t *data = gdata;
@@ -238,38 +266,46 @@ static bool i2c_send_raw(uint8_t i2c_addr, uint8_t msgid, uint8_t len, const voi
 	hdr.len = len;
 
 	uint32_t crc = 0;
-	uint8_t tx_pos = 0;
+	crc8(&crc, hdr.len);
+	crc8(&crc, hdr.id);
+	for (uint8_t i = 0; i < len; i++) {
+		crc8(&crc, data[i]);
+	}
 
 	while(1) {
 		i2c_set_7bit_address(bus->base, i2c_addr);
 		i2c_set_write_transfer_dir(bus->base);
 		i2c_set_bytes_to_transfer(bus->base, total);
 		i2c_enable_autoend(bus->base);
-		i2c_send_start(bus->base);
-		tx_isr = 0;
 
-		while(1) {
-			if (tx_isr & I2C_ISR_ARLO) {
-				break;
-			} else if (tx_isr & ERR_MASK) {
-				return false;
-			} else {
-				/* txis, start or stop */
-				/* buffer empty */
-				if (tx_pos >= total) {
-					return true;
-				}
-				/* First character will be preloaded to the HW directly */
-				I2C_TXDR(bus->base) = get_tx_byte(&tx_pos, &hdr, data, &crc);
-				tx_buf_pos = 0;
-				tx_buf_size = 0;
-				while (tx_pos < total && tx_buf_size < TX_BUF_SIZE) {
-					tx_buf[tx_buf_size++] = get_tx_byte(&tx_pos, &hdr, data, &crc);
-				}
-				i2c_enable_interrupt(bus->base, I2C_CR1_TXIE);
-			}
-			chBSemWait(&tx_signal);
+		chSysLock();
+		oqResetI(&tx_queue);
+		tx_active = true;
+		tx_isr = 0;
+		i2c_send_start(bus->base);
+		chSysUnlock();
+
+		i2c_send_byte(hdr.len);
+		i2c_send_byte(hdr.id);
+		for (uint8_t i = 0; i < len; i++) {
+			i2c_send_byte(data[i]);
 		}
+		i2c_send_byte(crc8_get(&crc));
+		chBSemWait(&tx_finished_sem);
+
+		chSysLock();
+		tx_active = false;
+		if (tx_isr & I2C_ISR_ARLO) {
+			chSysUnlock();
+			continue;
+		} else if (tx_isr & I2C_ISR_STOPF) {
+			chSysUnlock();
+			return true;
+		} else {
+			chSysUnlock();
+			return false;
+		}
+		chSysUnlock();
 	}
 
 }
@@ -295,6 +331,8 @@ bool i2c_broadcast(uint8_t msgid, uint8_t len, const void *data)
 void i2c_init(void)
 {
 	bus = &buses[ABS(topo_master_position.x + topo_master_position.y) % 2];
+	oqObjectInit(&tx_queue, tx_buf, sizeof(tx_buf), i2c_notify_send, NULL);
+
 	rcc_periph_clock_enable(bus->rcc_clk);
 	rcc_periph_clock_enable(bus->gpio_rcc_clk);
 	rcc_set_i2c_clock_hsi(bus->base);
@@ -320,7 +358,7 @@ void i2c_init(void)
 	I2C_OAR1(bus->base) |= I2C_OAR1_OA1EN_ENABLE;
 	I2C_CR1(bus->base) |= I2C_CR1_GCEN;
 	i2c_enable_interrupt(bus->base, I2C_CR1_ADDRIE | I2C_CR1_RXIE |
-		I2C_ISR_STOPF | I2C_CR1_NACKIE | I2C_CR1_ERRIE);
+		I2C_CR1_STOPIE | I2C_CR1_NACKIE | I2C_CR1_ERRIE);
 	i2c_peripheral_enable(bus->base);
 	nvic_enable_irq(bus->irq);
 }

@@ -537,15 +537,11 @@ msg_t oqPutI(output_queue_t *oqp, uint8_t b) {
  *
  * @api
  */
-msg_t oqPutTimeout(output_queue_t *oqp, uint8_t b, sysinterval_t timeout) {
-
-  osalSysLock();
-
+msg_t oqPutTimeoutS(output_queue_t *oqp, uint8_t b, sysinterval_t timeout) {
   /* Waiting until there is a slot available or a timeout occurs.*/
   while (oqIsFullI(oqp)) {
     msg_t msg = osalThreadEnqueueTimeoutS(&oqp->q_waiting, timeout);
     if (msg < MSG_OK) {
-      osalSysUnlock();
       return msg;
     }
   }
@@ -562,9 +558,37 @@ msg_t oqPutTimeout(output_queue_t *oqp, uint8_t b, sysinterval_t timeout) {
     oqp->q_notify(oqp);
   }
 
-  osalSysUnlock();
-
   return MSG_OK;
+}
+
+/**
+ * @brief   Output queue write with timeout.
+ * @details This function writes a byte value to an output queue. If the queue
+ *          is full then the calling thread is suspended until there is space
+ *          in the queue or a timeout occurs.
+ * @note    The callback is invoked after putting the character into the
+ *          queue.
+ *
+ * @param[in] oqp       pointer to an @p output_queue_t structure
+ * @param[in] b         the byte value to be written in the queue
+ * @param[in] timeout   the number of ticks before the operation timeouts,
+ *                      the following special values are allowed:
+ *                      - @a TIME_IMMEDIATE immediate timeout.
+ *                      - @a TIME_INFINITE no timeout.
+ *                      .
+ * @return              The operation status.
+ * @retval MSG_OK       if the operation succeeded.
+ * @retval MSG_TIMEOUT  if the specified time expired.
+ * @retval MSG_RESET    if the queue has been reset.
+ *
+ * @api
+ */
+msg_t oqPutTimeout(output_queue_t *oqp, uint8_t b, sysinterval_t timeout) {
+  msg_t msg;
+  osalSysLock();
+  msg = oqPutTimeoutS(oqp, b, timeout);
+  osalSysUnlock();
+  return msg;
 }
 
 /**
@@ -630,6 +654,11 @@ size_t oqWriteI(output_queue_t *oqp, const uint8_t *bp, size_t n) {
   return wr;
 }
 
+size_t oqWriteTimeout(output_queue_t *oqp, const uint8_t *bp,
+		      size_t n, sysinterval_t timeout) {
+	return oqWriteTimeoutS(oqp, bp, n, timeout);
+}
+
 /**
  * @brief   Output queue write with timeout.
  * @details The function writes data from a buffer to an output queue. The
@@ -654,14 +683,12 @@ size_t oqWriteI(output_queue_t *oqp, const uint8_t *bp, size_t n) {
  *
  * @api
  */
-size_t oqWriteTimeout(output_queue_t *oqp, const uint8_t *bp,
+size_t oqWriteTimeoutS(output_queue_t *oqp, const uint8_t *bp,
                       size_t n, sysinterval_t timeout) {
   qnotify_t nfy = oqp->q_notify;
   size_t max = n;
 
   osalDbgCheck(n > 0U);
-
-  osalSysLock();
 
   while (n > 0U) {
     size_t done;
@@ -691,8 +718,6 @@ size_t oqWriteTimeout(output_queue_t *oqp, const uint8_t *bp,
       osalSysLock();
     }
   }
-
-  osalSysUnlock();
   return max - n;
 }
 

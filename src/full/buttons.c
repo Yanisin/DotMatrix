@@ -14,7 +14,7 @@ struct btn_state {
 
 static struct btn_state buttons[BTN_COUNT];
 EVENTSOURCE_DECL(button_events_ready);
-BSEMAPHORE_DECL(event_ready, 0);
+BSEMAPHORE_DECL(event_ready, true);
 
 bool button_get_state(enum button btn)
 {

@@ -253,7 +253,6 @@ static void usart_isr_common(int usart_idx)
 			usart_problemI(usart);
 			chSysUnlockFromISR();
 		}
-
 	}
 
 	if (isr & USART_ISR_TXE) {
