@@ -337,9 +337,8 @@ void i2c_init(void)
 	rcc_periph_clock_enable(bus->gpio_rcc_clk);
 	rcc_set_i2c_clock_hsi(bus->base);
 	i2c_reset(bus->base);
-	uint8_t pupd = topo_is_master ? GPIO_PUPD_PULLUP : GPIO_PUPD_NONE;
 
-	gpio_mode_setup(bus->gpio_port, GPIO_MODE_AF, pupd, bus->gpio_scl | bus->gpio_sda);
+	gpio_mode_setup(bus->gpio_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, bus->gpio_scl | bus->gpio_sda);
 	gpio_set_af(bus->gpio_port, bus->gpio_af, bus->gpio_scl | bus->gpio_sda);
 	gpio_set_output_options(bus->gpio_port, GPIO_OTYPE_OD, GPIO_OSPEED_HIGH, bus->gpio_scl | bus->gpio_sda);
 
@@ -351,7 +350,10 @@ void i2c_init(void)
 	/* HSI is at 8Mhz */
 	i2c_set_speed(bus->base, i2c_speed_sm_100k, 8);
 	//configure No-Stretch CR1 (only relevant in slave mode)
-	i2c_enable_stretching(bus->base);
+	if (topo_is_master)
+		i2c_enable_stretching(bus->base);
+	else
+		i2c_disable_stretching(bus->base);
 	//addressing mode
 	i2c_set_7bit_addr_mode(bus->base);
 	i2c_set_own_7bit_slave_address(bus->base, cell_to_i2c(topo_my_id));
