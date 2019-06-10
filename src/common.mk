@@ -2,17 +2,21 @@ ifeq ($(wildcard ../settings.mk),)
 $(error Please create settings.mk. Use settings.mk.example as a guide)
 endif
 
-include ../settings.mk
+ROOT=$(CURDIR)/..
+
+include $(ROOT)/settings.mk
 
 ALL = build/$(BINARY).elf
 
 LIBNAME = opencm3_stm32f0
 DEFS += -DSTM32F0 -D$(HW_VERSION)
 
-FP_FLAGS ?= -msoft-float
-ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
 TGT_BUILDDIR = build
 SIM_BUILDDIR = build-sim
+SIM ?= 0
+TGT ?= 1
+DEBUG ?= 0
+SUDO ?= sudo
 
 ###############################################################################
 # Common C Flags
@@ -28,15 +32,58 @@ CXXFLAGS += -fno-common -ffunction-sections -fdata-sections
 CPPFLAGS += -MD
 CPPFLAGS += -Wall -Wundef
 CPPFLAGS += $(DEFS)
+CPPFLAGS += -I ../hwdefs
 
 LDFLAGS += -Wl,--gc-sections
 
 ###############################################################################
-# Build sim & target
+# ChibiOS
 #
 
-SIM ?= 0
-TGT ?= 1
+# Suck out list of files to build from chibi Makefiles
+ifeq ($(USE_CHIBI_OS),1)
+ALLKERNSRC :=
+ALLINC :=
+ALLXASMSRC :=
+
+ifeq ($(TGT),1)
+include $(CHIBIOS)/os/common/ports/ARMCMx/compilers/GCC/mk/port_v6m.mk
+CHIBI_TGT_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CHIBI_TGT_CPPFLAGS := $(addprefix -I, $(ALLINC))
+TGT_MODS += $(CHIBI_TGT_MODS)
+TGT_CPPFLAGS += $(CHIBI_TGT_CPPFLAGS)
+ALLCSRC :=
+ALLINC :=
+ALLXASMSRC :=
+endif
+
+ifeq ($(SIM),1)
+# Currentl we have our port in-tree, but the Makefile mechanism is left here
+# just in case
+CHIBI_SIM_MODS := $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CHIBI_SIM_CPPFLAGS := $(addprefix -I, $(ALLINC))
+SIM_MODS += $(CHIBI_SIM_MODS)
+SIM_CPPFLAGS += $(CHIBI_SIM_CPPFLAGS)
+ALLCSRC :=
+ALLINC :=
+ALLXASMSRC :=
+endif
+
+include $(CHIBIOS)/os/rt/rt.mk
+include $(CHIBIOS)/os/license/license.mk
+include $(CHIBIOS)/os/hal/osal/rt/osal.mk
+
+# We remove the CHIBIOS prefix and use VPATH instead
+VPATH := $(CHIBIOS)
+MODS += $(patsubst $(CHIBIOS)/%,%,$(ALLCSRC:.c=) $(ALLXASMSRC:.S=))
+CPPFLAGS += $(addprefix -I, $(ALLINC))
+# And build just queue from hal
+DEFS += -DPORT_IGNORE_GCC_VERSION_CHECK
+endif
+
+###############################################################################
+# Build sim & target
+#
 
 ifneq ($(V),1)
 Q := @
@@ -49,9 +96,11 @@ else
 LDSCRIPT = ../stm32f070.ld
 endif
 
+TGT_RESULT = $(TGT_BUILDDIR)/$(BINARY)
+
 ALL :=
 ifeq ($(TGT), 1)
-ALL += $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).bin
+ALL += $(TGT_RESULT).elf $(TGT_RESULT).bin
 endif
 ifeq ($(SIM), 1)
 ALL += $(SIM_BUILDDIR)/$(BINARY)
@@ -60,25 +109,29 @@ endif
 .PHONY: all clean prg prg_usb prg_bl gdb
 .SUFFIXES:
 
+ifeq ($(TGT), 1)
 all: $(ALL)
+	size $(TGT_RESULT).elf
+else
+all: $(ALL)
+endif
 
 clean:
 	rm -rf $(SIM_BUILDDIR)
 	rm -rf $(TGT_BUILDDIR)
 
 ifeq ($(SIM), 1)
-include ../rules.sim.mk
+include $(ROOT)/rules.sim.mk
 endif
 
 ifeq ($(TGT), 1)
-include ../rules.mk
+include $(ROOT)/rules.mk
 endif
 
 ###############################################################################
 # Programming & debugging
 #
 
-TGT_RESULT = $(TGT_BUILDDIR)/$(BINARY)
 
 prg: $(TGT_RESULT).elf
 	@echo programming...
@@ -89,23 +142,26 @@ prg: $(TGT_RESULT).elf
 ifeq ($(NO_BOOTLOADER), 1)
 # Program using the ST link bootloader
 prg_bl: $(TGT_RESULT).bin
-	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08000000:131072
+	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08000000:131072
 
 prg_usb:
 	$(error Program is built without bootloader support)
 
 else
 prg_bl: $(TGT_RESULT).bin
-	@sudo dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08002000:131072
+	@$(SUDO) dfu-util -a 0 -D $(TGT_RESULT).bin -s 0x08004000:131072
 # program using our prebooter (DDFU)
 prg_usb: $(TGT_RESULT).bin
-	@echo Waiting for the bootloader to connect, please restart the device
+	
+	@# We "arm" sudo using this command
+	@$(SUDO) echo Waiting for the bootloader to connect, please restart the device
 	@../wait_for_dfu.py
-	@sudo dfu-util -D $(TGT_RESULT).bin
+	@$(SUDO) dfu-util -D $(TGT_RESULT).bin
 endif
 
 gdb:  $(TGT_RESULT).elf
-		$(TGT_GDB) -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg -c "gdb_port pipe; log_output openocd.log"' \
+		$(TGT_GDB) -ex 'target remote | openocd -f ../openocd_stm32_orange.cfg \
+			-c "stm32f0x.cpu configure -rtos auto; gdb_port pipe; log_output openocd.log"' \
 			-ex 'monitor reset halt' \
 			-ex 'b main' -ex 'c' \
 			$(TGT_RESULT).elf

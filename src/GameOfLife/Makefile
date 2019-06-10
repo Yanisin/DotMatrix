@@ -1,44 +1,17 @@
-BINARY = main
+TOPDIR = $(shell pwd)
 
-DEFS += -DCONSOLE_PRINTF
-SIM ?= 1
+BINARY = GameOfLife
+#HW_VERSION = "HW_38x38_rev_0_1"
+#HW_VERSION = "HW_60x60_rev_0_2"
+#HW_VERSION = "HW_38x38_rev_0_3"
+#HW_VERSION = "HW_60x60_rev_0_4"
+HW_VERSION = "HW_60x60_rev_0_5"
 
-TGT_MODS = \
-	led \
-	disp disp_spi \
-	ticker \
-	cdcacm \
-	console \
-	common_gpio \
-	spi_dma \
-	int \
-	cell_id \
-	buttons_hw
-
-SIM_MODS = \
-	sim/main \
-	sim/sim_proto \
-	sim/led \
-	sim/ticker \
-	sim/disp \
-	sim/console \
-	sim/common_gpio \
-	sim/int \
-	sim/buttons_hw
-	
-MODS += \
-	rand \
-	main \
-	applet \
-	life \
-	usart_buffered \
-	topo \
-	vector \
-	icons \
-	chooser_applet \
-	topo_applet \
-	buttons
-
-#OBJS += wordclock.o rtc.o
+DEFS += -D$(HW_VERSION)
+#DEFS += -DCONSOLE_PRINTF
+MODS= buttons led disp disp_spi ticker rand usart_buffered spi_dma applet
+MODS += cdcacm console main
+#MODS += wordclock rtc
+MODS += life
 
 include ../common.mk

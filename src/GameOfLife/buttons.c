@@ -1,30 +1,95 @@
-#include "buttons.h"
-#include "ticker.h"
+#include <libopencm3/stm32/rcc.h>
+#include <libopencm3/stm32/gpio.h>
+#include <libopencm3/cm3/nvic.h>
+#include <libopencm3/stm32/exti.h>
 
-#define BTN_COUNT 3
+#include "hw_defs.h"
+#include "applet.h"
+#include "led.h"
 
-struct btn_state {
-	bool last_state;
-	unsigned int change_time;
-	bool hold_reported;
+
+static void clock_setup(void)
+{
+	rcc_clock_setup_in_hsi_out_48mhz();
+}
+
+static void gpio_setup(void)
+{
+	/* Enable GPIOA clock. */
+	rcc_periph_clock_enable(BTN0_RCC);
+	rcc_periph_clock_enable(BTN1_RCC);
+
+	/*FIXME what about push up/down? */
+	gpio_mode_setup(BTN0_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BTN0_PIN);
+	gpio_mode_setup(BTN1_PORT, GPIO_MODE_INPUT, GPIO_PUPD_NONE, BTN1_PIN);
+}
+
+static void exti_setup(void)
+{
+	/* Enable EXTI0 interrupt. */
+	nvic_enable_irq(NVIC_EXTI4_15_IRQ);
+
+	/* Configure the EXTI subsystem. */
+	exti_select_source(EXTI6, GPIOA);
+	exti_set_trigger(EXTI6, EXTI_TRIGGER_FALLING);
+	exti_enable_request(EXTI6);
+	/*FIXME make this via defines from hw_defs*/
+	exti_select_source(EXTI7, GPIOA);
+	exti_set_trigger(EXTI7, EXTI_TRIGGER_FALLING);
+	exti_enable_request(EXTI7);
+}
+
+volatile int delay = 100000;
+void exti4_15_isr(void)
+{
+	if(exti_get_flag_status(EXTI6)){
+		exti_reset_request(EXTI6);
+//	delay = delay/4;
+	}
+
+	if(exti_get_flag_status(EXTI7)) {
+		exti_reset_request(EXTI7);
+//	delay = delay * 4;
+	led_toggle();
+	}
+#if 0
+	if (exti_direction == FALLING) {
+		gpio_set(LED_PORT, LED_PIN);
+		exti_direction = RISING;
+		exti_set_trigger(EXTI6, EXTI_TRIGGER_RISING);
+	} else {
+		gpio_clear(LED_PORT,LED_PIN);
+		exti_direction = FALLING;
+		exti_set_trigger(EXTI6, EXTI_TRIGGER_FALLING);
+	}
+#endif
+}
+
+static void btn_init(void)
+{
+//	volatile int i;
+
+	clock_setup();
+	gpio_setup();
+	exti_setup();
+
+//	while (1) {
+//		gpio_toggle(LED_PORT, LED_PIN);
+//		for (i=0;i<delay;i++){
+//			__asm("nop");
+//		}
+//	}
+}
+
+static void btn_worker(void)
+{
+
+}
+
+
+static const struct applet btn_applet = {
+	.init = btn_init,
+	.worker = btn_worker,
 };
 
-static struct btn_state button_state[BTN_COUNT];
-
-enum button_event button_get_event(enum button btn)
-{
-	struct btn_state *b = &button_state[btn];
-	enum button_event evt = BTN_EV_NONE;
-	unsigned int now = ticker_get_ticks();
-	bool state = button_is_pressed(btn);
-	if (state != b->last_state) {
-		evt = state ? BTN_EV_DOWN : BTN_EV_UP;
-		b->last_state = state;
-		b->change_time = now;
-		b->hold_reported = false;
-	} else if (state && now - b->change_time > 1000 && !b->hold_reported) {
-		evt = BTN_EV_HOLD;
-		b->hold_reported = true;
-	}
-	return evt;
-}
+applet_add(btn);

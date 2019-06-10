@@ -1,0 +1,2 @@
+ACTION=="add", ENV{SUBSYSTEM}=="tty", ENV{ID_MODEL}=="LED-Tile", RUN+= "/bin/sh -c 'echo t$(date +%%H%%M) > $DEVNAME'"
+

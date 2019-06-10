@@ -1,6 +1,9 @@
 import socketserver
 import socket
 import struct
+from builtins import IOError
+from typing import IO
+
 import proto_defs
 import binascii
 
@@ -33,30 +36,36 @@ class ClientHandler(socketserver.BaseRequestHandler):
             proto_defs.MSGID_UART_TX: self.msg_uart_tx,
             proto_defs.MSGID_UPDATE_DISP: self.msg_disp,
             proto_defs.MSGID_GPIO_STATE: self.msg_gpio_state,
+            proto_defs.MSGID_I2C_TX: self.msg_i2c_tx
         }
-        while True:
-            header = self.request.recv(4, socket.MSG_WAITALL)
-            if len(header) != 4:
-                break
-            (msglen, msgid) = struct.unpack('!HH', header)
-            data = self.request.recv(msglen, socket.MSG_WAITALL)
-            if len(data) != msglen:
-                break
-            msg = Message(msglen, msgid, data)
-            if msg.msgid in router:
+        try:
+            while True:
+                header = self.request.recv(4, socket.MSG_WAITALL)
+                if len(header) != 4:
+                    break
+                (msglen, msgid) = struct.unpack('!HH', header)
+                data = self.request.recv(msglen, socket.MSG_WAITALL)
+                if len(data) != msglen:
+                    break
+                msg = Message(msglen, msgid, data)
+                if msg.msgid in router:
+                    with self.field.lock:
+                        router[msg.msgid](msg)
+                else:
+                    raise CommException('Unknown message ID {} received'.format(msg.msgid))
+        finally:
+            if self.cell is not None:
                 with self.field.lock:
-                    router[msg.msgid](msg)
-            else:
-                raise CommException('Unknown message ID {} received'.format(msg.msgid))
-
-        if self.cell is not None:
-            self.cell.client_disconnected()
+                    self.cell.client_disconnected()
         print('Disconnected')
 
     def send(self, msgid, data: bytes):
         msg = struct.pack('!HH', len(data), msgid) + data
-        # print(binascii.b2a_hex(msg)
-        self.request.send(msg, 0)
+        try:
+            # print(binascii.b2a_hex(msg)
+            self.request.send(msg, 0)
+        except IOError:
+            pass
 
     def msg_hello(self, msg: Message):
         assert self.cell_id is None
@@ -79,3 +88,9 @@ class ClientHandler(socketserver.BaseRequestHandler):
         dir = msg.data[0]
         data = msg.data[1:]
         self.cell.uart_tx(dir, data)
+
+    def msg_i2c_tx(self, msg: Message):
+        for c in self.field.cells:
+            if c == self.cell:
+                continue
+            c.i2c_tx(msg.data)

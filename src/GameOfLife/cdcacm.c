@@ -316,7 +316,7 @@ void usb_isr(void)
 static void usb_setup(void)
 {
 	crs_autotrim_usb_enable();
-	rcc_set_usbclk_source(RCC_PLL);
+	rcc_set_usbclk_source(RCC_HSI48);
 }
 
 /*
@@ -351,14 +351,14 @@ static void cdcacm_init(void)
 	nvic_enable_irq(NVIC_USB_IRQ);
 }
 
-static void cdcacm_worker_run(void)
+static void cdcacm_worker(void)
 {
 	cdcacm_data_tx(cdcacm_usbd_dev);
 }
 
-static const struct worker cdcacm_worker = {
+static const struct applet cdcacm_applet = {
 		.init = cdcacm_init,
-		.run = cdcacm_worker_run
+		.worker = cdcacm_worker
 };
 
-worker_add(cdcacm);
+applet_add(cdcacm);

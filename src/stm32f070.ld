@@ -1,49 +1,16 @@
-/*
- * This file is part of the libopencm3 project.
- *
- * Copyright (C) 2009 Uwe Hermann <uwe@hermann-uwe.de>
- * Copyright (C) 2011 Stephen Caudle <scaudle@doceme.com>
- *
- * This library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public License
- * along with this library.  If not, see <http://www.gnu.org/licenses/>.
- */
-
-/* Linker script for ST STM32F0DISCOVERY (STM32F051R8T6, 64K flash, 8K RAM). */
 
 /* Define memory regions. */
 MEMORY
 {
-	/* First 8K is reserved for DDFU */
-	rom (rx) : ORIGIN = 0x08002000, LENGTH = 128K - 8K -8K
+	/* First 8K is reserved for DDFU, last 8K for system */
+	/* TODO: check the last 8k */
+	rom (rx) : ORIGIN = 0x08004000, LENGTH = 128K - 16K -8K
 	/* And we reserve 0x100 for interrupt vector table */
 	ram (rwx) : ORIGIN = 0x20000100, LENGTH = 16K - 0x100
 }
 
 /* Include the common ld script. */
-INCLUDE cortex-m-generic.ld
+INCLUDE common.ld
 
-SECTIONS
-{
-	.applet_array : {
-		. = ALIGN(4);
-		__applet_array_start = .;
-		KEEP(*(.applet.*));
-		__applet_array_end = .;
-
-		__worker_array_start = .;
-		KEEP(*(.worker.*));
-		__worker_array_end = .;
-	} > rom
-}
 
 

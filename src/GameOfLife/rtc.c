@@ -61,7 +61,7 @@ static void rtc_init(void)
 
 }
 
-static void rtc_run(void)
+static void rtc_worker(void)
 {
 	uint32_t c = console_getc();
 
@@ -101,9 +101,9 @@ static void rtc_run(void)
 	}
 }
 
-static const struct worker rtc_worker = {
+static const struct applet rtc_applet = {
 	.init = rtc_init,
-	.run = rtc_run,
+	.worker = rtc_worker,
 };
 
-worker_add(rtc);
+applet_add(rtc);

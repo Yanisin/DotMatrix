@@ -1,0 +1,9 @@
+- Change name DISP_COLS_DATA_GPIO
+- Add reporting of stack usage
+- Resurrect CDCACM
+- Make sure the I2C TX ISR is correct (seems prone to freezups)
+- Bring back the dots demo
+- Allow changing Game of life speed by pressing buttons
+- Documentation
+- Use custom printf that is not so stack and memory hugry
+- Turn on all pull-ups on i2c in DDFU and full

@@ -1,71 +1,24 @@
 #include "applet.h"
-#include "topo.h"
-#include "mgmt_msg.h"
 
-extern const struct applet *__applet_array_start;
-extern const struct applet *__applet_array_end;
+extern const char __applet_array_start;
+extern const char __applet_array_end;
 
-extern const struct worker *__worker_array_start;
-extern const struct worker *__worker_array_end;
-
-static const struct applet* current;
-
-const struct applet* applet_current(void)
+void applet_init_all(void)
 {
-	return current;
+	const struct applet **array_start = (const struct applet **)&__applet_array_start;
+	const struct applet **array_end = (const struct applet **)&__applet_array_end;
+
+	for (const struct applet **p = array_start; p < array_end; ++p)
+		if ((*p)->init)
+			(*p)->init();
 }
 
-static void applet_init(void) {
-	if (current->init)
-		current->init();
-}
-
-static void applet_destroy(void) {
-	if (current && current->destroy) {
-		current->destroy();
-	}
-}
-
-void applet_select_local(const struct applet *applet)
+void applet_run_all(void)
 {
-	applet_destroy();
-	current = applet;
-	applet_init();
-}
+	const struct applet **array_start = (const struct applet **)&__applet_array_start;
+	const struct applet **array_end = (const struct applet **)&__applet_array_end;
 
-void  applet_select(uint8_t applet)
-{
-	struct mgmt_change_applet msg;
-	msg.applet = applet;
-
-	applet_destroy();
-	current = applet_get(applet);
-	topo_send_down(MGMT_CHANGE_APPLET, sizeof(msg), &msg);
-	applet_init();
-}
-
-size_t applet_count(void)
-{
-	return &__applet_array_end - &__applet_array_start;
-}
-
-const struct applet* applet_get(int index)
-{
-	return (&__applet_array_start)[index];
-}
-
-void worker_init_all(void)
-{
-	for (const struct worker **w = &__worker_array_start; w != &__worker_array_end; w++) {
-		if ((*w)->init)
-			(*w)->init();
-	}
-}
-
-void worker_run_all(void)
-{
-	for (const struct worker **w = &__worker_array_start; w != &__worker_array_end; w++) {
-		if ((*w)->run)
-			(*w)->run();
-	}
+	for (const struct applet **p = array_start; p < array_end; ++p)
+		if ((*p)->worker)
+			(*p)->worker();
 }

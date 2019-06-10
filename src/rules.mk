@@ -24,23 +24,30 @@
 ###############################################################################
 # Executables
 
-TGT_PREFIX		?= $(ARM_NONE_EABI_DIR)/arm-none-eabi
+TGT_PREFIX		?= arm-none-eabi-
 
-TGT_CC		:= $(TGT_PREFIX)-gcc
-TGT_CXX		:= $(TGT_PREFIX)-g++
-TGT_LD		:= $(TGT_PREFIX)-gcc
-TGT_AR		:= $(TGT_PREFIX)-ar
-TGT_AS		:= $(TGT_PREFIX)-as
-TGT_OBJCOPY		:= $(TGT_PREFIX)-objcopy
-TGT_OBJDUMP		:= $(TGT_PREFIX)-objdump
-TGT_GDB		:= $(TGT_PREFIX)-gdb
+TGT_CC		:= $(TGT_PREFIX)gcc
+TGT_CXX		:= $(TGT_PREFIX)g++
+TGT_LD		:= $(TGT_PREFIX)gcc
+TGT_AR		:= $(TGT_PREFIX)ar
+TGT_AS		:= $(TGT_PREFIX)as
+TGT_OBJCOPY		:= $(TGT_PREFIX)objcopy
+TGT_OBJDUMP		:= $(TGT_PREFIX)objdump
+TGT_GDB		:= $(TGT_PREFIX)gdb
 STFLASH		= $(shell which st-flash)
 STYLECHECK	:= /checkpatch.pl
 STYLECHECKFLAGS	:= --no-tree -f --terse --mailback
 STYLECHECKFILES	:= $(shell find . -name '*.[ch]')
-TGT_OPT		?= -Os
 
-
+FP_FLAGS ?= -msoft-float
+ARCH_FLAGS = -mthumb -mcpu=cortex-m0 $(FP_FLAGS)
+ifeq ($(DEBUG),1)
+TGT_OPT ?= -Og
+TGT_DEFS += -DDEBUG
+else
+TGT_OPT ?= -Os
+TGT_DEFS += -DNDEBUG
+endif
 
 ###############################################################################
 # Source files
@@ -58,7 +65,7 @@ endif
 
 # Old style, assume LDSCRIPT exists
 TGT_DEFS		+= -I$(OPENCM3_DIR)/include
-TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib
+TGT_LDFLAGS		+= -L$(OPENCM3_DIR)/lib -L..
 # https://www.tablix.org/~avian/blog/archives/2012/11/gnu_linker_and_elf_program_header/
 TGT_LDFLAGS += -z max-page-size=2048
 TGT_LDLIBS		+= -l$(LIBNAME)
@@ -88,7 +95,7 @@ TGT_CPPFLAGS	+= $(TGT_DEFS)
 
 TGT_LDFLAGS		+= --static -nostartfiles
 TGT_LDFLAGS		+= -T$(LDSCRIPT)
-TGT_LDFLAGS		+= $(ARCH_FLAGS) $(DEBUG)
+TGT_LDFLAGS		+= $(ARCH_FLAGS)
 TGT_LDFLAGS		+= -Wl,-Map=$(TGT_BUILDDIR)/$(*).map -Wl,--cref
 ifeq ($(V),99)
 TGT_LDFLAGS		+= -Wl,--print-gc-sections
@@ -146,6 +153,11 @@ $(TGT_BUILDDIR)/%.o: %.cxx
 	@mkdir -p $(dir $@)
 	@printf "  CXX     $(*).cxx\n"
 	$(Q)$(TGT_CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
+
+$(TGT_BUILDDIR)/%.o: %.S
+	@mkdir -p $(dir $@)
+	@printf "  AS      $(*).S\n"
+	$(Q)$(TGT_CC) $(TGT_CPPFLAGS) $(CPPFLAGS) -DASSEMBLER -o $@ -c $<
 
 $(TGT_BUILDDIR)%.o: %.cpp
 	@mkdir -p $(dir $@)
