@@ -240,6 +240,10 @@ int main(void) {
 			i2c_init(i2c_crossover, true);
 		}
 
+		if (serviced_tick == SLAVE_GIVE_UP && main_mode == MODE_SLAVE && !flashing) {
+			continue_boot();
+		}
+
 		if (main_mode == MODE_MASTER && i2c_enabled && !i2c_tx_running()) {
 			if (current_i2c_packet == PAGE_SIZE/PAGE_PACKET_SIZE) {
 				current_i2c_packet = -1;
@@ -271,7 +275,7 @@ int main(void) {
 
 		if (serviced_tick < tick_count) {
 			/* per-tick actions */
-			serviced_tick = tick_count;
+			serviced_tick++;
 			disp_tick();
 
 			/* Blink the LED */

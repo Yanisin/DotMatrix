@@ -45,6 +45,11 @@ extern bool ready_to_flash;
  * to everyone on the bus.
  */
 #define USB_WAIT_PHASE_END 2000
+/* Slave gives up if flashing has not started after this time and it was not release.
+ *
+ * Fail-safe for quirky I2C buses.
+ */
+#define SLAVE_GIVE_UP 3000
 
 /* Time left for the programming after the i2c "flash" command is sent */
 #define PAGE_DELAY_TIME 10

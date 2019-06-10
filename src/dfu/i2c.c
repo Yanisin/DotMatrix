@@ -153,10 +153,10 @@ bool i2c_tx_running(void)
 
 void i2c_send_release(void)
 {
-	//uint32_t timeout = tick_count + 5;
+	uint32_t timeout = tick_count + 5;
 	tx_buf[0] = MSG_RELEASE;
 	i2c_tx_start(1);
-	while(i2c_tx_running())
+	while(timeout >= tick_count)
 		i2c_poll();
 }
 
@@ -176,9 +176,8 @@ void i2c_init(bool crossover, bool master)
 	bus = &buses[crossover];
 	rcc_set_i2c_clock_hsi(bus->base);
 	i2c_reset(bus->base);
-	uint8_t pupd = master ? GPIO_PUPD_PULLUP : GPIO_PUPD_NONE;
 
-	gpio_mode_setup(bus->gpio_port, GPIO_MODE_AF, pupd, bus->gpio_scl | bus->gpio_sda);
+	gpio_mode_setup(bus->gpio_port, GPIO_MODE_AF, GPIO_PUPD_PULLUP, bus->gpio_scl | bus->gpio_sda);
 	gpio_set_af(bus->gpio_port, bus->gpio_af, bus->gpio_scl | bus->gpio_sda);
 	gpio_set_output_options(bus->gpio_port, GPIO_OTYPE_OD, GPIO_OSPEED_HIGH, bus->gpio_scl | bus->gpio_sda);
 
