@@ -297,8 +297,8 @@ static void life_worker(void)
 	} else {
 		msg_header hdr;
 		buf_ptr ptr;
-		msg_rx_queue_get(alt_queue, &hdr, &ptr, TIME_S2I(1));
-		msg_rx_queue_ack(alt_queue);
+		if(msg_rx_queue_get(alt_queue, &hdr, &ptr, TIME_S2I(1)))
+			msg_rx_queue_ack(alt_queue);
 	}
 	/* wait a bit to make sure everybody got it */
 	chThdSleep(TIME_MS2I(2));
