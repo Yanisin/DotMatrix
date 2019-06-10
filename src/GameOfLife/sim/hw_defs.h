@@ -1,4 +1,0 @@
-#define USART_DIR_RIGHT 0
-#define USART_DIR_DOWN 1
-#define USART_DIR_LEFT 2
-#define USART_DIR_UP 3
