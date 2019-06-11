@@ -30,10 +30,12 @@ static int i2c_crossover;
 bool dfu_activated;
 enum mode main_mode = MODE_STANDALONE;
 static bool flashing;
-bool ready_to_flash;
+bool ready_to_download;
 static uint32_t next_page_time;
 static int current_i2c_packet = -1;
-static bool flash_now;
+static bool page_broadcasted;
+static bool flash_done;
+static bool page_erased;
 
 
 struct vectors_header {
@@ -88,23 +90,37 @@ static void send_flash_command(void)
 
 static void flash_page(void) {
 	uintptr_t page = FLASH_BASE + PAGE_SIZE * (FLASH_RESERVED_PAGES + page_number);
-	if (memcmp((void*)page, page_data, PAGE_SIZE) == 0)
+	if (memcmp((void*)page, page_data, PAGE_SIZE) == 0) {
+		page_erased  = true;
+		flash_done = true;
 		return;
-	flash_unlock();
-	flash_erase_page(page);
-	for (size_t i = 0; i < PAGE_SIZE; i+= 4) {
-		flash_program_word(page + i, *(uint32_t*)(page_data + i));
 	}
 
-	flash_lock();
-	if (*(uint32_t*) (FLASH_BASE + PAGE_SIZE * (FLASH_RESERVED_PAGES)) == 0xFFFFFFFF) {
-		panic();
+	if (!page_erased) {
+		page_erased = true;
+		flash_unlock();
+		flash_wait_for_last_operation();
+
+		FLASH_CR |= FLASH_CR_PER;
+		FLASH_AR = page;
+		FLASH_CR |= FLASH_CR_STRT;
+	} else if ((flash_get_status_flags() & FLASH_SR_BSY) == 0){
+		FLASH_CR &= ~FLASH_CR_PER;
+		for (size_t i = 0; i < PAGE_SIZE; i+= 4) {
+			flash_program_word(page + i, *(uint32_t*)(page_data + i));
+		}
+		flash_lock();
+		flash_done = true;
 	}
 }
 
 void handle_page(void)
 {
-	ready_to_flash = false;
+	ready_to_download = false;
+	flash_done = false;
+	page_broadcasted = false;
+	page_erased = false;
+
 	if (!flashing) {
 		flashing = true;
 		disp_show(icon_flash);
@@ -116,8 +132,7 @@ void handle_page(void)
 	}
 
 	if (main_mode == MODE_STANDALONE || main_mode == MODE_SLAVE) {
-		flash_page();
-		ready_to_flash = true;
+		page_broadcasted = true;
 	}
 }
 
@@ -204,7 +219,9 @@ int main(void) {
 	usart_init();
 	usb_init();
 	usart_reset_neigbors();
-	ready_to_flash = false;
+	ready_to_download = false;
+	page_broadcasted = true;
+	flash_done = true;
 	usb_enabled = true;
 	i2c_enabled = false;
 
@@ -254,10 +271,10 @@ int main(void) {
 			continue_boot();
 		}
 
-		if (main_mode == MODE_MASTER && i2c_enabled && !i2c_tx_running()) {
+		if (main_mode == MODE_MASTER && !page_broadcasted && i2c_enabled && !i2c_tx_running()) {
 			if (current_i2c_packet == PAGE_SIZE/PAGE_PACKET_SIZE) {
 				current_i2c_packet = -1;
-				flash_now = true;
+				page_broadcasted = true;
 				send_flash_command();
 			} else if (current_i2c_packet >= 0){
 				send_packet_i2c();
@@ -265,20 +282,20 @@ int main(void) {
 			}
 		}
 
-		if (flash_now && !i2c_tx_running()) {
+		if (page_broadcasted && !flash_done &&  (!i2c_enabled || !i2c_tx_running())) {
 			next_page_time = tick_count + PAGE_FLASH_TIME;
 			flash_page();
-			flash_now = false;
 		}
 
 		/* Allow flashing if we do not have any unfinished i2c packets, are in appropriate phase,
-		 * and the next_page_time delat has note elapsed */
+		 * and the next_page_time delat has elapsed */
 		if (main_mode == MODE_MASTER
 		    && next_page_time < tick_count
 		    && current_i2c_packet == -1
-		    && flash_now == false
+		    && page_broadcasted
+		    && flash_done
 		    && serviced_tick > FLASHING_ALLOWED) {
-			ready_to_flash = true;
+			ready_to_download = true;
 		}
 
 		if (usb_enabled)

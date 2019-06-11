@@ -21,7 +21,7 @@ extern bool dfu_activated;
 extern enum mode main_mode;
 extern volatile uint32_t tick_count;
 
-extern bool ready_to_flash;
+extern bool ready_to_download;
 
 /* During the quiet phase, we request others to reboot, but we do not broadcast on the i2c lines.
  *

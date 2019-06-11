@@ -91,7 +91,7 @@ static uint8_t usbdfu_getstatus(uint32_t *bwPollTimeout)
 {
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
-		if (ready_to_flash && handle_page_called) {
+		if (ready_to_download && handle_page_called) {
 			handle_page_called = false;
 			usbdfu_state = STATE_DFU_DNLOAD_IDLE;
 		} else {
@@ -118,7 +118,7 @@ static void usbdfu_getstatus_complete(usbd_device *usbd_dev, struct usb_setup_da
 
 	switch (usbdfu_state) {
 	case STATE_DFU_DNBUSY:
-		if (ready_to_flash) {
+		if (ready_to_download) {
 			if (!handle_page_called) {
 				handle_page_called = true;
 				handle_page();
@@ -128,7 +128,7 @@ static void usbdfu_getstatus_complete(usbd_device *usbd_dev, struct usb_setup_da
 		}
 		return;
 	case STATE_DFU_MANIFEST:
-		if (ready_to_flash) {
+		if (ready_to_download) {
 			continue_boot();
 		}
 		return; /* Will never return. */
@@ -167,7 +167,7 @@ dfu_ctrl(
 				/* Copy download data for use on GET_STATUS. */
 				page_number = req->wValue;
 				memcpy(page_data, *buf, PAGE_SIZE);
-				ready_to_flash = false;
+				ready_to_download = false;
 				usbdfu_state = STATE_DFU_DNLOAD_SYNC;
 			}
 			return 1;
