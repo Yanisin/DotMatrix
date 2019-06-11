@@ -243,7 +243,7 @@ int main(void) {
 				i2c_crossover = 1;
 				disp_show(icon_slave);
 				main_mode = MODE_SLAVE;
-			} else if (lines == I2C1_GPIO_SCL) {
+			} else if (lines == I2C1_GPIO_SDA) {
 				/* SCL driven low */
 				i2c_crossover = 0;
 				disp_show(icon_slave);

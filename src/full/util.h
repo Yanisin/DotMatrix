@@ -4,7 +4,7 @@
 
 #define MAX(a,b) ( (a) > (b) ? (a) : (b))
 #define MIN(a,b) ( (a) < (b) ? (a) : (b))
-#define ABS(a) ((a) < 0 ? (-a) : (a))
+#define ABS(a) ((a) < 0 ? (-(a)) : (a))
 
 /* Should be smbus crc8 from U-boot */
 static inline void crc8(uint32_t *crc, uint8_t value)
