@@ -169,6 +169,9 @@ gdb:  $(TGT_RESULT).elf
 			-ex 'b main' -ex 'c' \
 			$(TGT_RESULT).elf
 
+sizes: $(TGT_RESULT).elf
+	nm --print-size --size-sort $< -l -t d | awk -e '$$3 == "b" || $$3 == "d"'
+
 ###############################################################################
 # Help
 #

@@ -9,8 +9,21 @@
 #include "ch.h"
 #include "icons.h"
 #include "disp.h"
+#include <assert.h>
 
 extern uint8_t _psp_base;
+
+void __assert (const char * file , int line, const char * e)
+{
+	console_printf("assertion fail in %s:%d\n", file, line);
+	board_halt(e);
+}
+
+void __assert_func (const char * file, int line, const char *func, const char *e)
+{
+	console_printf("assertion fail in %s:%d, %s\n", file, line, func);
+	board_halt(e);
+}
 
 static void fill_stack(void)
 {
@@ -35,12 +48,13 @@ void board_init(void)
 
 void board_halt(const char*msg)
 {
-	/* TODO: terminate display test if in progress */
-	console_printf("halt: %s\n", msg);
 	__asm volatile("bkpt #0\n");
+	/* The rest is just a best effort --  we might be in a really bad shape */
+	console_printf("halt: %s\n", msg);
 	draw_icon(smiley_sad, BLIT_SET);
 	chThdTerminate(display_test);
-	chThdSleep(TIME_INFINITE);
+	while(1)
+		chThdSleep(TIME_INFINITE);
 }
 
 void hard_fault_handler()
