@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# We have tried to do this the "proper" way, using libpyudev, but it does not
+# work well in docker.
+
+while true; do
+    if lsusb | grep 'dead:ca5d'; then
+        exit 0
+    fi
+    sleep 0.1
+done

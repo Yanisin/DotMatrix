@@ -17,6 +17,7 @@ SIM ?= 0
 TGT ?= 1
 DEBUG ?= 0
 SUDO ?= sudo
+NO_WAIT ?= 0
 
 ###############################################################################
 # Common C Flags
@@ -155,7 +156,9 @@ prg_usb: $(TGT_RESULT).bin
 	
 	@# We "arm" sudo using this command
 	@$(SUDO) echo Waiting for the bootloader to connect, please restart the device
-	@../wait_for_dfu.py
+ifeq ($(NO_WAIT),0)
+	@../wait_for_dfu
+endif
 	@$(SUDO) dfu-util -D $(TGT_RESULT).bin
 endif
 
