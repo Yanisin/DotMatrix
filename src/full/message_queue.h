@@ -117,12 +117,11 @@ typedef struct buf_ptr_str {
 } buf_ptr;
 
 
-extern msg_rx_queue *default_queue;
+extern msg_rx_queue * const default_queue;
 /** If an applet wishes to receive messages on this queue, it must enable it manually */
-extern msg_rx_queue *alt_queue;
-
-extern msg_rx_queue *mgmt_queue;
-extern msg_rx_queue *usart_route_queue;
+extern msg_rx_queue * const alt_queue;
+extern msg_rx_queue * const mgmt_queue;
+extern msg_rx_queue * const usart_route_queue;
 msg_rx_queue* msg_dispatcher(const msg_header *hdr);
 
 static inline qsize_t mod_bits16(uint8_t bits, qsize_t x)
@@ -133,6 +132,7 @@ static inline qsize_t mod_bits16(uint8_t bits, qsize_t x)
 
 void msg_rx_queue_init(msg_rx_queue *queue, uint8_t size_bits, void *buffer);
 msg_rx_queue* msg_rx_queue_alloc(memory_heap_t *heap, uint8_t size_bits);
+void msg_rx_queue_free(msg_rx_queue *queue);
 bool msg_rx_queue_get(
 	msg_rx_queue *queue, msg_header *header_out, buf_ptr *buf_ptr_out, sysinterval_t timeout);
 void msg_rx_queue_ack(msg_rx_queue *queue);

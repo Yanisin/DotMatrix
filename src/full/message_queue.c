@@ -8,11 +8,35 @@
 #define FIELD_LENGTH 0
 #define FIELD_FLAGS 1
 
-msg_rx_queue *default_queue;
-msg_rx_queue *alt_queue;
-msg_rx_queue *mgmt_queue;
-msg_rx_queue *usart_route_queue;
 
+/*************************************** Default queue declarations *******************************/
+#ifdef SIM
+/* We need to work-around the lack of rate limiting */
+#define BUF_MULTIPLIER 2
+#else
+#define BUF_MULTIPLIER 0
+#endif
+
+
+
+#define DEFINE_QUEUE(name, bitsize) \
+	static msg_rx_queue name##_obj; \
+	static uint8_t name##_buffer[1 << (bitsize + BUF_MULTIPLIER)]; \
+	msg_rx_queue *const name = &name##_obj;
+
+#define DEFAULT_QUEUE_BITSIZE 7
+DEFINE_QUEUE(default_queue, DEFAULT_QUEUE_BITSIZE)
+
+#define ALT_QUEUE_BITSIZE 6
+DEFINE_QUEUE(alt_queue, ALT_QUEUE_BITSIZE)
+
+#define MGMT_QUEUE_BITSIZE 6
+DEFINE_QUEUE(mgmt_queue, MGMT_QUEUE_BITSIZE)
+
+#define USART_ROUTE_QUEUE_BITSIZE 7
+DEFINE_QUEUE(usart_route_queue, USART_ROUTE_QUEUE_BITSIZE)
+
+/*************************************** Queue code  **********************************************/
 void msg_rx_queue_init(msg_rx_queue *queue, uint8_t size_bits, void *buffer)
 {
 	assert(size_bits < (sizeof(qsize_t) * 8));
@@ -39,6 +63,12 @@ msg_rx_queue* msg_rx_queue_alloc(memory_heap_t *heap, uint8_t size_bits)
 	msg_rx_queue_init(q, size_bits, buf);
 	return q;
 
+}
+
+void msg_rx_queue_free(msg_rx_queue *queue)
+{
+	chHeapFree(queue->buffer);
+	chHeapFree(queue);
 }
 
 static uint8_t *queue_index(msg_rx_queue *queue, qsize_t at)
@@ -239,16 +269,10 @@ msg_rx_queue* msg_dispatcher(const msg_header *hdr)
 	}
 }
 
-#ifdef SIM
-/* We need to work-around the lack of rate limiting */
-#define BUF_MULTIPLIER 2
-#else
-#define BUF_MULTIPLIER 0
-#endif
 static void init_default_queues(void) {
-	default_queue = msg_rx_queue_alloc(NULL, 7 + BUF_MULTIPLIER);
-	alt_queue = msg_rx_queue_alloc(NULL, 7 + BUF_MULTIPLIER);
-	usart_route_queue = msg_rx_queue_alloc(NULL, 6 + BUF_MULTIPLIER);
-	mgmt_queue = msg_rx_queue_alloc(NULL, 5 + BUF_MULTIPLIER);
+	msg_rx_queue_init(default_queue, DEFAULT_QUEUE_BITSIZE + BUF_MULTIPLIER, &default_queue_buffer);
+	msg_rx_queue_init(alt_queue, ALT_QUEUE_BITSIZE + BUF_MULTIPLIER, &alt_queue_buffer);
+	msg_rx_queue_init(mgmt_queue, MGMT_QUEUE_BITSIZE + BUF_MULTIPLIER, &mgmt_queue_buffer);
+	msg_rx_queue_init(usart_route_queue, USART_ROUTE_QUEUE_BITSIZE + BUF_MULTIPLIER, &usart_route_queue_buffer);
 }
 init_add(init_default_queues);
