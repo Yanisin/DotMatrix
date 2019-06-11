@@ -181,8 +181,6 @@ void topo_run(void)
 			console_printf("(%02d, %02d) has id %d, dir = %d\n", c->pos.x, c->pos.y, c->id, c->dir);
 		}
 	}
-#else
-	console_printf("short id = %d\n", topo_my_id);
 #endif
 	thread_t *thr = chThdCreateStatic(&route_thread_area, sizeof(route_thread_area), NORMALPRIO, route_thread_run, NULL);
 	thr->name = "route";

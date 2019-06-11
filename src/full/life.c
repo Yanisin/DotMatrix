@@ -307,6 +307,8 @@ static void life_worker(void)
 	/* 2) Check everything that might have happened (messages, console) */
 	while (receive_msg())
 		;
+
+#if 0
 	int c = console_getc();
 	if (c == '+' || c == '-') {
 		if (c == '+' && life_tick_mult < 0x3f)
@@ -317,6 +319,7 @@ static void life_worker(void)
 		life_tick_interv = life_tick_mult * LIFE_TICK;
 		update_life_tick(-1);
 	}
+#endif
 
 	/* 4) Advance the life */
 	/* seed life */
@@ -328,7 +331,6 @@ static void life_worker(void)
 
 	/* run the beat of life */
 	life_tick();
-
 	/* stasis or extinction detected */
 	if (scheduled_cleanup) {
 		if (scheduled_cleanup == 1) {

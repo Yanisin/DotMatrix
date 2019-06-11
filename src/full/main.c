@@ -15,6 +15,8 @@
 #include "mgmt_proto.h"
 #include "icons.h"
 #include "i2c.h"
+#include "topo.h"
+#include <assert.h>
 
 #ifdef SIM
 #include "sim/main.h"
@@ -127,6 +129,25 @@ static void disp_test_task(void *p)
 	}
 }
 
+static char hexdigit(uint8_t x) {
+	return (x < 10 ? '0' + x : 'A' + x - 10);
+}
+
+static void print_banner(void)
+{
+	char cell_id_hex[CELL_ID_LEN*2 + 1];
+	cell_id_hex[CELL_ID_LEN*2] = 0;
+	const cell_id_t *id = get_cell_id();
+	for(int i = 0; i < CELL_ID_LEN; i++) {
+		cell_id_hex[i*2] = hexdigit(id->bytes[i] >> 4);
+		cell_id_hex[i*2 + 1] = hexdigit(id->bytes[i] & 0xF);
+	}
+	console_printf("\nWelcome, this is DotMatrix board ID %s\n", cell_id_hex);
+	console_printf("Assigned cell id: %d, master=%s\n",
+		topo_my_id,
+		topo_is_master ? "true": "false");
+}
+
 static void main_task(void)
 {
 	disp_init();
@@ -138,11 +159,11 @@ static void main_task(void)
 	display_test = chThdCreateStatic(disp_test_thread_area, sizeof(disp_test_thread_area), NORMALPRIO, disp_test_task, NULL);
 	display_test->name = "disp";
 
-	console_puts("Starting...\n");
 	topo_run();
 	/* I2C needs the topology */
 	i2c_init();
 	chThdWait(display_test);
+	print_banner();
 
 	applet_select_local(&chooser_applet);
 

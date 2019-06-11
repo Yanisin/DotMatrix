@@ -2,9 +2,10 @@
 #define _CDCACM_H
 
 #include <stdint.h>
+#include "byte_queue.h"
 
-extern void cdcacm_write_char(char c);
-extern uint32_t cdcacm_get_char(void);
+extern output_queue_t cdcacm_tx_queue;
+extern input_queue_t cdcacm_rx_queue;
 extern int cdcacm_is_on(void);
 
 #endif

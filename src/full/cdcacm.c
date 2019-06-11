@@ -27,52 +27,20 @@
 
 #include "cdcacm.h"
 #include "applet.h"
+#include "byte_queue.h"
 
-#define BUF_SIZE 64
+#define RX_BUF_SIZE 64
+#define TX_BUF_SIZE 64
+#define USB_BUF_SIZE 32
 
 static usbd_device *cdcacm_usbd_dev;
 static int cdcacm_on;
-
-struct cdcacm_buffer {
-	uint8_t buf[BUF_SIZE];
-	volatile uint32_t wp;
-	volatile uint32_t rp;
-};
-
-static struct cdcacm_buffer cdcacm_txbuf;
-static struct cdcacm_buffer cdcacm_rxbuf;
-
-static void cdcacm_buf_init(struct cdcacm_buffer *buf)
-{
-	buf->wp = buf->rp = 0;
-}
-
-static int cdcacm_buf_empty(struct cdcacm_buffer *buf)
-{
-	return (buf->wp - buf->rp) == 0;
-}
-
-static int cdcacm_buf_full(struct cdcacm_buffer *buf)
-{
-	return (buf->wp - buf->rp) >= BUF_SIZE-1;
-}
-static void cdcacm_buf_put(struct cdcacm_buffer *buf, uint8_t val)
-{
-	if (!cdcacm_buf_full(buf)) {
-		buf->buf[buf->wp % BUF_SIZE] = val;
-		++buf->wp;
-	}
-}
-
-static uint32_t cdcacm_buf_get(struct cdcacm_buffer *buf)
-{
-	uint32_t val = -1;
-	if (!cdcacm_buf_empty(buf)) {
-		val = buf->buf[buf->rp % BUF_SIZE];
-		++buf->rp;
-	}
-	return val;
-}
+static uint8_t cdcacm_tx_queue_buf[TX_BUF_SIZE];
+output_queue_t cdcacm_tx_queue;
+static bool cdcacm_tx_hw_empty = true;
+/* Can be smaller, there is buffer in the shell */
+static uint8_t cdcacm_rx_queue_buf[RX_BUF_SIZE];
+input_queue_t cdcacm_rx_queue;
 
 static const struct usb_device_descriptor dev = {
 	.bLength = USB_DT_DEVICE_SIZE,
@@ -215,7 +183,7 @@ static const char *usb_strings[] = {
 };
 
 /* Buffer to be used for control requests. */
-uint8_t usbd_control_buffer[128];
+static uint8_t usbd_control_buffer[128];
 
 static enum usbd_request_return_codes cdcacm_control_request(usbd_device *usbd_dev, struct usb_setup_data *req, uint8_t **buf,
 		uint16_t *len, void (**complete)(usbd_device *usbd_dev, struct usb_setup_data *req))
@@ -261,26 +229,51 @@ static void cdcacm_data_rx_cb(usbd_device *usbd_dev, uint8_t ep)
 	(void)ep;
 	(void)usbd_dev;
 
-	char buf[64];
+	char buf[RX_BUF_SIZE];
 
 	len = usbd_ep_read_packet(usbd_dev, 0x01, buf, 64);
+
+	chSysLockFromISR();
 	for (count = 0; count < len; count++)
-		cdcacm_buf_put(&cdcacm_rxbuf, buf[count]);
+		iqPutI(&cdcacm_rx_queue, buf[count]);
+	chSysUnlockFromISR();
 }
 
-static void cdcacm_data_tx(usbd_device *usbd_dev)
+static void cdcacm_data_txI(usbd_device *usbd_dev, uint8_t ep)
 {
-	uint8_t buf[BUF_SIZE];
+	(void)ep;
+	uint8_t buf[64];
 	int len = 0;
 
 	if (!cdcacm_on)
 		return;
 
-	while (!cdcacm_buf_empty(&cdcacm_txbuf))
-		buf[len++] = cdcacm_buf_get(&cdcacm_txbuf);
+	while (!oqIsEmptyI(&cdcacm_tx_queue)) {
+		buf[len++] = oqGetI(&cdcacm_tx_queue);
+	}
 
-	if (len)
-		usbd_ep_write_packet(usbd_dev, 0x82, (void*)buf, len);
+	if (len) {
+		usbd_ep_write_packet(usbd_dev, ep, (void*)buf, len);
+	} else {
+		cdcacm_tx_hw_empty = true;
+	}
+}
+
+static void cdacm_data_tx_isr(usbd_device *usbd_dev, uint8_t ep)
+{
+	chSysLockFromISR();
+	cdcacm_data_txI(usbd_dev, ep);
+	chSysUnlockFromISR();
+}
+
+static void cdcacm_tx_queue_notify(output_queue_t *oq)
+{
+	(void)oq;
+	/* Note: already S-locked */
+	if (cdcacm_tx_hw_empty) {
+		cdcacm_tx_hw_empty = false;
+		cdcacm_data_txI(cdcacm_usbd_dev, 0x82);
+	}
 }
 
 static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
@@ -289,7 +282,7 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 	(void)usbd_dev;
 
 	usbd_ep_setup(usbd_dev, 0x01, USB_ENDPOINT_ATTR_BULK, 64, cdcacm_data_rx_cb);
-	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, NULL);
+	usbd_ep_setup(usbd_dev, 0x82, USB_ENDPOINT_ATTR_BULK, 64, cdacm_data_tx_isr);
 	usbd_ep_setup(usbd_dev, 0x83, USB_ENDPOINT_ATTR_INTERRUPT, 16, NULL);
 
 	usbd_register_control_callback(
@@ -297,9 +290,8 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
 				USB_REQ_TYPE_CLASS | USB_REQ_TYPE_INTERFACE,
 				USB_REQ_TYPE_TYPE | USB_REQ_TYPE_RECIPIENT,
 				cdcacm_control_request);
-
 	cdcacm_on = 1;
-	cdcacm_write_char('G');
+	cdacm_data_tx_isr(usbd_dev, 0x82);
 }
 
 /*
@@ -307,7 +299,9 @@ static void cdcacm_set_config(usbd_device *usbd_dev, uint16_t wValue)
  */
 void usb_isr(void)
 {
+	CH_IRQ_PROLOGUE();
 	usbd_poll(cdcacm_usbd_dev);
+	CH_IRQ_EPILOGUE();
 }
 
 /*
@@ -315,22 +309,9 @@ void usb_isr(void)
  */
 static void usb_setup(void)
 {
+	rcc_periph_clock_enable(RCC_USB);
 	crs_autotrim_usb_enable();
 	rcc_set_usbclk_source(RCC_PLL);
-}
-
-/*
- * PUBLIC INTERFACE
- */
-void cdcacm_write_char(char c)
-{
-	if (!cdcacm_buf_full(&cdcacm_txbuf))
-		cdcacm_buf_put(&cdcacm_txbuf, c);
-}
-
-uint32_t cdcacm_get_char(void)
-{
-	return cdcacm_buf_get(&cdcacm_rxbuf);
 }
 
 int cdcacm_is_on(void)
@@ -340,9 +321,9 @@ int cdcacm_is_on(void)
 
 static void cdcacm_init(void)
 {
-	cdcacm_buf_init(&cdcacm_txbuf);
-	cdcacm_buf_init(&cdcacm_rxbuf);
-
+	oqObjectInit(&cdcacm_tx_queue, cdcacm_tx_queue_buf, sizeof(cdcacm_tx_queue_buf),
+		     cdcacm_tx_queue_notify, NULL);
+	iqObjectInit(&cdcacm_rx_queue, cdcacm_rx_queue_buf, sizeof(cdcacm_rx_queue_buf), NULL, NULL);
 	usb_setup();
 
 	cdcacm_usbd_dev = usbd_init(&st_usbfs_v2_usb_driver, &dev, &config, usb_strings,
@@ -351,9 +332,3 @@ static void cdcacm_init(void)
 	nvic_enable_irq(NVIC_USB_IRQ);
 }
 init_add(cdcacm_init);
-
-static void cdcacm_worker_run(void)
-{
-	// TODO: fix
-	cdcacm_data_tx(cdcacm_usbd_dev);
-}

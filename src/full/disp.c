@@ -8,6 +8,7 @@
 #include "disp_spi.h"
 #include "spi_dma.h"
 #include "hw_defs.h"
+#include "applet.h"
 
 #define COLOR_DEPTH 32
 #define NUM_BLANKS 3
@@ -81,6 +82,7 @@ void disp_init(void)
 	/* start the DMA, the display is now on */
 	disp_kick();
 }
+init_add(disp_init);
 
 static uint8_t gamma_lookup(uint8_t val)
 {

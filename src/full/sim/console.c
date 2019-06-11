@@ -14,7 +14,7 @@ void console_putc(const char c)
 }
 
 
-uint32_t console_getc(void)
+int console_getc(void)
 {
 	return -1;
 }

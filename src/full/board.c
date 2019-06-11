@@ -48,13 +48,12 @@ void board_init(void)
 
 void board_halt(const char*msg)
 {
-	__asm volatile("bkpt #0\n");
 	/* The rest is just a best effort --  we might be in a really bad shape */
-	console_printf("halt: %s\n", msg);
+	console_printf("halt reason: %s\n", msg);
 	draw_icon(smiley_sad, BLIT_SET);
-	chThdTerminate(display_test);
+	__asm volatile("bkpt #0\n");
 	while(1)
-		chThdSleep(TIME_INFINITE);
+		;
 }
 
 void hard_fault_handler()
