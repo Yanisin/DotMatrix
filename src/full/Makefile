@@ -1,7 +1,7 @@
 BINARY = full
 
 DEFS := -DCONSOLE_PRINTF
-TGT_CPPFLAGS = -Ichibi
+TGT_CPPFLAGS = -Ichibi -I.
 SIM_CFLAGS = -Wno-redundant-decls
 SIM_CPPFLAGS = -Isim/chibi
 SIM ?= 1
@@ -11,15 +11,16 @@ TGT_MODS = \
 	chibi/hal_st \
 	chibi/reset \
 	chibi/init \
-	led \
-	disp disp_spi \
-	cdcacm \
-	console \
-	spi_dma \
-	cell_id \
-	buttons_hw \
-	board \
-	i2c
+	hw/led \
+	hw/disp \
+	hw/disp_spi \
+	hw/cdcacm \
+	hw/console \
+	hw/spi_dma \
+	hw/cell_id \
+	hw/buttons_hw \
+	hw/board \
+	hw/i2c
 
 SIM_MODS = \
 	sim/chibi/chcore \
@@ -32,20 +33,20 @@ SIM_MODS = \
 	sim/i2c
 
 MODS += \
-	rand \
 	main \
-	applet \
-	usart_buffered \
-	topo \
-	vector \
-	icons \
-	chooser_applet \
-	topo_applet \
-	message_queue \
-	byte_queue \
-	buttons \
-	life \
-	stack_usage \
-	simple_printf
+	hw/usart_buffered \
+	hw/buttons \
+	util/rand \
+	util/topo \
+	util/vector \
+	util/icons \
+	util/message_queue \
+	util/byte_queue \
+	util/stack_usage \
+	utilsimple_printf \
+	applets/applet \
+	applets/chooser_applet \
+	applets/topo_applet \
+	applets/life
 
 include ../common.mk
