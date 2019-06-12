@@ -33,7 +33,7 @@ void board_init(void)
 	}
 }
 
-void board_halt(const char*msg)
+void board_halt(const char *msg)
 {
 	char buf[80];
 	const cell_id_t *cid = get_cell_id();

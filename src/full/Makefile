@@ -51,6 +51,7 @@ MODS += \
 	applets/topo_applet \
 	applets/scroller \
 	applets/life \
-	applets/images
+	applets/images \
+	applets/dots
 
 include ../common.mk
