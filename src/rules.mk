@@ -140,7 +140,7 @@ $(TGT_BUILDDIR)/%.list: %(TGT_BUILDDIR)/%.elf
 	@printf "  OBJDUMP $(*).list\n"
 	$(Q)$(TGT_OBJDUMP) -S $< > $@.list
 
-$(TGT_BUILDDIR)/%.elf %(TGT_BUILDDIR)/%.map: $(TGT_OBJS) $(LDSCRIPT)
+$(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).map: $(TGT_OBJS) $(LDSCRIPT)
 	@printf "  LD      $(*).elf\n"
 	$(Q)$(TGT_LD) $(LDFLAGS) $(TGT_LDFLAGS) $(TGT_OBJS) $(LDLIBS) $(TGT_LDLIBS) -o $@
 
