@@ -20,9 +20,16 @@ A STM32F070CB driving a LED DotMatrix.
   * Optional: `Docker`
 
 You might be interested in some [libopencm3 examples here](https://github.com/libopencm3/libopencm3-examples).
+
 The pull requests there might be an interesting source of information as well.
 
- 
+You will also want to have the manuals for your hardware at hand. These are the most important for software development:
+ - Peripherals, memory layout, registers ... : [STM32F030x4/x6/x8/xC and STM32F070x6/xB MCUs](https://www.st.com/resource/en/reference_manual/dm00091010.pdf)
+ - Pinouts, Electric Characteristcs, HW variants, clocks ...:
+   [STM32F070CB Product Specification](https://www.st.com/resource/en/datasheet/stm32f070cb.pdf)
+ - Exceptions (NVIC), instructions ... :
+   [ARM® v7-M Architecture Reference Manual](https://static.docs.arm.com/ddi0403/eb/DDI0403E_B_armv7m_arm.pdf)
+
 ## Install & Build
 
 Get the code:
@@ -73,15 +80,56 @@ To compile the firmware / demo of your interest, just go to the directory and is
     dev@59e291eed30d:~/app$ cd src/full/
     dev@59e291eed30d:~/app/src/full$ make
 
-This should result in a binary `build/full.elf`.     
-    
+This should result in a binary `build/full.elf`.
+
+### Content of the package
+
+The software demos live in the src directory. There are are three main demos
+avaiable:
+
+- `src/stm32f070_miniblink` - a simple demo just blinking the LED
+- `src/GameOfLife` - GameOfLife with all connected cells working together.
+  Simple communication protocol over UART. The demo uses just libopencm3
+  for HW interfacing.
+- `src/full` - the 'catch all' demo. Includes GameOfLife and other applications
+  that are selectable with an 'applet selector'. Provides a communication
+  layer over I2C and UART. Automatically detects the topology of the boards
+  at startup and chooses a 'master board'. Is based on an RTOS (ChibiOS).
+
+There are also other small testing projects and a simulator that allows you to
+run the 'full' demo on your host machine.
 
 ## Flashing
 
-  * Via SWD: Attach the SWD interface of the MCU via stlink-v2 programmer and issue `$ make prg`
-  * Via USB / dfu-utils: Connect the board via USB and issue `$ make prg_usb`
-  
-See `src/common.mk` for other commands.
+Flashing is done using the `make prg` and `make prg_usb` commands.
+See `src/common.mk` for other makefile commands.
+
+### SWD Interface
+
+Attach the SWD interface of the MCU via stlink-v2 programmer and issue `$ make prg`
+
+## USB DFU
+
+Via USB / dfu-utils: Issue `$ make prg_usb` and connect the board over USB
+(or restart it, if it is already connected. The flashing process will start as
+soon as the board reaches the bootlader (you will see threee dots). If multiple
+boards are connected and started at once, the firmware will be loaded to all of
+them.
+
+The flashing is managed by our own bootloader. You can checkout the code in
+`src/dfu`, if you want to. You can program the bootloader using make prg.
+
+## Fallback USB DFU
+
+If you hold the `reset` button for a few seconds, you will get the board into
+manufacturer provided DFU mode. Use `make prg_bl` to flash it then. This can be
+used to flash the bootloader or have the wonderfull feeling of running
+bare-metal. If you want to run without the bootloader, you have to compile
+the demo with `NO_BOOTLOADER=1`. Use this mode if there is no STLink.
+
+## Memory layout
+
+TBD
 
 # Hardware Errata
 
