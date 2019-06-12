@@ -1,10 +1,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ch.h>
-#include "../i2c.h"
+#include <hw/i2c.h>
+#include <util/topo.h>
 #include "sim.h"
 #include "proto_defs.h"
-#include "../topo.h"
 
 MUTEX_DECL(i2c_mutex);
 static uint8_t sbuf[300];

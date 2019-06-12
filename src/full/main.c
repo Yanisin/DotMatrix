@@ -1,21 +1,20 @@
 #include <ch.h>
-#include "board.h"
-#include "led.h"
-
-#include "applet.h"
-#include "disp.h"
-#include "dots.h"
-#include "rand.h"
-#include "usart_buffered.h"
-#include "cdcacm.h"
-#include "led.h"
-#include "console.h"
-#include "topo.h"
-#include "message_queue.h"
-#include "mgmt_proto.h"
-#include "icons.h"
-#include "i2c.h"
-#include "topo.h"
+#include <hw/board.h>
+#include <hw/led.h>
+#include <hw/disp.h>
+#include <hw/usart_buffered.h>
+#include <hw/cdcacm.h>
+#include <hw/led.h>
+#include <hw/console.h>
+#include <hw/i2c.h>
+#include <hw/cell_id.h>
+#include <util/topo.h>
+#include <util/message_queue.h>
+#include <util/mgmt_proto.h>
+#include <util/icons.h>
+#include <util/topo.h>
+#include <util/initializers.h>
+#include <applets/applet.h>
 #include <assert.h>
 
 #ifdef SIM

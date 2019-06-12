@@ -24,10 +24,10 @@
 #include <libopencm3/usb/usbd.h>
 #include <libopencm3/usb/cdc.h>
 #include <libopencm3/cm3/nvic.h>
-
-#include "cdcacm.h"
-#include "applet.h"
-#include "byte_queue.h"
+#include <hw/cdcacm.h>
+#include <util/byte_queue.h>
+#include <util/initializers.h>
+#include <applets/applet.h>
 
 #define RX_BUF_SIZE 64
 #define TX_BUF_SIZE 64

@@ -3,9 +3,10 @@
 #else
 #include <libopencm3/cm3/systick.h>
 #endif
+#include <hw/cell_id.h>
+#include <util/initializers.h>
+#include <applets/applet.h>
 #include "rand.h"
-#include "cell_id.h"
-#include "applet.h"
 
 static uint32_t random[1];
 

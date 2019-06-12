@@ -1,7 +1,7 @@
-#include "../console.h"
-#include "../cell_id.h"
 #include <stdio.h>
 #include <stdarg.h>
+#include <hw/console.h>
+#include <hw/cell_id.h>
 
 void console_puts(const char *s)
 {

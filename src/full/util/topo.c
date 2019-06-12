@@ -1,11 +1,11 @@
 #include <string.h>
 #include <ch.h>
-#include "topo.h"
-#include "cell_id.h"
-#include "console.h"
-#include "usart_buffered.h"
-#include "util.h"
+#include <hw/cell_id.h>
+#include <hw/console.h>
+#include <hw/usart_buffered.h>
+#include <util/math.h>
 #include "topo_proto.h"
+#include "topo.h"
 
 #define MAX_CELL_COUNT 64
 #define FIND_SS_TIMEOUT TIME_MS2I(500)

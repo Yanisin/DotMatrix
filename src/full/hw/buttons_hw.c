@@ -2,12 +2,10 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/stm32/exti.h>
-
-#include "hw_defs.h"
-#include "applet.h"
-#include "led.h"
-#include "buttons_hw.h"
+#include <util/initializers.h>
+#include <hw_defs.h>
 #include "buttons.h"
+#include "buttons_hw.h"
 
 static void btn_init(void)
 {

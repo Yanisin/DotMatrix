@@ -1,17 +1,18 @@
-#include "i2c.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/i2c.h>
 #include <libopencm3/cm3/nvic.h>
 #include <string.h>
-#include "led.h"
-#include "topo.h"
-#include "util.h"
-#include "console.h"
-#include "hw_defs.h"
-#include "byte_queue.h"
-#include "mgmt_proto.h"
 #include <assert.h>
+#include <hw/led.h>
+#include <hw/console.h>
+#include <util/topo.h>
+#include <util/math.h>
+#include <util/byte_queue.h>
+#include <util/mgmt_proto.h>
+#include <util/crc8.h>
+#include <hw_defs.h>
+#include "i2c.h"
 
 /* Does not need to hold the whole message */
 #define TX_BUF_SIZE 8

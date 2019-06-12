@@ -1,7 +1,7 @@
 #pragma once
 
 #ifndef ASSEMBLER
-#include "../board.h"
+#include <hw/board.h>
 #endif
 
 #define CH_CFG_TIME_QUANTUM                 0

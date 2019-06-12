@@ -1,9 +1,9 @@
-#include "../disp.h"
 #include <string.h>
+#include <hw/disp.h>
+#include <hw/console.h>
+#include <util/vector.h>
 #include "sim.h"
 #include "proto_defs.h"
-#include "../vector.h"
-#include "../console.h"
 
 #define DISP_ROWS_NUM 8
 #define DISP_COLS_NUM 8

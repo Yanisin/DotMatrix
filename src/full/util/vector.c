@@ -1,6 +1,6 @@
-#include "vector.h"
 #include "hw_defs.h"
-#include "console.h"
+#include <hw/console.h>
+#include <util/vector.h>
 
 static const vector2 d2v_array[4] = {
        [DIR_RIGHT] = {1, 0},

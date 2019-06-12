@@ -1,15 +1,13 @@
-#include "applet.h"
-#include "topo.h"
-#include "mgmt_proto.h"
 #include <assert.h>
-#include "util.h"
-#include "i2c.h"
+#include <math.h>
+#include <hw/i2c.h>
+#include <util/topo.h>
+#include <util/mgmt_proto.h>
+#include <util/math.h>
+#include "applet.h"
 
 extern const struct applet *__applet_array_start;
 extern const struct applet *__applet_array_end;
-
-extern const initializer_cb __dminit_array_start;
-extern const initializer_cb __dminit_array_end;
 
 static const struct applet* current;
 
@@ -70,11 +68,4 @@ void applet_wait_for_end(sysinterval_t timeout)
 	chEvtRegister(&applet_should_end_event, &end_listener, 0);
 	chEvtWaitAnyTimeout(EVENT_MASK(0), timeout);
 	chEvtUnregister(&applet_should_end_event, &end_listener);
-}
-
-void run_all_initializers(void)
-{
-	for (const initializer_cb *i = &__dminit_array_start; i != &__dminit_array_end; i++) {
-		(*i)();
-	}
 }

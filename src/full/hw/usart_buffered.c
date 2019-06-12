@@ -24,18 +24,20 @@
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/scb.h>
 #else
-#include "sim/sim.h"
-#include "sim/proto_defs.h"
+#include <sim/sim.h>
+#include <sim/proto_defs.h>
 #endif
 #include <assert.h>
 #include <ch.h>
 #include "hw_defs.h"
-#include "usart_buffered.h"
-#include "console.h"
-#include "byte_queue.h"
-#include "applet.h"
-#include "console.h"
-#include "util.h"
+#include <hw/usart_buffered.h>
+#include <hw/console.h>
+#include <hw/console.h>
+#include <util/byte_queue.h>
+#include <util/math.h>
+#include <util/crc8.h>
+#include <util/initializers.h>
+#include <applets/applet.h>
 
 /* ---------------- Macro Definition --------------- */
 #define USART_COUNT 4

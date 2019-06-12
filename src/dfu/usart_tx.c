@@ -7,7 +7,7 @@
 #include <libopencm3/cm3/scb.h>
 #include "hw_defs.h"
 #include "usart_tx.h"
-#include "../full/util.h"
+#include "../full/util/crc8.h"
 
 #define USART_COUNT 4
 #define MSG_ID_FLAG_MGMT 0x20

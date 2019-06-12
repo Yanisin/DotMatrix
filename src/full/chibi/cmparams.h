@@ -1,6 +1,6 @@
 #pragma once
 #ifndef ASSEMBLER
-#include "../board.h"
+#include <hw/board.h>
 #include <libopencmsis/core_cm3.h>
 #include "cmsis_compat.h"
 #endif

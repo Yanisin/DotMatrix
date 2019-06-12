@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
-#include "message_queue.h"
+#include <util/message_queue.h>
 
 typedef struct usart_header_str {
 	uint8_t usart;

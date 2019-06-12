@@ -1,19 +1,17 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdio.h>
-
-#include "hw_defs.h"
-#include "applet.h"
-//#include "life.h"
-#include "disp.h"
-#include "rand.h"
-#include "usart_buffered.h"
-#include "console.h"
-#include "led.h"
-#include "icons.h"
-#include "topo.h"
-#include "i2c.h"
-#include <ch.h>
+#include <hw/usart_buffered.h>
+#include <hw/disp.h>
+#include <hw/console.h>
+#include <hw/buttons.h>
+#include <hw/i2c.h>
+#include <hw/led.h>
+#include <util/icons.h>
+#include <util/topo.h>
+#include <util/initializers.h>
+#include <util/rand.h>
+#include <applets/applet.h>
 
 #define BOARD_HEIGHT 8
 #define BOARD_WIDTH 8

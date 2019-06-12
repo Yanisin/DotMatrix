@@ -1,9 +1,9 @@
 #ifndef DISP_H
 #define DISP_H
 
-#include "stdint.h"
-#include "vector.h"
-#include "ch.h"
+#include <stdint.h>
+#include <ch.h>
+#include <util/vector.h>
 
 extern thread_t *display_test;
 

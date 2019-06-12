@@ -1,7 +1,7 @@
-#include "topo.h"
-#include "applet.h"
-#include "disp.h"
-#include "icons.h"
+#include <hw/disp.h>
+#include <util/icons.h>
+#include <util/topo.h>
+#include <applets/applet.h>
 
 static void topo_applet_run(void)
 {

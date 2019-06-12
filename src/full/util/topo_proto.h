@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-#include "message_queue.h"
-#include "cell_id.h"
+#include <hw/cell_id.h>
+#include <util/message_queue.h>
 
 #define TOPO_ROUTE_ANNOUNCE MSG_USER_ID(0)
 struct mgmt_route_announce {

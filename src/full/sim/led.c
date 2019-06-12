@@ -1,5 +1,5 @@
-#include "../led.h"
 #include <stdbool.h>
+#include <hw/led.h>
 #include "sim.h"
 #include "proto_defs.h"
 

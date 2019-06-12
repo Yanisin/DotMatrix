@@ -17,18 +17,10 @@ struct applet {
 	int priority;
 };
 
-typedef void (*initializer_cb)(void);
-
 #define applet_add(name) \
 	const struct applet *applet_ ## name \
 	__attribute__((section (".applet."#name))) = &name ## _applet
 
-
-#define init_add(name) \
-	const initializer_cb reg_ ## name \
-	__attribute__((section (".dminit."#name))) = &name
-
-void run_all_initializers(void);
 
 extern event_source_t applet_should_end_event;
 extern bool applet_should_end;

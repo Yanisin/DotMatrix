@@ -1,10 +1,10 @@
-#include "../board.h"
-#include "../cell_id.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <hw/board.h>
+#include <hw/cell_id.h>
 
 char static_heap[0x10000];
 

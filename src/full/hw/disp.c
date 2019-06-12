@@ -3,12 +3,11 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
-
+#include <hw/disp_spi.h>
+#include <hw/spi_dma.h>
+#include <util/initializers.h>
+#include <hw_defs.h>
 #include "disp.h"
-#include "disp_spi.h"
-#include "spi_dma.h"
-#include "hw_defs.h"
-#include "applet.h"
 
 #define COLOR_DEPTH 32
 #define NUM_BLANKS 3

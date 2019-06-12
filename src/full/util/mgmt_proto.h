@@ -2,8 +2,8 @@
 #define MGMT_MSG_H
 
 #include <stdint.h>
-#include "cell_id.h"
-#include "usart_buffered.h"
+#include <hw/cell_id.h>
+#include <util/message_queue.h>
 
 #define MGMT_BL_START MSG_MGMT_ID(0)
 struct mgmt_bl_start {

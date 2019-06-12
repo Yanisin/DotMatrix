@@ -1,5 +1,5 @@
-#include "icons.h"
-#include "disp.h"
+#include <hw/disp.h>
+#include <util/icons.h>
 
 static bool get_bool(int x, int y)
 {

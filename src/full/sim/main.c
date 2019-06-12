@@ -8,7 +8,7 @@
 #include "main.h"
 
 #include "sim.h"
-#include "../cell_id.h"
+#include <hw/cell_id.h>
 
 cell_id_t cell_id;
 pthread_t worker_thread;

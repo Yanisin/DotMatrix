@@ -8,12 +8,12 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <poll.h>
+#include <hw/cell_id.h>
+#include <hw/usart_buffered.h>
+#include <hw/buttons.h>
+#include <hw/i2c.h>
 #include "sim.h"
 #include "proto_defs.h"
-#include "../cell_id.h"
-#include "../usart_buffered.h"
-#include "../buttons.h"
-#include "../i2c.h"
 
 #define MAX_MSG_SIZE 256
 

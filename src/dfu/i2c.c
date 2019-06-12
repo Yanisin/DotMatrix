@@ -7,7 +7,6 @@
 #include "hw_defs.h"
 #include "main.h"
 #include "disp.h"
-#include "../full/util.h"
 
 #define ERR_MASK (I2C_ISR_ARLO | I2C_ISR_OVR | I2C_ISR_TIMEOUT | I2C_ISR_PECERR \
 	| I2C_ISR_TIMEOUT | I2C_ISR_ALERT)

@@ -1,11 +1,11 @@
-#include "usart_buffered.h"
-#include "applet.h"
-#include "disp.h"
-#include "icons.h"
-#include "topo.h"
-#include "console.h"
-#include "buttons.h"
-#include "i2c.h"
+#include <hw/usart_buffered.h>
+#include <hw/disp.h>
+#include <hw/console.h>
+#include <hw/buttons.h>
+#include <hw/i2c.h>
+#include <util/icons.h>
+#include <util/topo.h>
+#include <applets/applet.h>
 
 #define MSG_SHOW_APPLET MSG_USER_ID(0)
 struct msg_show_applet {

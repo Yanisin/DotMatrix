@@ -1,9 +1,10 @@
-#include "message_queue.h"
 #include <ch.h>
 #include <assert.h>
-#include "console.h"
-#include "pollint.h"
-#include "applet.h"
+#include <hw/console.h>
+#include <hw/pollint.h>
+#include <applets/applet.h>
+#include <util/initializers.h>
+#include "message_queue.h"
 
 #define FIELD_LENGTH 0
 #define FIELD_FLAGS 1

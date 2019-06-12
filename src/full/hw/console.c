@@ -1,10 +1,11 @@
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
-#include "simple_printf.h"
-
+#include <ch.h>
+#include <util/simple_printf.h>
+#include <hw/cdcacm.h>
 #include "console.h"
-#include "cdcacm.h"
 
 static bool console_unresponsive;
 

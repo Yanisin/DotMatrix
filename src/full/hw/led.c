@@ -3,9 +3,10 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 
-#include "led.h"
-#include "hw_defs.h"
-#include "applet.h"
+#include <hw/led.h>
+#include <applets/applet.h>
+#include <util/initializers.h>
+#include <hw_defs.h>
 
 #ifndef SIM
 void led_init(void)

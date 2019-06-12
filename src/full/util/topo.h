@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include "usart_buffered.h"
-#include "vector.h"
+#include <hw/usart_buffered.h>
+#include <util/vector.h>
 
 typedef struct cell_info_str {
 	vector2 pos;

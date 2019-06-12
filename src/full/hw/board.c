@@ -1,15 +1,15 @@
-#include "board.h"
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/cm3/cortex.h>
 #include <libopencm3/cm3/nvic.h>
-#include "hw_defs.h"
-#include "chibi/hal_st.h"
-#include "console.h"
-#include "ch.h"
-#include "icons.h"
-#include "disp.h"
+#include <ch.h>
 #include <assert.h>
+#include <chibi/hal_st.h>
+#include <hw/console.h>
+#include <hw/disp.h>
+#include <util/icons.h>
+#include "hw_defs.h"
+#include "board.h"
 
 extern uint8_t _psp_base;
 
