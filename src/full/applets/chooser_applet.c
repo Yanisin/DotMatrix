@@ -118,6 +118,7 @@ static void chooser_run(void)
 					i2c_send(MASTER_CELL_ID, MSG_CYCLE, 0, NULL);
 			}
 			if (button_event_mask & BTN_EV_HOLD) {
+				button_ignore_next_up(BTN_ANY);
 				if (topo_is_master)
 					chooser_select();
 				else

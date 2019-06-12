@@ -49,6 +49,8 @@ MODS += \
 	applets/applet \
 	applets/chooser_applet \
 	applets/topo_applet \
-	applets/life
+	applets/scroller \
+	applets/life \
+	applets/images
 
 include ../common.mk

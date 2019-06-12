@@ -28,7 +28,7 @@ TGT_PREFIX		?= arm-none-eabi-
 
 TGT_CC		:= $(TGT_PREFIX)gcc
 TGT_CXX		:= $(TGT_PREFIX)g++
-TGT_LD		:= $(TGT_PREFIX)gcc
+TGT_LD		:= $(TGT_PREFIX)ld
 TGT_AR		:= $(TGT_PREFIX)ar
 TGT_AS		:= $(TGT_PREFIX)as
 TGT_OBJCOPY		:= $(TGT_PREFIX)objcopy
@@ -96,7 +96,7 @@ TGT_CPPFLAGS	+= $(TGT_DEFS)
 TGT_LDFLAGS		+= --static -nostartfiles
 TGT_LDFLAGS		+= -T$(LDSCRIPT)
 TGT_LDFLAGS		+= $(ARCH_FLAGS)
-TGT_LDFLAGS		+= -Wl,-Map=$(TGT_BUILDDIR)/$(BINARY)map -Wl,--cref
+TGT_LDFLAGS		+= -Wl,-Map=$(TGT_BUILDDIR)/$(BINARY).map -Wl,--cref
 ifeq ($(V),99)
 TGT_LDFLAGS		+= -Wl,--print-gc-sections
 endif
@@ -142,7 +142,7 @@ $(TGT_BUILDDIR)/%.list: %(TGT_BUILDDIR)/%.elf
 
 $(TGT_BUILDDIR)/$(BINARY).elf $(TGT_BUILDDIR)/$(BINARY).map: $(TGT_OBJS) $(LDSCRIPT)
 	@printf "  LD      $(*).elf\n"
-	$(Q)$(TGT_LD) $(LDFLAGS) $(TGT_LDFLAGS) $(TGT_OBJS) $(LDLIBS) $(TGT_LDLIBS) -o $@
+	$(Q)$(TGT_CC) $(LDFLAGS) $(TGT_LDFLAGS) $(TGT_OBJS) $(LDLIBS) $(TGT_LDLIBS) -o $@
 
 $(TGT_BUILDDIR)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -159,10 +159,11 @@ $(TGT_BUILDDIR)/%.o: %.S
 	@printf "  AS      $(*).S\n"
 	$(Q)$(TGT_CC) $(TGT_CPPFLAGS) $(CPPFLAGS) -DASSEMBLER -o $@ -c $<
 
-$(TGT_BUILDDIR)%.o: %.cpp
+$(TGT_BUILDDIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
 	@printf "  CXX     $(*).cpp\n"
 	$(Q)$(TGT_CXX) $(TGT_CXXFLAGS) $(CXXFLAGS) $(TGT_CPPFLAGS) $(CPPFLAGS) -o $@ -c $<
+
 
 stylecheck: $(STYLECHECKFILES:=.stylecheck)
 styleclean: $(STYLECHECKFILES:=.styleclean)

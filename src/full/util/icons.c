@@ -44,7 +44,7 @@ void draw_icon(icon_data icon, enum blit_ops ops)
 #define X 1
 
 #if 0
-icon_data example = {
+icon_data template = {
 	ICON_ROW(_, _, _, _, _, _, _, _),
 	ICON_ROW(_, _, _, _, _, _, _, _),
 	ICON_ROW(_, _, _, _, _, _, _, _),
@@ -53,6 +53,17 @@ icon_data example = {
 	ICON_ROW(_, _, _, _, _, _, _, _),
 	ICON_ROW(_, _, _, _, _, _, _, _),
 	ICON_ROW(_, _, _, _, _, _, _, _),
+};
+
+icon_data template_nomacro = {
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
+	ICON_ROW(0, 0, 0, 0, 0, 0, 0, 0),
 };
 #endif
 

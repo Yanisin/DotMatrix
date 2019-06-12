@@ -58,25 +58,6 @@ enum topo_state {
 	DONE
 };
 
-enum edge_type {
-	EDGE_DEAD,
-	/* ANNOUNCE_CELLS has not yet run, we ca not tell. We just know it is live and not root. */
-	EDGE_LIVE_UNKNOWN,
-	/* Our route to the master */
-	EDGE_MASTER,
-	/* One of our children */
-	EDGE_CHILD,
-	/* A regular neighbor */
-	EDGE_NORMAL
-};
-
-typedef struct edge_info_str {
-	enum edge_type type;
-	bool announcements_end;
-	uint8_t children_count;
-	uint8_t first_cell;
-} edge_info;
-
 static void announce_route(void);
 static void announce_not_a_child(void);
 static void topo_dispatch(const msg_header *hdr, const buf_ptr *data);
@@ -96,7 +77,7 @@ cell_info topo_cells[MAX_CELL_COUNT];
 size_t topo_cell_count;
 enum direction topo_master_direction;
 
-static edge_info edges[DIR_COUNT];
+edge_info topo_edges[DIR_COUNT];
 static cell_info sort_cells[MAX_CELL_COUNT];
 static uint8_t first_cell_id;
 static enum topo_state state;
@@ -191,7 +172,7 @@ static void transition_announce_children(void)
 	if (state == FIND_SS) {
 		state = ANNOUNCE_CHILDREN;
 		if (!topo_is_master) {
-			edges[topo_master_direction].type = EDGE_MASTER;
+			topo_edges[topo_master_direction].type = EDGE_MASTER;
 		} else {
 #ifdef TRACE
 			console_printf("I am master\n");
@@ -205,7 +186,7 @@ static bool check_announcements_end(void)
 {
 	bool all_announced = true;
 	for(enum direction d = 0; d < DIR_COUNT; d++) {
-		edge_info *e = &edges[d];
+		edge_info *e = &topo_edges[d];
 		switch (e->type) {
 		case EDGE_DEAD:
 		case EDGE_NORMAL:
@@ -244,8 +225,8 @@ static void sort_children(void)
 	size_t start = 1;
 	size_t wptr[DIR_COUNT];
 	for(size_t d = 0; d < DIR_COUNT; d++) {
-		wptr[d] = edges[d].first_cell = start;
-		start += edges[d].children_count;
+		wptr[d] = topo_edges[d].first_cell = start;
+		start += topo_edges[d].children_count;
 	}
 
 	sort_cells[0] = topo_cells[0];
@@ -265,7 +246,7 @@ static void send_ids(void)
 		topo_cells[i].id = first_cell_id + i;
 	}
 	for(size_t d = 0; d < DIR_COUNT; d++) {
-		edge_info *e = &edges[d];
+		edge_info *e = &topo_edges[d];
 		if (e->type == EDGE_CHILD) {
 			struct mgmt_alloc_ids msg;
 			vector2 pos = pos_tx(topo_master_position, d);
@@ -286,7 +267,7 @@ static void announce_not_a_child(void)
 {
 	for(size_t d = 0; d < DIR_COUNT; d++) {
 		struct mgmt_not_a_child msg;
-		edge_info *e = &edges[d];
+		edge_info *e = &topo_edges[d];
 		if (e->type != EDGE_MASTER && e->type != EDGE_DEAD) {
 			usart_send_msg(d, TOPO_NOT_A_CHILD, 0, sizeof(msg), &msg);
 		}
@@ -317,7 +298,7 @@ static void announce_children(void)
 static void topo_dispatch(const msg_header *hdr, const buf_ptr *data)
 {
 	enum direction dir = hdr->source;
-	edge_info *e = &edges[dir];
+	edge_info *e = &topo_edges[dir];
 	if (e->type == EDGE_DEAD)
 		e->type = EDGE_LIVE_UNKNOWN;
 
@@ -446,7 +427,7 @@ void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)
 		}
 	} else if (route == MSG_ROUTE_BROADCAST) {
 		for (enum direction d = 0; d < DIR_COUNT; d++) {
-			if (edges[d].type == EDGE_CHILD)
+			if (topo_edges[d].type == EDGE_CHILD)
 				dir_mask |= (1 << d);
 		}
 		local = true;

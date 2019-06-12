@@ -16,6 +16,7 @@ extern event_source_t button_events_ready;
 bool button_get_state(enum button btn);
 bool button_get_any_events(uint8_t *events_out, sysinterval_t timeout);
 bool buttons_get_events(size_t button_count, uint8_t *events_out, sysinterval_t timeout);
+void button_ignore_next_up(enum button btn);
 void button_isr(enum button btn, bool state);
 
 #endif // BUTTONS_H

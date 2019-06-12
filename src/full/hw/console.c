@@ -11,7 +11,7 @@ static bool console_unresponsive;
 
 static void console_putc_single(const char c)
 {
-	sysinterval_t tout = console_unresponsive ? TIME_IMMEDIATE : TIME_MS2I(500);
+	sysinterval_t tout = console_unresponsive ? TIME_IMMEDIATE : TIME_MS2I(100);
 	if (oqPutTimeout(&cdcacm_tx_queue, c, tout) == MSG_TIMEOUT) {
 		console_unresponsive = true;
 	}

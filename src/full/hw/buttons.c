@@ -61,6 +61,11 @@ static void hold_cb(void *btn_void)
 	chSysUnlockFromISR();
 }
 
+void button_ignore_next_up(enum button btn)
+{
+	buttons[btn].state = false;
+}
+
 static bool button_isrI(enum button btn, bool state)
 {
 	struct btn_state *b = &buttons[btn];

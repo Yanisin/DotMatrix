@@ -12,8 +12,29 @@ typedef struct cell_info_str {
 	enum direction dir;
 } cell_info;
 
+enum edge_type {
+	EDGE_DEAD,
+	/* ANNOUNCE_CELLS has not yet run, we ca not tell. We just know it is live and not root. */
+	EDGE_LIVE_UNKNOWN,
+	/* Our route to the master */
+	EDGE_MASTER,
+	/* One of our children */
+	EDGE_CHILD,
+	/* A regular neighbor */
+	EDGE_NORMAL
+};
+
+typedef struct edge_info_str {
+	enum edge_type type;
+	bool announcements_end;
+	uint8_t children_count;
+	uint8_t first_cell;
+} edge_info;
+
+
 #define MASTER_CELL_ID 0
 
+extern edge_info topo_edges[DIR_COUNT];
 extern uint8_t topo_my_id;
 extern bool topo_is_master;
 extern cell_info topo_cells[];
