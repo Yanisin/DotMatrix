@@ -45,49 +45,49 @@ static void gpio_setup(void)
 }
 
 #define wait \
-		for (i = 0; i < 500; i++) {	/* Wait a bit. */\
-			__asm__("nop");\
-		}\
+	for (i = 0; i < 500; i++) {	/* Wait a bit. */\
+	__asm__("nop");\
+	}\
 
 static void bitbang(uint8_t col, uint8_t row)
 {
 	int k;
-		gpio_clear(LED_PORT, LED_PIN);	/* LED on/off */
+	gpio_clear(LED_PORT, LED_PIN);	/* LED on/off */
 
-		for (k=0;k<8;k++) {
-			if(col & (1<<k)) {
-				gpio_set(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
-			} else {
-				gpio_clear(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
-			}
-			__asm__("nop");
-			gpio_set(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
-			__asm__("nop");
-			gpio_clear(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
-			__asm__("nop");
-			}
-
-		for (k=0;k<8;k++) {
-			if(row & (1<<k)) {
-				gpio_set(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
-			} else {
-				gpio_clear(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
-			}
-			__asm__("nop");
-			gpio_set(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
-			__asm__("nop");
-			gpio_clear(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
-			__asm__("nop");
-			}
-
-			/*strobe*/
-		gpio_set(DISP_COLS_STROBE_GPIO, DISP_COLS_STROBE_GPIO_PIN);
+	for (k=0;k<8;k++) {
+		if(col & (1<<k)) {
+			gpio_set(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
+		} else {
+			gpio_clear(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
+		}
 		__asm__("nop");
-		gpio_clear(DISP_COLS_STROBE_GPIO, DISP_COLS_STROBE_GPIO_PIN);
+		gpio_set(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
 		__asm__("nop");
+		gpio_clear(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
+		__asm__("nop");
+	}
+
+	for (k=0;k<8;k++) {
+		if(row & (1<<k)) {
+			gpio_set(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
+		} else {
+			gpio_clear(DISP_COLS_DATA_GPIO, DISP_COLS_DATA_GPIO_PIN);
+		}
+		__asm__("nop");
+		gpio_set(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
+		__asm__("nop");
+		gpio_clear(DISP_COLS_CLK_GPIO, DISP_COLS_CLK_GPIO_PIN);
+		__asm__("nop");
+	}
+
+	/*strobe*/
+	gpio_set(DISP_COLS_STROBE_GPIO, DISP_COLS_STROBE_GPIO_PIN);
+	__asm__("nop");
+	gpio_clear(DISP_COLS_STROBE_GPIO, DISP_COLS_STROBE_GPIO_PIN);
+	__asm__("nop");
 	
-		gpio_set(LED_PORT, LED_PIN);	/* LED on/off */
-		__asm__("nop");
+	gpio_set(LED_PORT, LED_PIN);	/* LED on/off */
+	__asm__("nop");
 
 
 }
@@ -96,13 +96,12 @@ static void bitbang(uint8_t col, uint8_t row)
 int main(void)
 {
 	int i;
-	int k;
+	int k = 0;
 
 	gpio_setup();
-	k=1;
 
-		gpio_clear(DISP_nOE_ROW_GPIO, DISP_nOE_ROW_GPIO_PIN);
-		gpio_clear(DISP_nOE_COL_GPIO, DISP_nOE_COL_GPIO_PIN);
+	gpio_clear(DISP_nOE_ROW_GPIO, DISP_nOE_ROW_GPIO_PIN);
+	gpio_clear(DISP_nOE_COL_GPIO, DISP_nOE_COL_GPIO_PIN);
 	/* Blink the LED (PC8) on the board. */
 	while (1) {
 		/* Manually: */
@@ -122,14 +121,10 @@ int main(void)
 		//	__asm__("nop");
 
 		/* Using API function gpio_toggle(): */
-		bitbang(k,0xff);
-		if(k==0x80){
-			k=1;
-			}
-		else {
-			k=k<<1;
-		}
-		 for (i = 0; i < 1000; i++)	/* Wait a bit. */
+		bitbang(1 << k, 0xff & ~(1 << k));
+		k = (k + 1) % 8;
+
+		for (i = 0; i < 1000; i++)	/* Wait a bit. */
 			__asm__("nop");
 
 	}
