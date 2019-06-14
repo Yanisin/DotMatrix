@@ -117,7 +117,7 @@ in the FLASH, and that is used the flash the actual firmware.
 The MCU itself has a bootloader burnt from the manufacture. This one requires
 the Y1 oscillator popullated in order to work. It can be
 
-#### Project Multi Bootloader
+#### Project Distributed Bootloader
 
 There is a bootloader in `src/dfu`. Among other nice features this bootloader
 allows to flash multiple interconnected boards at the same time.
@@ -154,7 +154,27 @@ oscillator.  For details about this bootloader search for STs AN2606.
 
 ## Memory layout
 
-TBD
+Even though that you are programming C, it is important to know the memory
+layout for debugging etc. The makefiles will take care of linking the code
+at correct addreses.
+
+ROM is mapped at 0x08000000 and the layout is as follows:
+
+ Address | Size     | Usage
+---------|----------|------------------------------------
+0x0      | 0x4000   | Project Distributed Bootloader
+0x4000   | 0x1C000  | Your application code (interrupt vectors, .text, .data)
+
+
+RAM is mapped at 0x20000000 and the layout is as follows.
+
+ Address | Size     | Usage
+---------|----------|--------------------------------------------------------
+0x0      | 0x100    | Interrupt vectors (loaded from ROM)
+0x100    | 0x3F00   | Your application data (.data loaded from ROM, .bss)
+
+For the location of IO registers for peripherals, consult the ST manual
+
 
 # Hardware and mechanical parts
 The currently used/latest HW is described in "pcb/60x60_dma". The board

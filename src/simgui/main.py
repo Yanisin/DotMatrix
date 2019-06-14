@@ -10,7 +10,7 @@ import server
 import model
 import ui
 
-large = False
+large = True
 
 field = model.Field()
 field.create((1, 1), model.test_id(1))
@@ -25,6 +25,7 @@ if large:
     field.create((1, 4), model.gen_id())
     field.create((1, 3), model.gen_id())
     field.create((1, 2), model.gen_id())
+    #field.create((2, 3), model.gen_id())
 
 server = server.CellServer(('localhost', 6788), field)
 thread = threading.Thread(target = server.serve_forever)
