@@ -52,7 +52,8 @@ MODS += \
 	applets/scroller \
 	applets/life \
 	applets/images \
-	applets/dots 
+	applets/dots \
+	applets/cell_1d
 
 # uncomment to add the hello applet
 # MODS += applets/hello

@@ -164,7 +164,11 @@ static void main_task(void)
 	chThdWait(display_test);
 	print_banner();
 
-	applet_select_local(&chooser_applet);
+	const struct applet* autostart = applet_autostart();
+	if (autostart == NULL)
+		applet_select_local(&chooser_applet);
+	else
+		applet_select_local(autostart);
 
 	while (1) {
 		if (topo_is_master) {

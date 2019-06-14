@@ -69,3 +69,12 @@ void applet_wait_for_end(sysinterval_t timeout)
 	chEvtWaitAnyTimeout(EVENT_MASK(0), timeout);
 	chEvtUnregister(&applet_should_end_event, &end_listener);
 }
+
+const struct applet *applet_autostart(void)
+{
+	for (size_t i = 0; i < applet_count(); i++) {
+		if (applet_get(i)->autostart)
+			return applet_get(i);
+	}
+	return NULL;
+}

@@ -10,7 +10,7 @@
 
 static uint32_t random[1];
 
-void rand_init(void)
+static void rand_init(void)
 {
 #ifdef SIM
 	uint32_t acc = 0;

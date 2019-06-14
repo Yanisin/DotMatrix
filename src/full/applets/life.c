@@ -359,7 +359,6 @@ static void life_run(void)
 	life_tick_interv = life_tick_mult * LIFE_TICK;
 
 	memset(board, 0, sizeof(board));
-	rand_init();
 
 	while(!applet_should_end) {
 		life_worker();

@@ -33,6 +33,7 @@ size_t applet_count(void);
 const struct applet* applet_get(uint8_t index);
 void applet_wait_for_end(sysinterval_t timeout);
 uint8_t applet_topmost(void);
+const struct applet *applet_autostart(void);
 
 
 #endif
