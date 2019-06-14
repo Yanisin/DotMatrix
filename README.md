@@ -108,24 +108,49 @@ See `src/common.mk` for other makefile commands.
 
 Attach the SWD interface of the MCU via stlink-v2 programmer and issue `$ make prg`
 
-## USB DFU
+### USB DFU Bootloaders
 
-Via USB / dfu-utils: Issue `$ make prg_usb` and connect the board over USB
-(or restart it, if it is already connected. The flashing process will start as
-soon as the board reaches the bootlader (you will see threee dots). If multiple
-boards are connected and started at once, the firmware will be loaded to all of
-them.
+There are two USB bootloaders.  One is burnt int the MCU from the manufacturer.
+This one can be used in case of emergency to write "more specialized" bootloader stored 
+in the FLASH, and that is used the flash the actual firmware.
 
-The flashing is managed by our own bootloader. You can checkout the code in
-`src/dfu`, if you want to. You can program the bootloader using make prg.
+The MCU itself has a bootloader burnt from the manufacture. This one requires
+the Y1 oscillator popullated in order to work. It can be
 
-## Fallback USB DFU
+#### Project Multi Bootloader
 
-If you hold the `reset` button for a few seconds, you will get the board into
-manufacturer provided DFU mode. Use `make prg_bl` to flash it then. This can be
-used to flash the bootloader or have the wonderfull feeling of running
-bare-metal. If you want to run without the bootloader, you have to compile
-the demo with `NO_BOOTLOADER=1`. Use this mode if there is no STLink.
+There is a bootloader in `src/dfu`. Among other nice features this bootloader
+allows to flash multiple interconnected boards at the same time.
+Once compiled it can be flashed to ieach of the MCUs either using the stlink-v2
+programer ( using `make prg` commad) or via the MCUs built in bootloader (using
+the "make prg_bl" command).
+
+If you want to use this bootloader (recommneded way), issue `$ make prg_usb` in
+your project and connect the board over USB (or restart it, if it is already
+connected. The flashing process will start as soon as the board reaches the
+bootlader (you will see threee dots). If multiple boards are connected and
+started at once, the firmware will be loaded to all of them.
+
+The USB part of this bootloader seems to work even without Y1 resonator
+populated, but the manufacturer does not say that it should be relyable.
+If you have the the Y1 not populated keep this in mind.
+
+#### MCU Manufacturers Bootloader
+
+The MCU has a built in bootloader that is started if the BOOT0 pin is held hight
+after reset is released. On the board there is reset circuitry with button.
+If you hold this `reset` button for several seconds, you will get the board into
+manufacturer provided bootloader. Among other ways (like USART, SPI, I2C) this
+bootloader can program the flash via the USB DFU protocol. Use `make prg_bl` to
+talk to this bootloader.  This can be used to flash the project bootloader or
+have the wonderfull feeling of running bare-metal. If you want to run your
+project without the project bootloader, You have to compile the demo with
+`NO_BOOTLOADER=1`. 
+
+Keep in mind that you can use this bootloader in USB DFU mode only if there is
+the Y1 resonator present. If the Y1 is not present, you will need to use the
+stlink-v2 or some other interface that this bootloader can handle even without
+oscillator.  For details about this bootloader search for STs AN2606.
 
 ## Memory layout
 
