@@ -25,6 +25,7 @@ static void hello_init(void)
 static void hello_worker(void)
 {
 	static int i = 0;
+	TIME_IIN
 
 	hello_init();
 

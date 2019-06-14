@@ -15,6 +15,12 @@ your applet as `autostart` during debugging.
 
 You can find documentation for ChibiOS at http://chibios.sourceforge.net/docs/19.1/full_rm/index.html.
 
+## Functions suffixes
+
+`I` suffix signifies function can be called from ISR locked state.
+`S` suffix signifies function can be called from locked state.
+`X` suffix signifies function can be called from any.
+
 ### Quick reference
 
 - Getting current time: `chVTGetSystemTimeX`

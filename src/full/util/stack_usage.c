@@ -1,6 +1,11 @@
 /* Use with debugger */
 #include <ch.h>
 
+/**
+ * @file
+ *  Stack usage analysis. Intended to be called from GDB. See the README.md.
+ */
+
 #if CH_DBG_ENABLE_STACK_CHECK == TRUE
 struct thrinfo {
 	const char *name;

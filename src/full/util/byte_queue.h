@@ -1,6 +1,7 @@
 #pragma once
 
-/* Taken from ChibOS, since they can not be used without the HAL and HAL LLD. */
+/* Taken from ChibOS, since the ChibiOS queues can not be used without the HAL and HAL LLD,
+ * which we do not want. */
 
 /*
     ChibiOS - Copyright (C) 2006..2018 Giovanni Di Sirio

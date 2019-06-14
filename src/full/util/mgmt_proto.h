@@ -5,6 +5,12 @@
 #include <hw/cell_id.h>
 #include <util/message_queue.h>
 
+/**
+ * @file
+ *
+ * Definitions of management messages
+ */
+
 #define MGMT_BL_START MSG_MGMT_ID(0)
 struct mgmt_bl_start {
 };
