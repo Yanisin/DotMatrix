@@ -1,12 +1,6 @@
 /* Use with debugger */
 #include <ch.h>
 
-/* Use:
-p stat_threads()
-set print pretty on
-p stat_thrinfo
-*/
-
 #if CH_DBG_ENABLE_STACK_CHECK == TRUE
 struct thrinfo {
 	const char *name;
