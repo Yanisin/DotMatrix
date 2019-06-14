@@ -64,5 +64,6 @@ vector2 pos_rx(vector2 v, enum direction d);
 
 enum direction dir_tx(enum direction value, enum direction d);
 enum direction dir_rx(enum direction value, enum direction d);
+enum direction global_direction(enum direction value);
 
 #endif // TOPO_H

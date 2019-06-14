@@ -401,6 +401,10 @@ enum direction dir_rx(enum direction value, enum direction d)
 	return rotate_direction(value, reverse_direction(d));
 }
 
+enum direction global_direction(enum direction value){
+	 return rotate_direction(value, topo_master_orientation);
+}
+
 /************************************ ROUTING *****************************************************/
 void route_message(bool send_local, msg_header *hdr, buf_ptr *buf)
 {

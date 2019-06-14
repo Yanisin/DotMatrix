@@ -29,13 +29,13 @@ static uint8_t rule = 18;
 static int generations = 0;
 
 /*
- *   top
+ *   up
  *    ^
  *   +----+
  *   |    |   -> scroll direction
  *   |    |
  *   +----+
- *    bottom
+ *    down
  *
  * The first line is numbered the top, where 0 = neighbors cell value.
  */
@@ -62,9 +62,9 @@ static void cell_1d_recv_neihgbor(void)
 	buf_ptr data;
 	while(msg_rx_queue_get(default_queue, &hdr, &data, TIME_IMMEDIATE)) {
 		if (hdr.id == MSG_NEIGHBOR) {
-			if (hdr.source == MSG_SOURCE_USART_UP) {
+			if (hdr.source == global_direction(DIR_UP)) {
 				first_line[FL_UP_NEIGHBOR] = *buf_ptr_index(&data, 0);
-			} else if (hdr.source == MSG_SOURCE_USART_DOWN) {
+			} else if (hdr.source == global_direction(DIR_DOWN)) {
 				first_line[FL_DOWN_NEIGHBOR] = *buf_ptr_index(&data, 0);
 			}
 		} else if (hdr.id == MSG_NEW_RULE) {
@@ -92,18 +92,17 @@ static void cell_1d_update(void)
 
 static void cell_1d_send_neighbor(void)
 {
-	usart_send_msg(DIR_UP, MSG_NEIGHBOR, MSG_DEFAULT, 1, &first_line[FL_FIRST]);
-	usart_send_msg(DIR_DOWN, MSG_NEIGHBOR, MSG_DEFAULT, 1, &first_line[FL_LAST]);
+	usart_send_msg(global_direction(DIR_UP), MSG_NEIGHBOR, MSG_DEFAULT, 1, &first_line[FL_FIRST]);
+	usart_send_msg(global_direction(DIR_DOWN), MSG_NEIGHBOR, MSG_DEFAULT, 1, &first_line[FL_LAST]);
 }
 
 static void cell_1d_send_scroll(void)
 {
-	enum direction global_right = rotate_direction(DIR_RIGHT, topo_master_orientation);
 	uint8_t last_row[DISP_ROWS_NUM];
 	for (int row = 0; row < DISP_ROWS_NUM; row++) {
 		last_row[row] = disp_get(DISP_COLS_NUM - 1, row);
 	}
-	usart_send_msg(global_right, MSG_SEND_ROW, MSG_DEFAULT, sizeof(last_row), last_row);
+	usart_send_msg(global_direction(DIR_RIGHT), MSG_SEND_ROW, MSG_DEFAULT, sizeof(last_row), last_row);
 }
 
 static void cell_1d_recv_scroll(void)
@@ -124,8 +123,7 @@ static void cell_1d_run(void)
 {
 	disp_clean();
 	disp_set_rotation(topo_master_orientation);
-	enum direction global_left = rotate_direction(DIR_LEFT, topo_master_orientation);
-	bool is_generator = topo_edges[global_left].type == EDGE_DEAD;
+	bool is_generator = topo_edges[global_direction(DIR_LEFT)].type == EDGE_DEAD;
 	if (is_generator) {
 		seed_first_line_with_random();
 		cell_1d_send_neighbor();
@@ -144,7 +142,7 @@ static void cell_1d_run(void)
 		} else {
 			msg_header header;
 			buf_ptr data;
-			if (msg_rx_queue_get(alt_queue, &header, &data, TIME_INFINITE)) {
+			if (msg_rx_queue_get(alt_queue, &header, &data, TIME_MS2I(1000))) {
 				msg_rx_queue_ack(alt_queue);
 			}
 		}
