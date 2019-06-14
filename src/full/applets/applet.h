@@ -15,6 +15,7 @@ struct applet {
 
 	const uint8_t icon[8];
 	int priority;
+	bool autostart;
 };
 
 #define applet_add(name) \

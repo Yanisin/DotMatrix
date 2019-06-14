@@ -37,8 +37,8 @@ static const img_ref * const imglist[] = {
 };
 
 
-static uint8_t current_img_id;
-static uint8_t dummy_cycles;
+static int current_img_id;
+static unsigned int dummy_cycles;
 static img_desc current_img;
 static unsigned int scroll_column;
 
