@@ -89,6 +89,7 @@ TGT_CXXFLAGS	+= $(ARCH_FLAGS)
 # C & C++ preprocessor common flags
 
 TGT_CPPFLAGS	+= $(TGT_DEFS)
+TGT_CPPFLAGS	+= $(ARCH_FLAGS)
 
 ###############################################################################
 # Linker flags
