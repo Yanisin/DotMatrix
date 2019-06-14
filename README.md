@@ -4,7 +4,7 @@
 
 A STM32F070CB driving a LED DotMatrix.
 
-## Prerequisities
+## Prerequisities for building Firmware
 
   * You need an appropriate Cortex-M ARM toolchain. We suggest to use the
   ARM's [GNU Embedded Toolchain for Arm ](https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads).
@@ -131,16 +131,15 @@ the demo with `NO_BOOTLOADER=1`. Use this mode if there is no STLink.
 
 TBD
 
-# Hardware Errata
+# Hardware and mechanical parts
+The currently used/latest HW is described in "pcb/60x60_dma". The board
+is designed with KiCAD but there is the schematics exported in PDF 
+and some assembly hints with list of needed parts are added as well.
+The other folders in "src" are mostly unfinished various experiments/extension.
 
-## 38x38_monochrome rev. 0.1
-
-- U3 - NMR and NOE are exchanged
-- J5 and J4 - USART_TX and RX are exchanged 
-- J8 and J9 - USART_TX and RX are exchanged 
-- The copy of J3 (USB) on bottom does not have the GND pin connected
-- BOOT0 pin floating, shoud be tight to ground
-
-## 60x60_monochrome (rev. 0.2)
-
-- the mounting holes are not in 10x10 matrix
+In the "mechanical" folder you can find the mechanical parts for 3D printing.
+For each board PCB you will need one disp_support.stl.  The file is expected to
+be printed with 0.4mm nozzle and 0.15mm layer height.  For connecting boards
+you can use joint_cross_1_5m.stl for each corner (in older revision of the
+board there is LED in the way so you need the use the one with the cuts for the
+LED).
