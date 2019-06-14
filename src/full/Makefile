@@ -52,6 +52,9 @@ MODS += \
 	applets/scroller \
 	applets/life \
 	applets/images \
-	applets/dots
+	applets/dots 
+
+# uncomment to add the hello applet
+# MODS += applets/hello
 
 include ../common.mk
