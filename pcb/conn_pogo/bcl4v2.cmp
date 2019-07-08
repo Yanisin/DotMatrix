@@ -1,0 +1,304 @@
+Cmp-Mod V01 Created by CvPcb (2013-jul-07)-stable date = Čt 24. březen 2016, 19:12:07 CET
+
+BeginCmp
+TimeStamp = /54216128;
+Reference = C1;
+ValeurCmp = 2u2;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /5421612D;
+Reference = C2;
+ValeurCmp = 10n;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54216130;
+Reference = C3;
+ValeurCmp = 2u2;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C9D;
+Reference = D1;
+ValeurCmp = ZENER;
+IdModule  = SOD323;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C11;
+Reference = D2;
+ValeurCmp = ZENER;
+IdModule  = SOD323;
+EndCmp
+
+BeginCmp
+TimeStamp = /56EFEE99;
+Reference = D3;
+ValeurCmp = ZENER;
+IdModule  = SOD323;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F42D8C;
+Reference = D4;
+ValeurCmp = LED;
+IdModule  = LED-0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C9B;
+Reference = K1;
+ValeurCmp = CONN_3;
+IdModule  = badger_wires_3;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C29;
+Reference = K2;
+ValeurCmp = CONN_3;
+IdModule  = badger_wires_3;
+EndCmp
+
+BeginCmp
+TimeStamp = /56EFEE9B;
+Reference = K3;
+ValeurCmp = CONN_3;
+IdModule  = badger_wires_3;
+EndCmp
+
+BeginCmp
+TimeStamp = /56EFECDA;
+Reference = K4;
+ValeurCmp = CONN_3;
+IdModule  = PIN_ARRAY_3X1_SMD;
+EndCmp
+
+BeginCmp
+TimeStamp = /56EFEC63;
+Reference = P1;
+ValeurCmp = CONN_4;
+IdModule  = PIN_ARRAY_4X1_SMD;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F2E482;
+Reference = P2;
+ValeurCmp = CONN_6;
+IdModule  = PIN_ARRAY_6X1_edge;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F2E491;
+Reference = P3;
+ValeurCmp = CONN_6;
+IdModule  = PIN_ARRAY_6X1_edge;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F14229;
+Reference = P4;
+ValeurCmp = CONN_1;
+IdModule  = badger_tst_pin;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F118FF;
+Reference = Q1;
+ValeurCmp = NPN;
+IdModule  = sot23;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F022D3;
+Reference = Q2;
+ValeurCmp = NPN;
+IdModule  = sot23;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B03;
+Reference = Q3;
+ValeurCmp = MOSFET_N;
+IdModule  = SOT23GDS;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B7A;
+Reference = Q4;
+ValeurCmp = MOSFET_N;
+IdModule  = SOT23GDS;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B8E;
+Reference = Q5;
+ValeurCmp = MOSFET_N;
+IdModule  = SOT23GDS;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B85;
+Reference = Q6;
+ValeurCmp = MOSFET_N;
+IdModule  = SOT23GDS;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C9C;
+Reference = R1;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215C1D;
+Reference = R2;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56EFEE9A;
+Reference = R3;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F02AEF;
+Reference = R4;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F02AA9;
+Reference = R5;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F11902;
+Reference = R6;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F11901;
+Reference = R7;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F11900;
+Reference = R8;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F022B5;
+Reference = R9;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F022B8;
+Reference = R10;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F022CB;
+Reference = R11;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F11903;
+Reference = R12;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F022A9;
+Reference = R13;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B0B;
+Reference = R14;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B79;
+Reference = R15;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B8D;
+Reference = R16;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54215B86;
+Reference = R17;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F42E77;
+Reference = R18;
+ValeurCmp = R;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /54216119;
+Reference = U1;
+ValeurCmp = LP2985;
+IdModule  = SOT23-5;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F14F88;
+Reference = U2;
+ValeurCmp = STM32F030K6TX;
+IdModule  = TQFP32;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F11904;
+Reference = U3;
+ValeurCmp = DUALMOSFET;
+IdModule  = tsot-6;
+EndCmp
+
+BeginCmp
+TimeStamp = /56F021D9;
+Reference = U4;
+ValeurCmp = DUALMOSFET;
+IdModule  = tsot-6;
+EndCmp
+
+EndListe
