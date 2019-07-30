@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/kna/priv/dotMatrix/DotMatrix/pcb/conn_pogo/bcl4v2.sch)
-    (date St 3. červenec 2019, 08:59:12 CEST)
+    (date Út 30. červenec 2019, 14:02:52 CEST)
     (tool "Eeschema 5.0.2-bee76a0~70~ubuntu16.04.1")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -17,7 +17,7 @@
   (components
     (comp (ref J1)
       (value Conn_01x05)
-      (footprint libraries:5way_pogo_1mm_hole)
+      (footprint libraries:5way_pogo_1.5mm_hole)
       (libsource (lib bcl4v2-rescue) (part Conn_01x05) (description ""))
       (sheetpath (names /) (tstamps /))
       (tstamp 5D1D2742))
